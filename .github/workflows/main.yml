@@ -3,6 +3,25 @@ name: CI
 on: [ pull_request, push ]
 
 jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    strategy:
+      matrix:
+        language: [javascript]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up CodeQL
+        uses: github/codeql-action/init@v1
+        with:
+          languages: ${{ matrix.language }}
+      - name: Build application
+        uses: github/codeql-action/autobuild@v1
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v1
+
   build:
     runs-on: ubuntu-latest
     env:
