@@ -1,16 +1,16 @@
-import { Address, AlgoIndexer } from "./AlgoIndexer"
+import { AlgoIndexer } from "./AlgoIndexer"
 
 export type AssetParams = {
-  clawback: Address
-  creator: Address
+  clawback: string
+  creator: string
   decimals: number
   "default-frozen": boolean
-  freeze: Address
-  manager: Address
+  freeze: string
+  manager: string
   "metadata-hash"?: string
   name?: string
   "name-b64"?: string
-  reserve: Address
+  reserve: string
   total: number
   "unit-name"?: string
   "unit-name-b64"?: string

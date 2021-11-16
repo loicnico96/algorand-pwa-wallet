@@ -2,8 +2,9 @@ import { ALGO_NETWORK } from "lib/utils/environment"
 import { fetchJson } from "lib/utils/fetchJson"
 import { useMemo } from "react"
 import useSWR from "swr"
+import networks from "config/networks.json"
 
-const ASSET_PRICE_URL = `https://${ALGO_NETWORK}.analytics.tinyman.org/api/v1/current-asset-prices`
+const ASSET_PRICE_URL = networks[ALGO_NETWORK].prices_api
 
 export function useAssetPrices() {
   const { data, error, isValidating, mutate } = useSWR(`/asset-prices`, () =>

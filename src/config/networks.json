@@ -1,0 +1,20 @@
+{
+  "mainnet": {
+    "algo_api": "https://algoexplorerapi.io/",
+    "algo_api_port": "",
+    "algo_api_token": "",
+    "algo_indexer": "https://algoexplorerapi.io/idx2/",
+    "algo_indexer_port": "",
+    "algo_indexer_token": "",
+    "prices_api": "https://mainnet.analytics.tinyman.org/api/v1/current-asset-prices"
+  },
+  "testnet": {
+    "algo_api": "https://testnet.algoexplorerapi.io/",
+    "algo_api_port": "",
+    "algo_api_token": "",
+    "algo_indexer": "https://testnet.algoexplorerapi.io/idx2/",
+    "algo_indexer_port": "",
+    "algo_indexer_token": "",
+    "prices_api": "https://testnet.analytics.tinyman.org/api/v1/current-asset-prices"
+  }
+}
