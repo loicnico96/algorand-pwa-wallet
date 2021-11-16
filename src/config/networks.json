@@ -6,7 +6,8 @@
     "algo_indexer": "https://algoexplorerapi.io/idx2/",
     "algo_indexer_port": "",
     "algo_indexer_token": "",
-    "prices_api": "https://mainnet.analytics.tinyman.org/api/v1/current-asset-prices"
+    "tinyman_prices_api": "https://mainnet.analytics.tinyman.org/api/v1/current-asset-prices",
+    "tinyman_validator_app_id": 350338509
   },
   "testnet": {
     "algo_api": "https://testnet.algoexplorerapi.io/",
@@ -15,6 +16,7 @@
     "algo_indexer": "https://testnet.algoexplorerapi.io/idx2/",
     "algo_indexer_port": "",
     "algo_indexer_token": "",
-    "prices_api": "https://testnet.analytics.tinyman.org/api/v1/current-asset-prices"
+    "tinyman_prices_api": "https://testnet.analytics.tinyman.org/api/v1/current-asset-prices",
+    "tinyman_validator_app_id": 21580889
   }
 }

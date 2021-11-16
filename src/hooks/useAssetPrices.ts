@@ -4,7 +4,7 @@ import { useMemo } from "react"
 import useSWR from "swr"
 import networks from "config/networks.json"
 
-const ASSET_PRICE_URL = networks[ALGO_NETWORK].prices_api
+const ASSET_PRICE_URL = networks[ALGO_NETWORK].tinyman_prices_api
 
 export function useAssetPrices() {
   const { data, error, isValidating, mutate } = useSWR(`/asset-prices`, () =>

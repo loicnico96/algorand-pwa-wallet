@@ -103,6 +103,50 @@ export default function ViewAccountPage() {
     )
   }, [address])
 
+  const addAsset = useCallback(async () => {
+    if (!address) {
+      return
+    }
+
+    // eslint-disable-next-line no-alert
+    const assetId = window.prompt("Asset ID:")
+    if (assetId === null) {
+      return
+    }
+
+    if (!Number.isInteger(Number(assetId)) || Number(assetId) < 0) {
+      throw Error("Invalid asset ID")
+    }
+
+    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+
+    const transaction =
+      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+        amount: 0,
+        assetIndex: Number(assetId),
+        from: address,
+        suggestedParams,
+        to: address,
+      })
+
+    let signed: Uint8Array | undefined
+
+    withSecretKey(key => {
+      signed = transaction.signTxn(key)
+    })
+
+    if (!signed) {
+      return
+    }
+
+    await AlgoAPI.sendRawTransaction(signed).do()
+
+    // eslint-disable-next-line no-alert
+    window.alert(
+      `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
+    )
+  }, [address])
+
   if (!address) {
     return <pre>Loading...</pre>
   }
@@ -119,6 +163,9 @@ export default function ViewAccountPage() {
       )}
       {address === getAddress() && (
         <button onClick={onRemoveAccount}>Remove account</button>
+      )}
+      {address === getAddress() && (
+        <button onClick={addAsset}>Add asset</button>
       )}
       {address === getAddress() && <button onClick={onSend}>Send Algos</button>}
     </div>
