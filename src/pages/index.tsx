@@ -1,28 +1,38 @@
-import { useRouter } from "next/router"
-import { useEffect } from "react"
+import Link from "next/link"
 
-import { getAddress } from "lib/utils/auth"
+import { useAddressBook } from "context/AddressBookContext"
+import { replaceParams, Route } from "lib/utils/navigation"
 
 export default function HomePage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    const address = getAddress()
-    if (address) {
-      router.push(`/account/${address}`).catch(error => {
-        console.error(error)
-      })
-    }
-  }, [router])
+  const { accounts } = useAddressBook()
 
   return (
     <div>
-      <button onClick={() => router.push("/account/create")}>
-        Create account
-      </button>
-      <button onClick={() => router.push("/account/restore")}>
-        Restore account
-      </button>
+      {accounts
+        .filter(account => account.key)
+        .map(account => {
+          const href = replaceParams(Route.ACCOUNT_VIEW, {
+            address: account.address,
+          })
+
+          return (
+            <Link href={href} key={account.address}>
+              <a>
+                <div title={account.address}>{account.name}</div>
+              </a>
+            </Link>
+          )
+        })}
+      <Link href={Route.ACCOUNT_CREATE}>
+        <a>
+          <button>Create account</button>
+        </a>
+      </Link>
+      <Link href={Route.ACCOUNT_RESTORE}>
+        <a>
+          <button>Restore account</button>
+        </a>
+      </Link>
     </div>
   )
 }

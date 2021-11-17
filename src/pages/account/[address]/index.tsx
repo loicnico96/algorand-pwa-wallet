@@ -12,6 +12,7 @@ import {
   withSecretKey,
   removeAccount,
 } from "lib/utils/auth"
+import { Route } from "lib/utils/navigation"
 
 export default function ViewAccountPage() {
   const router = useRouter()
@@ -19,11 +20,13 @@ export default function ViewAccountPage() {
   const { api } = useNetworkContext()
   const { isReady, query } = router
 
-  const address = Array.isArray(query.addr) ? query.addr[0] : query.addr
+  const address = Array.isArray(query.address)
+    ? query.address[0]
+    : query.address
 
   useEffect(() => {
     if (isReady && !address) {
-      router.replace("/").catch(error => {
+      router.replace(Route.ACCOUNT_LIST).catch(error => {
         console.error(error)
       })
     }
@@ -38,7 +41,7 @@ export default function ViewAccountPage() {
 
   const onRemoveAccount = useCallback(() => {
     if (removeAccount()) {
-      router.replace("/").catch(error => {
+      router.replace(Route.ACCOUNT_LIST).catch(error => {
         console.error(error)
       })
     }
@@ -306,7 +309,7 @@ export default function ViewAccountPage() {
 
   return (
     <div>
-      <Link href="/">Back</Link>
+      <Link href={Route.ACCOUNT_LIST}>Back</Link>
       <ViewAccount address={address} />
       {address === getAddress() && (
         <button onClick={changePIN}>Change PIN</button>

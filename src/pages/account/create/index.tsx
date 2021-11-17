@@ -4,6 +4,7 @@ import { useRouter } from "next/router"
 import { useCallback, useMemo } from "react"
 
 import { addAccount } from "lib/utils/auth"
+import { replaceParams, Route } from "lib/utils/navigation"
 
 export default function CreateAccountPage() {
   const account = useMemo(() => algosdk.generateAccount(), [])
@@ -16,7 +17,11 @@ export default function CreateAccountPage() {
 
   const onConfirm = useCallback(() => {
     if (addAccount(account)) {
-      router.replace(`/account/${account.addr}`).catch(error => {
+      const href = replaceParams(Route.ACCOUNT_VIEW, {
+        address: account.addr,
+      })
+
+      router.replace(href).catch(error => {
         console.error(error)
       })
     }
@@ -24,7 +29,7 @@ export default function CreateAccountPage() {
 
   return (
     <div>
-      <Link href="/">Back</Link>
+      <Link href={Route.ACCOUNT_LIST}>Back</Link>
       {passphrase.map((value, index) => (
         <div key={index}>
           <pre>
