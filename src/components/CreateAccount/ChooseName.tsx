@@ -1,12 +1,12 @@
-import Link from "next/link"
 import { useCallback, useState } from "react"
 
+import { AsyncButton } from "components/AsyncButton"
 import { AccountData } from "lib/db/schema"
 
 export interface ChooseNameProps {
   defaultName?: string
   defaultNote?: string
-  onBack: string | (() => unknown)
+  onBack: () => unknown
   onNext: (data: AccountData) => unknown
 }
 
@@ -30,13 +30,7 @@ export function ChooseName({
 
   return (
     <div>
-      {typeof onBack === "string" ? (
-        <Link href={onBack}>
-          <a>Back</a>
-        </Link>
-      ) : (
-        <a onClick={onBack}>Back</a>
-      )}
+      <a onClick={onBack}>Back</a>
       <p>
         Choose a name for your account. This information will be stored on your
         device only.
@@ -53,9 +47,11 @@ export function ChooseName({
         type="text"
         value={note}
       />
-      <button disabled={!name.trim()} onClick={onConfirm}>
-        Confirm
-      </button>
+      <AsyncButton
+        disabled={!name.trim()}
+        label="Confirm"
+        onClick={onConfirm}
+      />
     </div>
   )
 }

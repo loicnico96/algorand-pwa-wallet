@@ -2,7 +2,7 @@ import { toError } from "lib/utils/error"
 import { useCallback, useState } from "react"
 
 export function useAsyncHandler<P extends any[], T>(
-  handler: (...args: P) => Promise<unknown>,
+  handler: (...args: P) => unknown,
   onError?: (error: Error) => void
 ): [(...args: P) => void, boolean] {
   const [isRunning, setRunning] = useState(false)
@@ -22,7 +22,7 @@ export function useAsyncHandler<P extends any[], T>(
         }
       }
     },
-    [isRunning]
+    [handler, isRunning]
   )
 
   return [asyncHandler, isRunning]

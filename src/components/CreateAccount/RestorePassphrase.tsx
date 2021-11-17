@@ -1,8 +1,9 @@
-import Link from "next/link"
 import { useCallback, useState } from "react"
 
+import { AsyncButton } from "components/AsyncButton"
+
 export interface RestorePassphraseProps {
-  onBack: string | (() => unknown)
+  onBack: () => unknown
   onNext: (passphrase: string[]) => unknown
 }
 
@@ -19,13 +20,7 @@ export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
 
   return (
     <div>
-      {typeof onBack === "string" ? (
-        <Link href={onBack}>
-          <a>Back</a>
-        </Link>
-      ) : (
-        <a onClick={onBack}>Back</a>
-      )}
+      <a onClick={onBack}>Back</a>
       <p>Fill your passphrase (order matters).</p>
       {words.map((value, index) => (
         <div key={index}>
@@ -37,9 +32,11 @@ export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
           />
         </div>
       ))}
-      <button disabled={!words.every(Boolean)} onClick={onConfirm}>
-        Confirm
-      </button>
+      <AsyncButton
+        disabled={!words.every(Boolean)}
+        label="Confirm"
+        onClick={onConfirm}
+      />
     </div>
   )
 }

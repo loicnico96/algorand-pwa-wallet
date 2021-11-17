@@ -1,8 +1,8 @@
-import Link from "next/link"
+import { AsyncButton } from "components/AsyncButton"
 
 export interface SavePassphraseProps {
-  onBack: string | (() => unknown)
-  onNext: string | (() => unknown)
+  onBack: () => unknown
+  onNext: () => unknown
   passphrase: string[]
 }
 
@@ -13,13 +13,7 @@ export function SavePassphrase({
 }: SavePassphraseProps) {
   return (
     <div>
-      {typeof onBack === "string" ? (
-        <Link href={onBack}>
-          <a>Back</a>
-        </Link>
-      ) : (
-        <a onClick={onBack}>Back</a>
-      )}
+      <a onClick={onBack}>Back</a>
       <p>
         This is your secret passphrase of 25 words. Write it down carefully
         (order matters), store it somewhere safe, and never share it with
@@ -32,15 +26,7 @@ export function SavePassphrase({
           </pre>
         </div>
       ))}
-      {typeof onNext === "string" ? (
-        <Link href={onNext}>
-          <a>
-            <button>Confirm</button>
-          </a>
-        </Link>
-      ) : (
-        <button onClick={onNext}>Confirm</button>
-      )}
+      <AsyncButton label="Confirm" onClick={onNext} />
     </div>
   )
 }

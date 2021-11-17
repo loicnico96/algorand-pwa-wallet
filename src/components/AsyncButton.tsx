@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactElement } from "react"
+import { ButtonHTMLAttributes, ReactNode } from "react"
 
 import { useAsyncHandler } from "hooks/useAsyncHandler"
 
@@ -6,9 +6,9 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export interface AsyncButtonProps
   extends Omit<ButtonProps, "children" | "onError"> {
-  label: ReactElement
-  labelLoading?: ReactElement
-  onClick: () => Promise<unknown>
+  label: ReactNode
+  labelLoading?: ReactNode
+  onClick: () => unknown
   onError?: (error: Error) => void
 }
 

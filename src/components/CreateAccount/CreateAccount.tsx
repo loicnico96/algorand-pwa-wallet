@@ -1,4 +1,5 @@
 import algosdk from "algosdk"
+import { useRouter } from "next/router"
 import { useMemo, useState } from "react"
 
 import { useAccountData, useAddressBook } from "context/AddressBookContext"
@@ -24,6 +25,8 @@ export function getPassphrase(account: algosdk.Account): string[] {
 }
 
 export function CreateAccount() {
+  const router = useRouter()
+
   const [account] = useState(() => algosdk.generateAccount())
   const [step, setStep] = useState(CreateAccountStep.SAVE_PASSPHRASE)
 
@@ -37,7 +40,7 @@ export function CreateAccount() {
     case CreateAccountStep.SAVE_PASSPHRASE:
       return (
         <SavePassphrase
-          onBack={Route.ACCOUNT_LIST}
+          onBack={() => router.push(Route.ACCOUNT_LIST)}
           onNext={() => setStep(step + 1)}
           passphrase={passphrase}
         />
@@ -90,13 +93,14 @@ export function CreateAccount() {
         <ConfirmAccount
           address={account.addr}
           onBack={() => setStep(step - 1)}
-          onNext={replaceParams(Route.ACCOUNT_VIEW, {
-            [RouteParam.ADDRESS]: account.addr,
-          })}
+          onNext={async () => {
+            const url = replaceParams(Route.ACCOUNT_VIEW, {
+              [RouteParam.ADDRESS]: account.addr,
+            })
+
+            await router.push(url)
+          }}
         />
       )
-
-    default:
-      return null
   }
 }

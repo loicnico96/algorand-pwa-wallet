@@ -34,7 +34,7 @@ export function RestoreAccount() {
     case RestoreAccountStep.RESTORE_PASSPHRASE:
       return (
         <RestorePassphrase
-          onBack={Route.ACCOUNT_LIST}
+          onBack={() => router.push(Route.ACCOUNT_LIST)}
           onNext={passphrase => {
             setAccount(algosdk.mnemonicToSecretKey(passphrase.join(" ")))
             setStep(step + 1)
@@ -87,8 +87,5 @@ export function RestoreAccount() {
           }}
         />
       )
-
-    default:
-      return null
   }
 }
