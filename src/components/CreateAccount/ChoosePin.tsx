@@ -1,23 +1,34 @@
+import algosdk from "algosdk"
 import { useCallback, useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { PIN_REGEX } from "lib/utils/auth"
+import { useAccountData, useAddressBook } from "context/AddressBookContext"
+import { encryptKey, PIN_REGEX } from "lib/utils/auth"
 
 export interface ChoosePinProps {
+  account: algosdk.Account
   onBack: () => unknown
-  onNext: (pin: string) => unknown
+  onNext: () => unknown
 }
 
-export function ChoosePin({ onBack, onNext }: ChoosePinProps) {
+export function ChoosePin({ account, onBack, onNext }: ChoosePinProps) {
+  const { addAccount, updateAccount } = useAddressBook()
+
+  const data = useAccountData(account.addr)
+
   const [pin, setPin] = useState("")
 
-  const isValidPin = pin.match(PIN_REGEX)
-
-  const onConfirm = useCallback(() => {
-    if (isValidPin) {
-      onNext(pin)
+  const onConfirm = useCallback(async () => {
+    if (pin.match(PIN_REGEX)) {
+      const key = encryptKey(account.sk, pin)
+      if (data) {
+        await updateAccount(account.addr, { key })
+      } else {
+        await addAccount(account.addr, { key })
+      }
+      onNext()
     }
-  }, [isValidPin, onNext, pin])
+  }, [account, addAccount, data, onNext, pin, updateAccount])
 
   return (
     <div>
@@ -31,7 +42,11 @@ export function ChoosePin({ onBack, onNext }: ChoosePinProps) {
         type="password"
         value={pin}
       />
-      <AsyncButton disabled={!isValidPin} label="Confirm" onClick={onConfirm} />
+      <AsyncButton
+        disabled={!pin.match(PIN_REGEX)}
+        label="Confirm"
+        onClick={onConfirm}
+      />
     </div>
   )
 }

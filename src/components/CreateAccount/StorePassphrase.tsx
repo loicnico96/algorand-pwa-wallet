@@ -1,16 +1,16 @@
 import { AsyncButton } from "components/AsyncButton"
 
-export interface SavePassphraseProps {
+export interface StorePassphraseProps {
   onBack: () => unknown
   onNext: () => unknown
   passphrase: string[]
 }
 
-export function SavePassphrase({
+export function StorePassphrase({
   onBack,
   onNext,
   passphrase,
-}: SavePassphraseProps) {
+}: StorePassphraseProps) {
   return (
     <div>
       <a onClick={onBack}>Back</a>

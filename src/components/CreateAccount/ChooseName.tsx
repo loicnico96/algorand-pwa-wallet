@@ -1,32 +1,38 @@
 import { useCallback, useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { AccountData } from "lib/db/schema"
+import { useAccountData, useAddressBook } from "context/AddressBookContext"
 
 export interface ChooseNameProps {
-  defaultName?: string
-  defaultNote?: string
+  address: string
   onBack: () => unknown
-  onNext: (data: AccountData) => unknown
+  onNext: () => unknown
 }
 
-export function ChooseName({
-  defaultName = "",
-  defaultNote = "",
-  onBack,
-  onNext,
-}: ChooseNameProps) {
-  const [name, setName] = useState(defaultName)
-  const [note, setNote] = useState(defaultNote)
+export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
+  const { addAccount, updateAccount } = useAddressBook()
 
-  const onConfirm = useCallback(() => {
+  const data = useAccountData(address)
+
+  const [name, setName] = useState(data?.name ?? "")
+  const [note, setNote] = useState(data?.note ?? "")
+
+  const onConfirm = useCallback(async () => {
     if (name.trim()) {
-      onNext({
-        name: name.trim(),
-        note: note.trim() || undefined,
-      })
+      if (data) {
+        await updateAccount(address, {
+          name: name.trim(),
+          note: note.trim() || undefined,
+        })
+      } else {
+        await addAccount(address, {
+          name: name.trim(),
+          note: note.trim() || undefined,
+        })
+      }
+      onNext()
     }
-  }, [onNext, name, note])
+  }, [addAccount, address, data, name, note, onNext, updateAccount])
 
   return (
     <div>
