@@ -24,8 +24,6 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_ALGO_NETWORK: testnet
     strategy:
       matrix:
         node-version: [14.x]
