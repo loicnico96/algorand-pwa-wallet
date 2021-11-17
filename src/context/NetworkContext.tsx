@@ -1,5 +1,5 @@
 import { AssetInfo } from "lib/algo/Asset"
-import { ReactNode, useContext, useMemo, useState } from "react"
+import { ReactNode, useContext, useState } from "react"
 import networks from "config/networks.json"
 import { createEmptyContext } from "lib/utils/context"
 import algosdk from "algosdk"
@@ -77,21 +77,17 @@ export function NetworkContextProvider({
 
   const config = networks[network]
 
-  const api = useMemo(() => {
-    return new algosdk.Algodv2(
-      config.algo_api.token,
-      config.algo_api.url,
-      config.algo_api.port
-    )
-  }, [network])
+  const api = new algosdk.Algodv2(
+    config.algo_api.token,
+    config.algo_api.url,
+    config.algo_api.port
+  )
 
-  const indexer = useMemo(() => {
-    return new algosdk.Indexer(
-      config.algo_indexer.token,
-      config.algo_indexer.url,
-      config.algo_indexer.port
-    )
-  }, [network])
+  const indexer = new algosdk.Indexer(
+    config.algo_indexer.token,
+    config.algo_indexer.url,
+    config.algo_indexer.port
+  )
 
   const value: NetworkContextValue = {
     api,

@@ -2597,6 +2597,7 @@ __metadata:
     eslint-plugin-jest: 24.4.0
     eslint-plugin-prettier: 4.0.0
     husky: 7.0.4
+    idb: 6.1.5
     jest: 27.3.1
     lint-staged: 11.1.2
     next: 12.0.3
@@ -5322,7 +5323,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"idb@npm:^6.1.4":
+"idb@npm:6.1.5, idb@npm:^6.1.4":
   version: 6.1.5
   resolution: "idb@npm:6.1.5"
   checksum: 45d81be3bf5d5ae6d009d62b4a7eeb873fe2a9972d235aaa5c33cd3e27947b33a01fd3fb7bbdbe795cd608d2279c55ccd2db3f8b3f486bc74bdb5eab1c1be957
