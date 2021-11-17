@@ -7,7 +7,7 @@ const IDB_ACCOUNTS_STORE_NAME = "accounts"
 
 export interface AccountData {
   key?: string
-  name: string
+  name?: string
   note?: string
 }
 

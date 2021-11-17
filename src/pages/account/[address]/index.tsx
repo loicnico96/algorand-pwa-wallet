@@ -5,13 +5,9 @@ import { useCallback, useEffect } from "react"
 
 import { ALGO_ASSET_DECIMALS } from "components/NativeAsset"
 import ViewAccount from "components/ViewAccount"
+import { useAccountData, useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
-import {
-  changePIN,
-  getAddress,
-  withSecretKey,
-  removeAccount,
-} from "lib/utils/auth"
+import { decryptKey, encryptKey, promptPIN } from "lib/utils/auth"
 import { Route } from "lib/utils/navigation"
 
 export default function ViewAccountPage() {
@@ -24,6 +20,10 @@ export default function ViewAccountPage() {
     ? query.address[0]
     : query.address
 
+  const accountData = useAccountData(address ?? null)
+
+  const { removeAccount, updateAccount } = useAddressBook()
+
   useEffect(() => {
     if (isReady && !address) {
       router.replace(Route.ACCOUNT_LIST).catch(error => {
@@ -32,23 +32,41 @@ export default function ViewAccountPage() {
     }
   }, [address, isReady, router])
 
-  const onShowPassphrase = useCallback(() => {
-    withSecretKey(key => {
-      // eslint-disable-next-line no-alert
-      window.alert(algosdk.secretKeyToMnemonic(key))
-    })
-  }, [])
-
-  const onRemoveAccount = useCallback(() => {
-    if (removeAccount()) {
-      router.replace(Route.ACCOUNT_LIST).catch(error => {
-        console.error(error)
-      })
+  const onChangePin = useCallback(async () => {
+    if (accountData?.key) {
+      const oldPin = promptPIN("Enter your current PIN:")
+      if (oldPin) {
+        const newPin = promptPIN("Choose your new PIN:")
+        if (newPin) {
+          const key = decryptKey(accountData.key, oldPin)
+          await updateAccount(accountData.address, {
+            key: encryptKey(key, newPin),
+          })
+        }
+      }
     }
-  }, [router])
+  }, [accountData, updateAccount])
+
+  const onShowPassphrase = useCallback(() => {
+    if (accountData?.key) {
+      const pin = promptPIN("Enter your PIN:")
+      if (pin) {
+        const key = decryptKey(accountData.key, pin)
+        // eslint-disable-next-line no-alert
+        window.alert(algosdk.secretKeyToMnemonic(key))
+      }
+    }
+  }, [accountData])
+
+  const onRemoveAccount = useCallback(async () => {
+    if (accountData) {
+      await removeAccount(accountData.address)
+      await router.replace(Route.ACCOUNT_LIST)
+    }
+  }, [accountData, removeAccount, router])
 
   const onSend = useCallback(async () => {
-    if (!address) {
+    if (!address || !accountData?.key) {
       return
     }
 
@@ -87,28 +105,24 @@ export default function ViewAccountPage() {
       to,
     })
 
-    let signed: Uint8Array | undefined
+    const pin = promptPIN("Enter your PIN:")
+    if (pin) {
+      const key = decryptKey(accountData.key, pin)
+      const signed = transaction.signTxn(key)
 
-    withSecretKey(key => {
-      signed = transaction.signTxn(key)
-    })
+      await api.sendRawTransaction(signed).do()
 
-    if (!signed) {
-      return
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Sending ${Math.ceil(
+          amount * 10 ** ALGO_ASSET_DECIMALS
+        )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
+      )
     }
-
-    await api.sendRawTransaction(signed).do()
-
-    // eslint-disable-next-line no-alert
-    window.alert(
-      `Sending ${Math.ceil(
-        amount * 10 ** ALGO_ASSET_DECIMALS
-      )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
-    )
-  }, [address, api])
+  }, [accountData, address, api])
 
   const onSendAsset = useCallback(async () => {
-    if (!address) {
+    if (!address || !accountData?.key) {
       return
     }
 
@@ -159,26 +173,22 @@ export default function ViewAccountPage() {
         to,
       })
 
-    let signed: Uint8Array | undefined
+    const pin = promptPIN("Enter your PIN:")
+    if (pin) {
+      const key = decryptKey(accountData.key, pin)
+      const signed = transaction.signTxn(key)
 
-    withSecretKey(key => {
-      signed = transaction.signTxn(key)
-    })
+      await api.sendRawTransaction(signed).do()
 
-    if (!signed) {
-      return
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
+      )
     }
-
-    await api.sendRawTransaction(signed).do()
-
-    // eslint-disable-next-line no-alert
-    window.alert(
-      `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
-    )
-  }, [address, api])
+  }, [accountData, address, api])
 
   const addApplication = useCallback(async () => {
-    if (!address) {
+    if (!address || !accountData?.key) {
       return
     }
 
@@ -200,26 +210,22 @@ export default function ViewAccountPage() {
       suggestedParams,
     })
 
-    let signed: Uint8Array | undefined
+    const pin = promptPIN("Enter your PIN:")
+    if (pin) {
+      const key = decryptKey(accountData.key, pin)
+      const signed = transaction.signTxn(key)
 
-    withSecretKey(key => {
-      signed = transaction.signTxn(key)
-    })
+      await api.sendRawTransaction(signed).do()
 
-    if (!signed) {
-      return
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Adding application ${appId}...\nTransaction ID: ${transaction.txID()}`
+      )
     }
-
-    await api.sendRawTransaction(signed).do()
-
-    // eslint-disable-next-line no-alert
-    window.alert(
-      `Adding application ${appId}...\nTransaction ID: ${transaction.txID()}`
-    )
-  }, [address, api])
+  }, [accountData, address, api])
 
   const removeApplication = useCallback(async () => {
-    if (!address) {
+    if (!address || !accountData?.key) {
       return
     }
 
@@ -241,26 +247,22 @@ export default function ViewAccountPage() {
       suggestedParams,
     })
 
-    let signed: Uint8Array | undefined
+    const pin = promptPIN("Enter your PIN:")
+    if (pin) {
+      const key = decryptKey(accountData.key, pin)
+      const signed = transaction.signTxn(key)
 
-    withSecretKey(key => {
-      signed = transaction.signTxn(key)
-    })
+      await api.sendRawTransaction(signed).do()
 
-    if (!signed) {
-      return
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Removing application ${appId}...\nTransaction ID: ${transaction.txID()}`
+      )
     }
-
-    await api.sendRawTransaction(signed).do()
-
-    // eslint-disable-next-line no-alert
-    window.alert(
-      `Removing application ${appId}...\nTransaction ID: ${transaction.txID()}`
-    )
-  }, [address, api])
+  }, [accountData, address, api])
 
   const addAsset = useCallback(async () => {
-    if (!address) {
+    if (!address || !accountData?.key) {
       return
     }
 
@@ -285,23 +287,19 @@ export default function ViewAccountPage() {
         to: address,
       })
 
-    let signed: Uint8Array | undefined
+    const pin = promptPIN("Enter your PIN:")
+    if (pin) {
+      const key = decryptKey(accountData.key, pin)
+      const signed = transaction.signTxn(key)
 
-    withSecretKey(key => {
-      signed = transaction.signTxn(key)
-    })
+      await api.sendRawTransaction(signed).do()
 
-    if (!signed) {
-      return
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
+      )
     }
-
-    await api.sendRawTransaction(signed).do()
-
-    // eslint-disable-next-line no-alert
-    window.alert(
-      `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
-    )
-  }, [address, api])
+  }, [accountData, address, api])
 
   if (!address) {
     return <pre>Loading...</pre>
@@ -311,27 +309,17 @@ export default function ViewAccountPage() {
     <div>
       <Link href={Route.ACCOUNT_LIST}>Back</Link>
       <ViewAccount address={address} />
-      {address === getAddress() && (
-        <button onClick={changePIN}>Change PIN</button>
-      )}
-      {address === getAddress() && (
-        <button onClick={onShowPassphrase}>Show passphrase</button>
-      )}
-      {address === getAddress() && (
-        <button onClick={onRemoveAccount}>Remove account</button>
-      )}
-      {address === getAddress() && (
-        <button onClick={addApplication}>Add application</button>
-      )}
-      {address === getAddress() && (
-        <button onClick={removeApplication}>Remove application</button>
-      )}
-      {address === getAddress() && (
-        <button onClick={addAsset}>Add asset</button>
-      )}
-      {address === getAddress() && <button onClick={onSend}>Send Algos</button>}
-      {address === getAddress() && (
-        <button onClick={onSendAsset}>Send asset</button>
+      {Boolean(accountData?.key) && (
+        <div>
+          <button onClick={onChangePin}>Change PIN</button>
+          <button onClick={onShowPassphrase}>Show passphrase</button>
+          <button onClick={onRemoveAccount}>Remove account</button>
+          <button onClick={addApplication}>Add application</button>
+          <button onClick={removeApplication}>Remove application</button>
+          <button onClick={addAsset}>Add asset</button>
+          <button onClick={onSend}>Send Algos</button>
+          <button onClick={onSendAsset}>Send asset</button>
+        </div>
       )}
     </div>
   )

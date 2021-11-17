@@ -69,7 +69,7 @@ export function useAddressBook(): AddressBook {
   return useContext(AddressBookContext)
 }
 
-export function useAccountData(address: string): Account | null {
+export function useAccountData(address: string | null): Account | null {
   const { accounts } = useAddressBook()
   return accounts.find(account => account.address === address) ?? null
 }
