@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { useAddressBook } from "context/AddressBookContext"
-import { replaceParams, Route } from "lib/utils/navigation"
+import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 export default function HomePage() {
   const { accounts } = useAddressBook()
@@ -12,7 +12,7 @@ export default function HomePage() {
         .filter(account => account.key)
         .map(account => {
           const href = replaceParams(Route.ACCOUNT_VIEW, {
-            address: account.address,
+            [RouteParam.ADDRESS]: account.address,
           })
 
           return (

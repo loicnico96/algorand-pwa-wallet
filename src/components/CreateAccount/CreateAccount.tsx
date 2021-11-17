@@ -3,7 +3,7 @@ import { useMemo, useState } from "react"
 
 import { useAccountData, useAddressBook } from "context/AddressBookContext"
 import { encrypt } from "lib/utils/encryption"
-import { replaceParams, Route } from "lib/utils/navigation"
+import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
 import { ChoosePin } from "./ChoosePin"
@@ -90,7 +90,9 @@ export function CreateAccount() {
         <ConfirmAccount
           address={account.addr}
           onBack={() => setStep(step - 1)}
-          onNext={replaceParams(Route.ACCOUNT_VIEW, { address: account.addr })}
+          onNext={replaceParams(Route.ACCOUNT_VIEW, {
+            [RouteParam.ADDRESS]: account.addr,
+          })}
         />
       )
 

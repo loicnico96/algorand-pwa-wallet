@@ -18,7 +18,10 @@
         "creator": "",
         "decimals": 6,
         "default-frozen": false,
-        "total": 10000000
+        "name": "Algo",
+        "total": 10000000,
+        "unit-name": "ALGO",
+        "url": "https://algorand.foundation"
       }
     },
     "params": {
@@ -71,7 +74,10 @@
         "creator": "",
         "decimals": 6,
         "default-frozen": false,
-        "total": 10000000
+        "name": "Algo",
+        "total": 10000000,
+        "unit-name": "ALGO",
+        "url": "https://algorand.foundation"
       }
     },
     "params": {

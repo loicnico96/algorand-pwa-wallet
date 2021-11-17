@@ -4,7 +4,7 @@ import { useState } from "react"
 
 import { useAccountData, useAddressBook } from "context/AddressBookContext"
 import { encrypt } from "lib/utils/encryption"
-import { replaceParams, Route } from "lib/utils/navigation"
+import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
 import { ChoosePin } from "./ChoosePin"
@@ -81,7 +81,7 @@ export function RestoreAccount() {
 
             await router.push(
               replaceParams(Route.ACCOUNT_VIEW, {
-                address: account.addr,
+                [RouteParam.ADDRESS]: account.addr,
               })
             )
           }}

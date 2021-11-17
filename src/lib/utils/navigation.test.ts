@@ -3,10 +3,9 @@ import { replaceParams } from "./navigation"
 describe("replaceParams", () => {
   it("replaces route parameters", () => {
     expect(
-      replaceParams("/route/[foo]/foo/[bar]", {
-        foo: "bar",
-        bar: "baz",
+      replaceParams("/account/[address]", {
+        address: "foo",
       })
-    ).toBe("/route/bar/foo/baz")
+    ).toBe("/account/foo")
   })
 })

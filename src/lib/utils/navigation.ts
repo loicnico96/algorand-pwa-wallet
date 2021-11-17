@@ -5,12 +5,16 @@ export enum Route {
   ACCOUNT_VIEW = "/account/[address]",
 }
 
-export function replaceParams<T extends Record<string, string>>(
+export enum RouteParam {
+  ADDRESS = "address",
+}
+
+export function replaceParams<T extends Record<RouteParam, string>>(
   path: string,
   params: T
 ): string {
-  return Object.keys(params).reduce(
-    (result, key) => result.replace(`[${key}]`, params[key]),
+  return Object.entries(params).reduce(
+    (result, [key, value]) => result.replace(`[${key}]`, value),
     path
   )
 }

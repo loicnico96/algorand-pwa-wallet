@@ -1,15 +1,18 @@
-import { NativeAsset } from "components/NativeAsset"
-import { StandardAsset } from "components/StandardAsset"
 import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/useAccountInfo"
+import { Address } from "lib/algo/Account"
+import { AccountData } from "lib/db/schema"
 
-export type ViewAccountProps = {
-  address: string
+import { StandardAsset } from "./StandardAsset"
+
+export type AccountDetailsProps = {
+  address: Address
+  data: AccountData
 }
 
-export default function ViewAccount({ address }: ViewAccountProps) {
+export default function AccountDetails({ address, data }: AccountDetailsProps) {
   const { account, error } = useAccountInfo(address)
-  const { network } = useNetworkContext()
+  const { config, network } = useNetworkContext()
 
   if (error) {
     if (error.message.match(/found/i)) {
@@ -43,8 +46,11 @@ export default function ViewAccount({ address }: ViewAccountProps) {
 
   return (
     <div>
-      <pre>{address}</pre>
-      <NativeAsset amount={account.amount} />
+      <pre title={address}>{data.name ?? address}</pre>
+      <StandardAsset
+        assetId={config.native_asset.index}
+        amount={account.amount}
+      />
       {account.assets?.map(asset => (
         <StandardAsset
           key={asset["asset-id"]}

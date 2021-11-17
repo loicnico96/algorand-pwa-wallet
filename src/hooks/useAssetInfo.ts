@@ -14,7 +14,8 @@ export function useAssetInfo(assetId: number): UseAssetInfoResult {
 
   const { data, error, isValidating, mutate } = useSWR(
     `${network}:assets/${assetId}`,
-    async () => {
+    async key => {
+      console.log("[SWR]", key)
       if (assetId === config.native_asset.index) {
         return config.native_asset
       }

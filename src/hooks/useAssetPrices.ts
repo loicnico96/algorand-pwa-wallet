@@ -14,14 +14,22 @@ export function useAssetPrices() {
 
   const { data, error, isValidating, mutate } = useSWR(
     `${network}:prices`,
-    async () => {
+    async key => {
+      console.log("[SWR]", key)
       const prices: Partial<Record<number, number>> = {}
       const assets = await fetchJson<Record<string, { price: number }>>(
         config.prices_api.url
       )
 
       for (const assetId in assets) {
-        prices[Number(assetId)] = Number(assets[assetId].price)
+        const price = Number(assets[assetId].price)
+
+        // Tinyman prices API uses 0 for Algo
+        if (Number(assetId) === 0) {
+          prices[config.native_asset.index] = price
+        } else {
+          prices[Number(assetId)] = price
+        }
       }
 
       return prices

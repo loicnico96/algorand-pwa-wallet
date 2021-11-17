@@ -1,5 +1,5 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AccountInfo } from "lib/algo/Account"
+import { AccountInfo, Address } from "lib/algo/Account"
 import useSWR from "swr"
 
 export interface UseAccountInfoResult {
@@ -9,12 +9,13 @@ export interface UseAccountInfoResult {
   revalidate: () => void
 }
 
-export function useAccountInfo(address: string): UseAccountInfoResult {
+export function useAccountInfo(address: Address): UseAccountInfoResult {
   const { network, indexer } = useNetworkContext()
 
   const { data, error, isValidating, mutate } = useSWR(
     `${network}:accounts/${address}`,
-    async () => {
+    async key => {
+      console.log("[SWR]", key)
       const { account } = await indexer.lookupAccountByID(address).do()
       return account as AccountInfo
     }
