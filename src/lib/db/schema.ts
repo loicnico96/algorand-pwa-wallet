@@ -5,31 +5,23 @@ import { Network } from "context/NetworkContext"
 const IDB_DATABASE_NAME = "algodb"
 const IDB_ACCOUNTS_STORE_NAME = "accounts"
 
-/**
- * Account information stored in local database.
- * @field address - Address on the blockchain
- * @field key (optional) - Encrypted private key (for own accounts only)
- * @field name - Readable name provided by the user
- * @field note (optional) - Additional information provided by the user
- * @field network - Network the account belongs to
- */
-export interface Account {
-  address: string
+export interface AccountData {
   key?: string
   name: string
   note?: string
+}
+
+export interface Account extends AccountData {
+  address: string
   network: Network
 }
 
-/**
- * IndexedDB schema (v1)
- */
 export interface AlgoDBSchemaV1 extends DBSchema {
   accounts: {
     indexes: {
-      network: Network
+      network: Account["network"]
     }
-    key: [Network, string]
+    key: [Account["network"], Account["address"]]
     value: Account
   }
 }
@@ -59,7 +51,7 @@ export async function getAlgoDB(): Promise<IDBPDatabase<AlgoDBSchemaV1>> {
 export async function addAccount(
   network: Network,
   address: string,
-  data: Omit<Account, "network" | "address">
+  data: AccountData
 ): Promise<void> {
   const db = await getAlgoDB()
   await db.add(IDB_ACCOUNTS_STORE_NAME, { ...data, network, address })
@@ -68,7 +60,7 @@ export async function addAccount(
 export async function updateAccount(
   network: Network,
   address: string,
-  data: Partial<Omit<Account, "network" | "address">>
+  data: Partial<AccountData>
 ): Promise<void> {
   const db = await getAlgoDB()
   const tx = db.transaction(IDB_ACCOUNTS_STORE_NAME, "readwrite")

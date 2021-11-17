@@ -1,57 +1,61 @@
-import { AssetInfo } from "./Asset"
+import { AssetId, AssetInfo } from "./Asset"
 
-export type AppSchema = {
+export type Address = string
+
+export type AppId = number
+
+export interface AppSchema {
   "num-byte-slice": number
   "num-uint": number
 }
 
-export type AppStateValue = {
+export interface AppStateValue {
   bytes: string
   type: number
   uint: number
 }
 
-export type AppStateEntry = {
+export interface AppStateEntry {
   key: string
   value: AppStateValue
 }
 
-export type AppParams = {
+export interface AppParams {
   "approval-program": string
   "clear-state-program": string
-  creator: string
+  creator: Address
   "global-state": AppStateEntry[]
   "global-state-schema": AppSchema
   "local-state-schema": AppSchema
 }
 
-export type AccountAppCreated = {
+export interface AccountAppCreated {
   "created-at-round": number
   deleted: boolean
-  "deleted-at-round": number
+  "deleted-at-round"?: number
   params: AppParams
 }
 
-export type AccountAppState = {
-  "closed-out-at-round": number
+export interface AccountAppState {
+  "closed-out-at-round"?: number
   deleted: boolean
-  id: number
-  "key-value": AppStateEntry[]
+  id: AppId
+  "key-value"?: AppStateEntry[]
   "opted-in-at-round": number
   schema: AppSchema
 }
 
-export type AccountAsset = {
+export interface AccountAsset {
   amount: number
-  "asset-id": number
-  creator: string
+  "asset-id": AssetId
+  creator: Address
   deleted: boolean
   "is-frozen": boolean
   "opted-in-at-round": number
-  "opted-out-at-round": number
+  "opted-out-at-round"?: number
 }
 
-export type AccountParticipation = {
+export interface AccountParticipation {
   "selection-participation-key": string
   "vote-first-valid": number
   "vote-key-dilution": number
@@ -59,24 +63,24 @@ export type AccountParticipation = {
   "vote-participation-key": string
 }
 
-export type AccountInfo = {
-  address: string
+export interface AccountInfo {
+  address: Address
   amount: number
   "amount-without-pending-rewards": number
-  "apps-local-state": []
+  "apps-local-state": AccountAppState[]
   "apps-total-schema": AppSchema
   assets: AccountAsset[]
-  "auth-addr": string
-  "closed-at-round": number
-  "created-apps": []
-  "created-assets": AssetInfo[]
+  "auth-addr"?: Address
+  "closed-at-round"?: number
+  "created-apps"?: AccountAppCreated[]
+  "created-assets"?: AssetInfo[]
   "created-at-round": number
   deleted: boolean
-  participation: AccountParticipation
+  participation?: AccountParticipation
   "pending-rewards": number
   "reward-base": number
   rewards: number
   round: number
-  "sig-type": string
-  status: string
+  "sig-type": "sig"
+  status: "Offline" | "Online"
 }

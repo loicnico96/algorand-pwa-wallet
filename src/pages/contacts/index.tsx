@@ -1,26 +1,10 @@
-import { useCallback, useEffect, useState } from "react"
-
+import { useAddressBook } from "context/AddressBookContext"
 import { Network, useNetworkContext } from "context/NetworkContext"
-import {
-  Account,
-  addAccount,
-  getAccounts,
-  removeAccount,
-  updateAccount,
-} from "lib/db/schema"
 
 export default function ContactsPage() {
   const { network, setNetwork } = useNetworkContext()
-
-  const [contacts, setContacts] = useState<Account[]>([])
-
-  const refetch = useCallback(() => {
-    getAccounts(network).then(setContacts).catch(console.error)
-  }, [network])
-
-  useEffect(() => {
-    refetch()
-  }, [refetch])
+  const { accounts, removeAccount, updateAccount, addAccount } =
+    useAddressBook()
 
   const onChangeNetwork = () => {
     setNetwork(network === Network.TEST ? Network.MAIN : Network.TEST)
@@ -31,16 +15,14 @@ export default function ContactsPage() {
     const name = window.prompt("Name")
 
     if (name) {
-      updateAccount(network, address, {
+      updateAccount(address, {
         name,
-      })
-        .then(refetch)
-        .catch(console.error)
+      }).catch(console.error)
     }
   }
 
   const onRemoveContact = (address: string) => {
-    removeAccount(network, address).then(refetch).catch(console.error)
+    removeAccount(address).catch(console.error)
   }
 
   const onAddAccount = () => {
@@ -52,12 +34,10 @@ export default function ContactsPage() {
     const key = window.prompt("Key")
 
     if (address && name && key) {
-      addAccount(network, address, {
+      addAccount(address, {
         name,
         key,
-      })
-        .then(refetch)
-        .catch(console.error)
+      }).catch(console.error)
     }
   }
 
@@ -68,11 +48,9 @@ export default function ContactsPage() {
     const name = window.prompt("Name")
 
     if (address && name) {
-      addAccount(network, address, {
+      addAccount(address, {
         name,
-      })
-        .then(refetch)
-        .catch(console.error)
+      }).catch(console.error)
     }
   }
 
@@ -82,11 +60,10 @@ export default function ContactsPage() {
       <div>
         <p>{network}</p>
         <button onClick={onChangeNetwork}>Change</button>
-        <button onClick={refetch}>Refetch</button>
       </div>
       <h3>Accounts:</h3>
-      {contacts
-        .filter(contact => contact.key)
+      {accounts
+        .filter(account => account.key)
         .map(account => (
           <div key={account.address + account.key}>
             <p title={account.address}>{account.name}</p>
@@ -101,15 +78,15 @@ export default function ContactsPage() {
         ))}
       <button onClick={onAddAccount}>Add</button>
       <h3>Contacts:</h3>
-      {contacts
-        .filter(contact => !contact.key)
-        .map(contact => (
-          <div key={contact.address}>
-            <p title={contact.address}>{contact.name}</p>
-            <button onClick={() => onRenameContact(contact.address)}>
+      {accounts
+        .filter(account => !account.key)
+        .map(account => (
+          <div key={account.address}>
+            <p title={account.address}>{account.name}</p>
+            <button onClick={() => onRenameContact(account.address)}>
               Rename
             </button>
-            <button onClick={() => onRemoveContact(contact.address)}>
+            <button onClick={() => onRemoveContact(account.address)}>
               Remove
             </button>
           </div>

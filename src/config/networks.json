@@ -13,12 +13,11 @@
     "native_asset": {
       "created-at-round": 0,
       "deleted": false,
-      "destroyed-at-round": 0,
       "index": -1,
       "params": {
         "creator": "",
         "decimals": 6,
-        "default-frozen": true,
+        "default-frozen": false,
         "total": 10000000
       }
     },
@@ -67,12 +66,11 @@
     "native_asset": {
       "created-at-round": 0,
       "deleted": false,
-      "destroyed-at-round": 0,
       "index": -1,
       "params": {
         "creator": "",
         "decimals": 6,
-        "default-frozen": true,
+        "default-frozen": false,
         "total": 10000000
       }
     },
