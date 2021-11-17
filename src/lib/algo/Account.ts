@@ -1,4 +1,3 @@
-import { AlgoIndexer } from "./AlgoIndexer"
 import { AssetInfo } from "./Asset"
 
 export type AppSchema = {
@@ -80,9 +79,4 @@ export type AccountInfo = {
   round: number
   "sig-type": string
   status: string
-}
-
-export async function getAccountInfo(address: string): Promise<AccountInfo> {
-  const { account } = await AlgoIndexer.lookupAccountByID(address).do()
-  return account as AccountInfo
 }

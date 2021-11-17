@@ -1,22 +1,110 @@
 {
   "mainnet": {
-    "algo_api": "https://algoexplorerapi.io/",
-    "algo_api_port": "",
-    "algo_api_token": "",
-    "algo_indexer": "https://algoexplorerapi.io/idx2/",
-    "algo_indexer_port": "",
-    "algo_indexer_token": "",
-    "tinyman_prices_api": "https://mainnet.analytics.tinyman.org/api/v1/current-asset-prices",
-    "tinyman_validator_app_id": 350338509
+    "algo_api": {
+      "port": "",
+      "url": "https://algoexplorerapi.io/",
+      "token": ""
+    },
+    "algo_indexer": {
+      "port": "",
+      "url": "https://algoexplorerapi.io/idx2/",
+      "token": ""
+    },
+    "native_asset": {
+      "created-at-round": 0,
+      "deleted": false,
+      "destroyed-at-round": 0,
+      "index": -1,
+      "params": {
+        "creator": "",
+        "decimals": 6,
+        "default-frozen": true,
+        "total": 10000000
+      }
+    },
+    "params": {
+      "AppFlatOptInMinBalance": 100000,
+      "AppFlatParamsMinBalance": 100000,
+      "MaxAppArgs": 16,
+      "MaxAppProgramLen": 2048,
+      "MaxAppTotalArgLen": 2048,
+      "MaxAppsCreated": 10,
+      "MaxAppsOptedIn": 50,
+      "MaxAssetNameBytes": 32,
+      "MaxAssetUnitNameBytes": 8,
+      "MaxAssetURLBytes": 96,
+      "MaxAssetsPerAccount": 1000,
+      "MaxGlobalSchemaEntries": 64,
+      "MaxLocalSchemaEntries": 16,
+      "MaxTxGroupSize": 16,
+      "MaxTxnBytesPerBlock": 1000000,
+      "MaxTxnLife": 1000,
+      "MaxTxnNoteBytes": 1024,
+      "MinBalance": 100000,
+      "MinTxnFee": 1000,
+      "SchemaBytesMinBalance": 25000,
+      "SchemaMinBalancePerEntry": 25000,
+      "SchemaUintMinBalance": 3500
+    },
+    "prices_api": {
+      "url": "https://mainnet.analytics.tinyman.org/api/v1/current-asset-prices"
+    },
+    "tinyman": {
+      "validator_app_id": 350338509
+    }
   },
   "testnet": {
-    "algo_api": "https://testnet.algoexplorerapi.io/",
-    "algo_api_port": "",
-    "algo_api_token": "",
-    "algo_indexer": "https://testnet.algoexplorerapi.io/idx2/",
-    "algo_indexer_port": "",
-    "algo_indexer_token": "",
-    "tinyman_prices_api": "https://testnet.analytics.tinyman.org/api/v1/current-asset-prices",
-    "tinyman_validator_app_id": 21580889
+    "algo_api": {
+      "port": "",
+      "url": "https://testnet.algoexplorerapi.io/",
+      "token": ""
+    },
+    "algo_indexer": {
+      "port": "",
+      "url": "https://testnet.algoexplorerapi.io/idx2/",
+      "token": ""
+    },
+    "native_asset": {
+      "created-at-round": 0,
+      "deleted": false,
+      "destroyed-at-round": 0,
+      "index": -1,
+      "params": {
+        "creator": "",
+        "decimals": 6,
+        "default-frozen": true,
+        "total": 10000000
+      }
+    },
+    "params": {
+      "AppFlatOptInMinBalance": 100000,
+      "AppFlatParamsMinBalance": 100000,
+      "MaxAppArgs": 16,
+      "MaxAppProgramLen": 2048,
+      "MaxAppTotalArgLen": 2048,
+      "MaxAppsCreated": 10,
+      "MaxAppsOptedIn": 50,
+      "MaxAssetNameBytes": 32,
+      "MaxAssetUnitNameBytes": 8,
+      "MaxAssetURLBytes": 96,
+      "MaxAssetsPerAccount": 1000,
+      "MaxGlobalSchemaEntries": 64,
+      "MaxLocalSchemaEntries": 16,
+      "MaxTxGroupSize": 16,
+      "MaxTxnBytesPerBlock": 1000000,
+      "MaxTxnLife": 1000,
+      "MaxTxnNoteBytes": 1024,
+      "MinBalance": 100000,
+      "MinTxnFee": 1000,
+      "SchemaBytesMinBalance": 25000,
+      "SchemaMinBalancePerEntry": 25000,
+      "SchemaUintMinBalance": 3500
+    },
+    "prices_api": {
+      "url": "https://testnet.analytics.tinyman.org/api/v1/current-asset-prices"
+    },
+    "tinyman": {
+      "validator_app_id": 21580889
+    }
   }
 }

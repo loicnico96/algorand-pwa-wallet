@@ -5,7 +5,7 @@ import { useCallback, useEffect } from "react"
 
 import { ALGO_ASSET_DECIMALS } from "components/NativeAsset"
 import ViewAccount from "components/ViewAccount"
-import { AlgoAPI } from "lib/algo/AlgoAPI"
+import { useNetworkContext } from "context/NetworkContext"
 import {
   changePIN,
   getAddress,
@@ -16,6 +16,7 @@ import {
 export default function ViewAccountPage() {
   const router = useRouter()
 
+  const { api } = useNetworkContext()
   const { isReady, query } = router
 
   const address = Array.isArray(query.addr) ? query.addr[0] : query.addr
@@ -73,7 +74,7 @@ export default function ViewAccountPage() {
     // eslint-disable-next-line no-alert
     const note = window.prompt("Note (optional):")
 
-    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+    const suggestedParams = await api.getTransactionParams().do()
 
     const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount: Math.ceil(amount * 10 ** ALGO_ASSET_DECIMALS),
@@ -93,7 +94,7 @@ export default function ViewAccountPage() {
       return
     }
 
-    await AlgoAPI.sendRawTransaction(signed).do()
+    await api.sendRawTransaction(signed).do()
 
     // eslint-disable-next-line no-alert
     window.alert(
@@ -101,7 +102,7 @@ export default function ViewAccountPage() {
         amount * 10 ** ALGO_ASSET_DECIMALS
       )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
     )
-  }, [address])
+  }, [address, api])
 
   const onSendAsset = useCallback(async () => {
     if (!address) {
@@ -143,7 +144,7 @@ export default function ViewAccountPage() {
     // eslint-disable-next-line no-alert
     const note = window.prompt("Note (optional):")
 
-    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+    const suggestedParams = await api.getTransactionParams().do()
 
     const transaction =
       algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -165,13 +166,13 @@ export default function ViewAccountPage() {
       return
     }
 
-    await AlgoAPI.sendRawTransaction(signed).do()
+    await api.sendRawTransaction(signed).do()
 
     // eslint-disable-next-line no-alert
     window.alert(
       `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
     )
-  }, [address])
+  }, [address, api])
 
   const addApplication = useCallback(async () => {
     if (!address) {
@@ -188,7 +189,7 @@ export default function ViewAccountPage() {
       throw Error("Invalid application ID")
     }
 
-    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+    const suggestedParams = await api.getTransactionParams().do()
 
     const transaction = algosdk.makeApplicationOptInTxnFromObject({
       appIndex: Number(appId),
@@ -206,13 +207,13 @@ export default function ViewAccountPage() {
       return
     }
 
-    await AlgoAPI.sendRawTransaction(signed).do()
+    await api.sendRawTransaction(signed).do()
 
     // eslint-disable-next-line no-alert
     window.alert(
       `Adding application ${appId}...\nTransaction ID: ${transaction.txID()}`
     )
-  }, [address])
+  }, [address, api])
 
   const removeApplication = useCallback(async () => {
     if (!address) {
@@ -229,7 +230,7 @@ export default function ViewAccountPage() {
       throw Error("Invalid application ID")
     }
 
-    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+    const suggestedParams = await api.getTransactionParams().do()
 
     const transaction = algosdk.makeApplicationCloseOutTxnFromObject({
       appIndex: Number(appId),
@@ -247,13 +248,13 @@ export default function ViewAccountPage() {
       return
     }
 
-    await AlgoAPI.sendRawTransaction(signed).do()
+    await api.sendRawTransaction(signed).do()
 
     // eslint-disable-next-line no-alert
     window.alert(
       `Removing application ${appId}...\nTransaction ID: ${transaction.txID()}`
     )
-  }, [address])
+  }, [address, api])
 
   const addAsset = useCallback(async () => {
     if (!address) {
@@ -270,7 +271,7 @@ export default function ViewAccountPage() {
       throw Error("Invalid asset ID")
     }
 
-    const suggestedParams = await AlgoAPI.getTransactionParams().do()
+    const suggestedParams = await api.getTransactionParams().do()
 
     const transaction =
       algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -291,13 +292,13 @@ export default function ViewAccountPage() {
       return
     }
 
-    await AlgoAPI.sendRawTransaction(signed).do()
+    await api.sendRawTransaction(signed).do()
 
     // eslint-disable-next-line no-alert
     window.alert(
       `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
     )
-  }, [address])
+  }, [address, api])
 
   if (!address) {
     return <pre>Loading...</pre>

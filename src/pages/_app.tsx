@@ -1,5 +1,11 @@
 import { AppProps } from "next/app"
 
+import { Network, NetworkContextProvider } from "context/NetworkContext"
+
 export default function App({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />
+  return (
+    <NetworkContextProvider defaultNetwork={Network.TEST}>
+      <Component {...pageProps} />
+    </NetworkContextProvider>
+  )
 }

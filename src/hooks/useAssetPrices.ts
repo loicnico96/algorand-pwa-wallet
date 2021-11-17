@@ -1,30 +1,37 @@
-import { ALGO_NETWORK } from "lib/utils/environment"
 import { fetchJson } from "lib/utils/fetchJson"
-import { useMemo } from "react"
 import useSWR from "swr"
-import networks from "config/networks.json"
+import { useNetworkContext } from "context/NetworkContext"
 
-const ASSET_PRICE_URL = networks[ALGO_NETWORK].tinyman_prices_api
+export interface UseAssetInfoResult {
+  prices: Partial<Record<number, number>>
+  error: Error | null
+  isValidating: boolean
+  revalidate: () => void
+}
 
 export function useAssetPrices() {
-  const { data, error, isValidating, mutate } = useSWR(`/asset-prices`, () =>
-    fetchJson<{ [K in string]: { price: string } }>(ASSET_PRICE_URL)
+  const { config, network } = useNetworkContext()
+
+  const { data, error, isValidating, mutate } = useSWR(
+    `${network}:prices`,
+    async () => {
+      const prices: Partial<Record<number, number>> = {}
+      const assets = await fetchJson<Record<string, { price: number }>>(
+        config.prices_api.url
+      )
+
+      for (const assetId in assets) {
+        prices[Number(assetId)] = Number(assets[assetId].price)
+      }
+
+      return prices
+    }
   )
 
-  const prices = useMemo(() => {
-    const result: { [K in number]?: number } = {}
-
-    for (const assetId in data) {
-      result[Number(assetId)] = Number(data[assetId].price)
-    }
-
-    return result
-  }, [data])
-
   return {
-    prices,
+    prices: data ?? {},
     error,
     isValidating,
-    mutate,
+    revalidate: mutate,
   }
 }

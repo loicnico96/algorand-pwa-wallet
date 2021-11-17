@@ -1,8 +1,7 @@
 import { NativeAsset } from "components/NativeAsset"
 import { StandardAsset } from "components/StandardAsset"
+import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/useAccountInfo"
-import { AlgoNetwork } from "lib/algo/Network"
-import { ALGO_NETWORK } from "lib/utils/environment"
 
 export type ViewAccountProps = {
   address: string
@@ -10,10 +9,11 @@ export type ViewAccountProps = {
 
 export default function ViewAccount({ address }: ViewAccountProps) {
   const { account, error } = useAccountInfo(address)
+  const { network } = useNetworkContext()
 
   if (error) {
     if (error.message.match(/found/i)) {
-      if (ALGO_NETWORK === AlgoNetwork.TEST) {
+      if (network === Network.TEST) {
         return (
           <pre>
             This account has not been funded. You can activate it by sending at
