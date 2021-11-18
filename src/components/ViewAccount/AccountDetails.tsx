@@ -11,7 +11,7 @@ export type AccountDetailsProps = {
 }
 
 export default function AccountDetails({ address, data }: AccountDetailsProps) {
-  const { account, error } = useAccountInfo(address)
+  const { data: account, error } = useAccountInfo(address)
   const { config, network } = useNetworkContext()
 
   if (error) {

@@ -1,34 +1,16 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AssetInfo } from "lib/algo/Asset"
-import useSWR from "swr"
+import { AssetId, AssetInfo } from "lib/algo/Asset"
+import { useQuery, UseQueryResult } from "./useQuery"
 
-export interface UseAssetInfoResult {
-  asset: AssetInfo | null
-  error: Error | null
-  isValidating: boolean
-  revalidate: () => void
-}
-
-export function useAssetInfo(assetId: number): UseAssetInfoResult {
+export function useAssetInfo(assetId: AssetId): UseQueryResult<AssetInfo> {
   const { config, network, indexer } = useNetworkContext()
 
-  const { data, error, isValidating, mutate } = useSWR(
-    `${network}:assets/${assetId}`,
-    async key => {
-      console.log("[SWR]", key)
-      if (assetId === config.native_asset.index) {
-        return config.native_asset
-      }
-
-      const { asset } = await indexer.lookupAssetByID(assetId).do()
-      return asset as AssetInfo
+  return useQuery(`${network}:assets/${assetId}`, async () => {
+    if (assetId === config.native_asset.index) {
+      return config.native_asset
     }
-  )
 
-  return {
-    asset: data ?? null,
-    error,
-    isValidating,
-    revalidate: mutate,
-  }
+    const { asset } = await indexer.lookupAssetByID(assetId).do()
+    return asset as AssetInfo
+  })
 }

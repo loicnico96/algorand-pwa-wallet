@@ -5,6 +5,7 @@ import { useCallback } from "react"
 
 import { useAccountData, useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
+import { useTransactionParams } from "hooks/useTransactionParams"
 import { Address } from "lib/algo/Account"
 import { decryptKey, encryptKey, promptPIN } from "lib/utils/auth"
 import { Route } from "lib/utils/navigation"
@@ -23,6 +24,8 @@ export function ViewAccount({ address }: ViewAccountProps) {
   const accountData = useAccountData(address)
 
   const { removeAccount, updateAccount } = useAddressBook()
+
+  const { refetch: refetchParams } = useTransactionParams()
 
   const onChangePin = useCallback(async () => {
     if (accountData?.key) {
@@ -87,7 +90,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
     // eslint-disable-next-line no-alert
     const note = window.prompt("Note (optional):")
 
-    const suggestedParams = await api.getTransactionParams().do()
+    const suggestedParams = await refetchParams()
 
     const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount: Math.ceil(amount * 10 ** config.native_asset.params.decimals),
@@ -111,7 +114,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
         )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
       )
     }
-  }, [accountData, address, api, config])
+  }, [accountData, address, api, config, refetchParams])
 
   const onSendAsset = useCallback(async () => {
     if (!accountData?.key) {
@@ -153,7 +156,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
     // eslint-disable-next-line no-alert
     const note = window.prompt("Note (optional):")
 
-    const suggestedParams = await api.getTransactionParams().do()
+    const suggestedParams = await refetchParams()
 
     const transaction =
       algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -177,7 +180,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
         `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
       )
     }
-  }, [accountData, address, api])
+  }, [accountData, address, api, refetchParams])
 
   const addApplication = useCallback(async () => {
     if (!accountData?.key) {
@@ -194,7 +197,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
       throw Error("Invalid application ID")
     }
 
-    const suggestedParams = await api.getTransactionParams().do()
+    const suggestedParams = await refetchParams()
 
     const transaction = algosdk.makeApplicationOptInTxnFromObject({
       appIndex: Number(appId),
@@ -214,7 +217,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
         `Adding application ${appId}...\nTransaction ID: ${transaction.txID()}`
       )
     }
-  }, [accountData, address, api])
+  }, [accountData, address, api, refetchParams])
 
   const removeApplication = useCallback(async () => {
     if (!accountData?.key) {
@@ -231,7 +234,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
       throw Error("Invalid application ID")
     }
 
-    const suggestedParams = await api.getTransactionParams().do()
+    const suggestedParams = await refetchParams()
 
     const transaction = algosdk.makeApplicationCloseOutTxnFromObject({
       appIndex: Number(appId),
@@ -251,7 +254,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
         `Removing application ${appId}...\nTransaction ID: ${transaction.txID()}`
       )
     }
-  }, [accountData, address, api])
+  }, [accountData, address, api, refetchParams])
 
   const addAsset = useCallback(async () => {
     if (!accountData?.key) {
@@ -268,7 +271,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
       throw Error("Invalid asset ID")
     }
 
-    const suggestedParams = await api.getTransactionParams().do()
+    const suggestedParams = await refetchParams()
 
     const transaction =
       algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -291,7 +294,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
         `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
       )
     }
-  }, [accountData, address, api])
+  }, [accountData, address, api, refetchParams])
 
   return (
     <div>

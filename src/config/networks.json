@@ -2,12 +2,12 @@
   "mainnet": {
     "algo_api": {
       "port": "",
-      "url": "https://algoexplorerapi.io/",
+      "url": "https://algoexplorerapi.io",
       "token": ""
     },
     "algo_indexer": {
       "port": "",
-      "url": "https://algoexplorerapi.io/idx2/",
+      "url": "https://algoexplorerapi.io/idx2",
       "token": ""
     },
     "native_asset": {
@@ -58,12 +58,12 @@
   "testnet": {
     "algo_api": {
       "port": "",
-      "url": "https://testnet.algoexplorerapi.io/",
+      "url": "https://testnet.algoexplorerapi.io",
       "token": ""
     },
     "algo_indexer": {
       "port": "",
-      "url": "https://testnet.algoexplorerapi.io/idx2/",
+      "url": "https://testnet.algoexplorerapi.io/idx2",
       "token": ""
     },
     "native_asset": {

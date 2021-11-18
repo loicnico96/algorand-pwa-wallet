@@ -1,6 +1,7 @@
 import { DBSchema, IDBPDatabase, openDB } from "idb"
 
 import { Network } from "context/NetworkContext"
+import { isServer } from "lib/utils/environment"
 
 const IDB_DATABASE_NAME = "algodb"
 const IDB_ACCOUNTS_STORE_NAME = "accounts"
@@ -30,7 +31,7 @@ let algoDB: Promise<IDBPDatabase<AlgoDBSchemaV1>>
 
 export async function getAlgoDB(): Promise<IDBPDatabase<AlgoDBSchemaV1>> {
   if (algoDB === undefined) {
-    if (typeof window === "undefined") {
+    if (isServer) {
       throw Error("IndexedDB is not available on server")
     }
 

@@ -10,8 +10,8 @@ export type StandardAssetProps = {
 }
 
 export function StandardAsset({ amount, assetId, frozen }: StandardAssetProps) {
-  const { asset } = useAssetInfo(assetId)
-  const { prices } = useAssetPrices()
+  const { data: asset } = useAssetInfo(assetId)
+  const { data: prices } = useAssetPrices()
 
   if (!asset) {
     return <pre>Loading...</pre>
@@ -25,7 +25,7 @@ export function StandardAsset({ amount, assetId, frozen }: StandardAssetProps) {
       freeze={Boolean(asset.params.freeze)}
       frozen={frozen}
       name={asset.params.name ?? String(assetId)}
-      price={prices[assetId] ?? NaN}
+      price={(prices ?? {})[assetId] ?? NaN}
       unit={asset.params["unit-name"]}
       url={asset.params.url}
     />
