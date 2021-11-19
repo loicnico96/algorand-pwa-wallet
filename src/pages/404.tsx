@@ -1,16 +1,14 @@
 import Link from "next/link"
 
+import { PageError } from "components/PageError"
 import { Route } from "lib/utils/navigation"
 
 export default function NotFoundPage() {
   return (
-    <div>
-      <p>Are you lost?</p>
-      <p>
-        <Link href={Route.ACCOUNT_LIST}>
-          <a>Bring me home.</a>
-        </Link>
-      </p>
-    </div>
+    <PageError message="Are you lost?">
+      <Link href={Route.ACCOUNT_LIST}>
+        <a>Bring me home.</a>
+      </Link>
+    </PageError>
   )
 }

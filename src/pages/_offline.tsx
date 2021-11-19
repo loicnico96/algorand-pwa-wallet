@@ -1,8 +1,9 @@
+import { PageError } from "components/PageError"
+
 export default function OfflinePage() {
   return (
-    <div>
-      <p>Unable to connect.</p>
+    <PageError message="Unable to connect.">
       <p>Check your Internet connection.</p>
-    </div>
+    </PageError>
   )
 }

@@ -1,13 +1,11 @@
 import styled from "@emotion/styled"
 import { ReactNode } from "react"
 
-import { isError } from "lib/utils/error"
-
 import { PageContent } from "./PageContent"
 
 export interface PageErrorProps {
   children?: ReactNode
-  error: Error | string
+  message: string
 }
 
 const Container = styled(PageContent)`
@@ -17,15 +15,15 @@ const Container = styled(PageContent)`
   justify-content: center;
 `
 
-export function PageError({ children, error }: PageErrorProps) {
+export function PageError({ children, message }: PageErrorProps) {
   return (
     <Container>
-      <span>{isError(error) ? `Error: ${error.message}` : error}</span>
+      <span>{message}</span>
       {children}
     </Container>
   )
 }
 
-export function renderError(error: Error | string): JSX.Element {
-  return <PageError error={error} />
+export function renderError(error: Error): JSX.Element {
+  return <PageError message={`Error: ${error.message}`} />
 }
