@@ -1,5 +1,5 @@
-import { isDev } from "lib/utils/environment"
 import { toError } from "lib/utils/error"
+import { createLogger } from "lib/utils/logger"
 import { useCallback } from "react"
 import useSWR from "swr"
 
@@ -22,22 +22,13 @@ export function useQuery<T>(
   const { data, error, isValidating, mutate } = useSWR(
     cacheKey,
     async key => {
-      if (isDev) {
-        console.log(`[${key}] Query`)
-      }
-
+      const logger = createLogger(key)
       try {
         const result = await fetcher()
-        if (isDev) {
-          console.log(`[${key}] Success`, result)
-        }
-
+        logger.log("Success", result)
         return result
       } catch (error) {
-        if (isDev) {
-          console.error(`[${key}]`, error)
-        }
-
+        logger.error(error)
         throw error
       }
     },

@@ -1,6 +1,7 @@
 import { ButtonHTMLAttributes, ReactNode } from "react"
 
 import { useAsyncHandler } from "hooks/useAsyncHandler"
+import { createLogger } from "lib/utils/logger"
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
@@ -12,12 +13,14 @@ export interface AsyncButtonProps
   onError?: (error: Error) => void
 }
 
+const logger = createLogger("AsyncButton")
+
 export function AsyncButton({
   disabled = false,
   label,
   labelLoading,
   onClick,
-  onError,
+  onError = logger.error,
   ...props
 }: AsyncButtonProps) {
   const [onClickAsync, loading] = useAsyncHandler(onClick, onError)

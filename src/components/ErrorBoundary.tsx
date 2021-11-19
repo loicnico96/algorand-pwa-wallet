@@ -1,6 +1,7 @@
 import { Component, ReactNode } from "react"
 
 import { toError } from "lib/utils/error"
+import { createLogger } from "lib/utils/logger"
 
 export interface ErrorBoundaryProps {
   children: ReactNode
@@ -11,6 +12,8 @@ export interface ErrorBoundaryProps {
 export interface ErrorBoundaryState {
   error: Error | null
 }
+
+const logger = createLogger("ErrorBoundary")
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps> {
   state: ErrorBoundaryState = { error: null }
@@ -24,6 +27,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps> {
 
     if (onError) {
       onError(toError(rawError))
+    } else {
+      logger.error(rawError)
     }
   }
 

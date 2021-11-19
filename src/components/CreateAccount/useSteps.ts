@@ -2,6 +2,7 @@ import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
 
 import { useRouteParam } from "hooks/useRouteParam"
+import { createLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
 export interface UseStepsParams<T extends string> {
@@ -16,6 +17,8 @@ export interface UseStepsResult<T extends string> {
   step: T
 }
 
+const logger = createLogger("Router")
+
 export function useSteps<T extends string>({
   onFirstStepBack,
   onLastStepNext,
@@ -29,7 +32,7 @@ export function useSteps<T extends string>({
   useEffect(() => {
     // Synchronize browser URL with the current state
     if (stepParam !== step) {
-      router.replace(step, undefined, { shallow: true }).catch(console.error)
+      router.replace(step, undefined, { shallow: true }).catch(logger.error)
     }
   }, [router, step, stepParam])
 

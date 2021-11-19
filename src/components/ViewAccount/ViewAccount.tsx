@@ -3,6 +3,7 @@ import Link from "next/link"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
 
+import { AsyncButton } from "components/AsyncButton"
 import { useAccountData, useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
 import { useTransactionParams } from "hooks/useTransactionParams"
@@ -302,14 +303,14 @@ export function ViewAccount({ address }: ViewAccountProps) {
       <AccountDetails address={address} data={accountData ?? {}} />
       {Boolean(accountData?.key) && (
         <div>
-          <button onClick={onChangePin}>Change PIN</button>
-          <button onClick={onShowPassphrase}>Show passphrase</button>
-          <button onClick={onRemoveAccount}>Remove account</button>
-          <button onClick={addApplication}>Add application</button>
-          <button onClick={removeApplication}>Remove application</button>
-          <button onClick={addAsset}>Add asset</button>
-          <button onClick={onSend}>Send Algos</button>
-          <button onClick={onSendAsset}>Send asset</button>
+          <AsyncButton onClick={onChangePin} label="Change PIN" />
+          <AsyncButton onClick={onShowPassphrase} label="Show passphrase" />
+          <AsyncButton onClick={onRemoveAccount} label="Remove account" />
+          <AsyncButton onClick={addApplication} label=">Add application" />
+          <AsyncButton onClick={removeApplication} label="Remove application" />
+          <AsyncButton onClick={addAsset} label="Add asset" />
+          <AsyncButton onClick={onSend} label="Send Algos" />
+          <AsyncButton onClick={onSendAsset} label="Send asset" />
         </div>
       )}
     </div>

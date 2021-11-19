@@ -1,4 +1,5 @@
 import { isBrowser } from "lib/utils/environment"
+import { createLogger } from "lib/utils/logger"
 import { useEffect } from "react"
 
 /**
@@ -15,21 +16,22 @@ export function isServiceWorkerSupported(): boolean {
 export function useServiceWorker(): void {
   useEffect(() => {
     if (isServiceWorkerSupported() && window.workbox !== undefined) {
+      const logger = createLogger("Workbox")
       const wb = window.workbox
 
       wb.addEventListener("installed", event => {
-        console.log(`[WB] ${event.type}`, event)
+        logger.log("Installed", event)
       })
 
       wb.addEventListener("controlling", event => {
-        console.log(`[WB] ${event.type}`, event)
+        logger.log("Controlling", event)
       })
 
       wb.addEventListener("waiting", event => {
-        console.log(`[WB] ${event.type}`, event)
+        logger.log("Waiting", event)
 
         if (prompt("New version available. Reload now?")) {
-          console.log("[WB] accepted")
+          logger.log("Accepted by user")
 
           wb.addEventListener("controlling", () => {
             window.location.reload()
@@ -37,19 +39,19 @@ export function useServiceWorker(): void {
 
           wb.messageSkipWaiting()
         } else {
-          console.log("[WB] rejected")
+          logger.log("Rejected by user")
         }
       })
 
       wb.addEventListener("activated", event => {
-        console.log(`[WB] ${event.type}`, event)
+        logger.log("Activated", event)
       })
 
       wb.addEventListener("message", event => {
-        console.log(`[WB] ${event.type}`, event)
+        logger.log("Message", event)
       })
 
-      console.log("[WB] register")
+      logger.log("Registering...")
 
       wb.register()
     }
