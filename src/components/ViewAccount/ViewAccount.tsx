@@ -1,5 +1,6 @@
 import Link from "next/link"
 
+import { PageContent } from "components/PageContent"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
 import { useAccountData } from "context/AddressBookContext"
@@ -52,7 +53,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
   }
 
   return (
-    <div>
+    <PageContent>
       <Link href={Route.ACCOUNTS_LIST}>
         <a>Back</a>
       </Link>
@@ -62,6 +63,6 @@ export function ViewAccount({ address }: ViewAccountProps) {
       ) : (
         <ViewOtherAccountActions address={account.address} data={accountData} />
       )}
-    </div>
+    </PageContent>
   )
 }

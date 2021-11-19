@@ -5,6 +5,9 @@
       "url": "https://algoexplorerapi.io",
       "token": ""
     },
+    "algo_explorer": {
+      "url": "https://algoexplorer.io"
+    },
     "algo_indexer": {
       "port": "",
       "url": "https://algoexplorerapi.io/idx2",
@@ -60,6 +63,9 @@
       "port": "",
       "url": "https://testnet.algoexplorerapi.io",
       "token": ""
+    },
+    "algo_explorer": {
+      "url": "https://testnet.algoexplorer.io"
     },
     "algo_indexer": {
       "port": "",

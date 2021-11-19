@@ -1,6 +1,10 @@
+import { useCallback } from "react"
+
+import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo } from "lib/algo/Account"
 import { AccountData } from "lib/db/schema"
+import { toClipboard } from "lib/utils/clipboard"
 
 import { StandardAsset } from "./StandardAsset"
 
@@ -10,11 +14,83 @@ export type AccountDetailsProps = {
 }
 
 export default function AccountDetails({ account, data }: AccountDetailsProps) {
+  const { addAccount, updateAccount } = useAddressBook()
   const { config } = useNetworkContext()
+  const { address } = account
+
+  const onChangeName = useCallback(async () => {
+    // eslint-disable-next-line no-alert
+    const name = window.prompt("Enter name:", data?.name)
+
+    if (name) {
+      if (data) {
+        await updateAccount(address, { name })
+      } else {
+        await addAccount(address, { name })
+      }
+    }
+  }, [addAccount, address, data, updateAccount])
+
+  const onChangeNote = useCallback(async () => {
+    // eslint-disable-next-line no-alert
+    const note = window.prompt("Enter note:", data?.note)
+
+    if (note) {
+      if (data) {
+        await updateAccount(address, { note })
+      } else {
+        await addAccount(address, { note })
+      }
+    }
+  }, [addAccount, address, data, updateAccount])
 
   return (
     <div>
-      <pre title={account.address}>{data?.name ?? account.address}</pre>
+      <p>
+        <a
+          onClick={() => toClipboard(account.address)}
+          title="Copy to clipboard"
+        >
+          {account.address}
+        </a>
+      </p>
+      {data?.name ? (
+        <p>
+          {data?.name} <a onClick={onChangeName}>(Edit name)</a>
+        </p>
+      ) : (
+        <p>
+          <a onClick={onChangeName}>(Add name)</a>
+        </p>
+      )}
+      {data?.note ? (
+        <p>
+          {data?.note} <a onClick={onChangeNote}>(Edit note)</a>
+        </p>
+      ) : (
+        <p>
+          <a onClick={onChangeNote}>(Add note)</a>
+        </p>
+      )}
+      <p>
+        Created at block:{" "}
+        <a
+          target="_blank"
+          href={`${config.algo_explorer.url}/block/${account["created-at-round"]}`}
+          rel="noreferrer"
+        >
+          {account["created-at-round"]}
+        </a>
+      </p>
+      <p>
+        <a
+          target="_blank"
+          href={`${config.algo_explorer.url}/address/${account.address}`}
+          rel="noreferrer"
+        >
+          See in explorer
+        </a>
+      </p>
       <StandardAsset
         assetId={config.native_asset.index}
         amount={account.amount}

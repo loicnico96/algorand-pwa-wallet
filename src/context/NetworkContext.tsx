@@ -15,6 +15,9 @@ export interface NetworkConfig {
     token: string
     url: string
   }
+  algo_explorer: {
+    url: string
+  }
   algo_indexer: {
     port: string
     token: string
