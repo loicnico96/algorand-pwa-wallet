@@ -306,7 +306,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
           <AsyncButton onClick={onChangePin} label="Change PIN" />
           <AsyncButton onClick={onShowPassphrase} label="Show passphrase" />
           <AsyncButton onClick={onRemoveAccount} label="Remove account" />
-          <AsyncButton onClick={addApplication} label=">Add application" />
+          <AsyncButton onClick={addApplication} label="Add application" />
           <AsyncButton onClick={removeApplication} label="Remove application" />
           <AsyncButton onClick={addAsset} label="Add asset" />
           <AsyncButton onClick={onSend} label="Send Algos" />

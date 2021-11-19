@@ -14,29 +14,46 @@ export interface Logger {
 }
 
 export function createLogger(
-  namespace: string,
+  namespace: string = "",
   level: LogLevel = isDev ? LogLevel.INFO : LogLevel.ERROR
 ): Logger {
   return {
     error(error) {
       if (level >= LogLevel.ERROR) {
-        // eslint-disable-next-line no-console
-        console.error(`[${namespace}]`, error)
+        if (namespace) {
+          // eslint-disable-next-line no-console
+          console.error(`[${namespace}]`, error)
+        } else {
+          // eslint-disable-next-line no-console
+          console.error(error)
+        }
       }
     },
 
     log(...args) {
       if (level >= LogLevel.INFO) {
-        // eslint-disable-next-line no-console
-        console.log(`[${namespace}]`, ...args)
+        if (namespace) {
+          // eslint-disable-next-line no-console
+          console.log(`[${namespace}]`, ...args)
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(...args)
+        }
       }
     },
 
     warn(...args) {
       if (level >= LogLevel.WARN) {
-        // eslint-disable-next-line no-console
-        console.warn(`[${namespace}]`, ...args)
+        if (namespace) {
+          // eslint-disable-next-line no-console
+          console.warn(`[${namespace}]`, ...args)
+        } else {
+          // eslint-disable-next-line no-console
+          console.warn(...args)
+        }
       }
     },
   }
 }
+
+export const DefaultLogger = createLogger()
