@@ -1,5 +1,5 @@
+import { useAssetPrice } from "context/AssetPriceContext"
 import { useAssetInfo } from "hooks/useAssetInfo"
-import { useAssetPrices } from "hooks/useAssetPrices"
 
 import { Asset } from "./Asset"
 
@@ -11,7 +11,7 @@ export type StandardAssetProps = {
 
 export function StandardAsset({ amount, assetId, frozen }: StandardAssetProps) {
   const { data: asset } = useAssetInfo(assetId)
-  const { data: prices } = useAssetPrices()
+  const price = useAssetPrice(assetId)
 
   if (!asset) {
     return <pre>Loading...</pre>
@@ -25,7 +25,7 @@ export function StandardAsset({ amount, assetId, frozen }: StandardAssetProps) {
       freeze={Boolean(asset.params.freeze)}
       frozen={frozen}
       name={asset.params.name ?? String(assetId)}
-      price={(prices ?? {})[assetId] ?? NaN}
+      price={price ?? NaN}
       unit={asset.params["unit-name"]}
       url={asset.params.url}
     />

@@ -1,7 +1,7 @@
 import { AssetInfo } from "lib/algo/Asset"
-import { ReactNode, useContext, useState } from "react"
+import { useContext, useState } from "react"
 import networks from "config/networks.json"
-import { createEmptyContext } from "lib/utils/context"
+import { createEmptyContext, ProviderProps } from "./utils"
 import algosdk from "algosdk"
 
 export enum Network {
@@ -58,22 +58,19 @@ export interface NetworkContextValue {
   config: NetworkConfig
   indexer: algosdk.Indexer
   network: Network
-  setNetwork: (network: Network) => void
 }
 
-export interface NetworkContextProviderProps {
-  children: ReactNode
+export interface NetworkContextProviderProps extends ProviderProps {
   defaultNetwork: Network
 }
 
-export const NetworkContext =
-  createEmptyContext<NetworkContextValue>("NetworkContext")
+export const NetworkContext = createEmptyContext<NetworkContextValue>()
 
 export function NetworkContextProvider({
   children,
   defaultNetwork,
 }: NetworkContextProviderProps) {
-  const [network, setNetwork] = useState(defaultNetwork)
+  const [network] = useState(defaultNetwork)
 
   const config = networks[network]
 
@@ -94,7 +91,6 @@ export function NetworkContextProvider({
     config,
     indexer,
     network,
-    setNetwork,
   }
 
   return (

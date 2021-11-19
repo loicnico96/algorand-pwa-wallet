@@ -3,6 +3,10 @@ import { toError } from "lib/utils/error"
 import { useCallback } from "react"
 import useSWR from "swr"
 
+export interface UseQueryOptions {
+  immutable?: boolean
+}
+
 export interface UseQueryResult<T> {
   data: T | null
   error: Error | null
@@ -12,28 +16,37 @@ export interface UseQueryResult<T> {
 
 export function useQuery<T>(
   cacheKey: string,
-  fetcher: () => Promise<T>
+  fetcher: () => Promise<T>,
+  options: UseQueryOptions = {}
 ): UseQueryResult<T> {
-  const { data, error, isValidating, mutate } = useSWR(cacheKey, async key => {
-    if (isDev) {
-      console.log(`[${key}] Query`)
-    }
-
-    try {
-      const result = await fetcher()
+  const { data, error, isValidating, mutate } = useSWR(
+    cacheKey,
+    async key => {
       if (isDev) {
-        console.log(`[${key}] Success`, result)
+        console.log(`[${key}] Query`)
       }
 
-      return result
-    } catch (error) {
-      if (isDev) {
-        console.error(`[${key}]`, error)
-      }
+      try {
+        const result = await fetcher()
+        if (isDev) {
+          console.log(`[${key}] Success`, result)
+        }
 
-      throw error
+        return result
+      } catch (error) {
+        if (isDev) {
+          console.error(`[${key}]`, error)
+        }
+
+        throw error
+      }
+    },
+    {
+      revalidateIfStale: !options.immutable,
+      revalidateOnFocus: !options.immutable,
+      revalidateOnReconnect: !options.immutable,
     }
-  })
+  )
 
   const refetch = useCallback(async () => {
     const params = await mutate(undefined, true)

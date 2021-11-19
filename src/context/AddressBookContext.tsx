@@ -6,55 +6,48 @@ import {
   removeAccount,
   updateAccount,
 } from "lib/db/schema"
-import { createEmptyContext } from "lib/utils/context"
-import { ReactNode, useContext } from "react"
-import useSWR from "swr"
+import { createEmptyContext, ProviderProps } from "./utils"
+import { useContext } from "react"
 import { useNetworkContext } from "./NetworkContext"
+import { useQuery } from "hooks/useQuery"
 
-export interface AddressBook {
+export interface AddressBookContextValue {
   accounts: Account[]
   addAccount(address: string, data: AccountData): Promise<void>
+  error: Error | null
   loading: boolean
+  refetch(): Promise<Account[]>
   removeAccount(address: string): Promise<void>
   updateAccount(address: string, data: Partial<AccountData>): Promise<void>
 }
 
-export interface AddressBookContextProviderProps {
-  children: ReactNode
-}
+export const AddressBookContext = createEmptyContext<AddressBookContextValue>()
 
-export const AddressBookContext =
-  createEmptyContext<AddressBook>("AddressBookContext")
-
-export function AddressBookContextProvider({
-  children,
-}: AddressBookContextProviderProps) {
+export function AddressBookContextProvider({ children }: ProviderProps) {
   const { network } = useNetworkContext()
 
-  const { data, isValidating, mutate } = useSWR(
+  const { data, error, loading, refetch } = useQuery(
     `${network}:contacts`,
     () => getAccounts(network),
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
+    { immutable: true }
   )
 
-  const value: AddressBook = {
+  const value: AddressBookContextValue = {
     accounts: data ?? [],
     addAccount: async (address, data) => {
       await addAccount(network, address, data)
-      await mutate()
+      await refetch()
     },
-    loading: isValidating,
+    error,
+    loading,
+    refetch,
     removeAccount: async address => {
       await removeAccount(network, address)
-      await mutate()
+      await refetch()
     },
     updateAccount: async (address, data) => {
       await updateAccount(network, address, data)
-      await mutate()
+      await refetch()
     },
   }
 
@@ -65,7 +58,7 @@ export function AddressBookContextProvider({
   )
 }
 
-export function useAddressBook(): AddressBook {
+export function useAddressBook(): AddressBookContextValue {
   return useContext(AddressBookContext)
 }
 

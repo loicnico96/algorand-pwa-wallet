@@ -1,14 +1,10 @@
 import { useAddressBook } from "context/AddressBookContext"
-import { Network, useNetworkContext } from "context/NetworkContext"
+import { useNetworkContext } from "context/NetworkContext"
 
 export default function ContactsPage() {
-  const { network, setNetwork } = useNetworkContext()
+  const { network } = useNetworkContext()
   const { accounts, removeAccount, updateAccount, addAccount } =
     useAddressBook()
-
-  const onChangeNetwork = () => {
-    setNetwork(network === Network.TEST ? Network.MAIN : Network.TEST)
-  }
 
   const onRenameContact = (address: string) => {
     // eslint-disable-next-line no-alert
@@ -59,7 +55,6 @@ export default function ContactsPage() {
       <h3>Network:</h3>
       <div>
         <p>{network}</p>
-        <button onClick={onChangeNetwork}>Change</button>
       </div>
       <h3>Accounts:</h3>
       {accounts
