@@ -1,3 +1,4 @@
+import { PageLoader } from "components/PageLoader"
 import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/useAccountInfo"
 import { Address } from "lib/algo/Account"
@@ -41,7 +42,7 @@ export default function AccountDetails({ address, data }: AccountDetailsProps) {
   }
 
   if (!account) {
-    return <pre>Loading...</pre>
+    return <PageLoader message="Loading account details..." />
   }
 
   return (
