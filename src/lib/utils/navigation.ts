@@ -1,15 +1,16 @@
 export enum Route {
-  ACCOUNT_CREATE = "/account/create",
+  ACCOUNT_CREATE = "/accounts/create",
   ACCOUNT_LIST = "/",
-  ACCOUNT_RESTORE = "/account/restore",
-  ACCOUNT_VIEW = "/account/[address]",
+  ACCOUNT_RESTORE = "/accounts/restore",
+  ACCOUNT_VIEW = "/accounts/[address]",
 }
 
 export enum RouteParam {
   ADDRESS = "address",
+  STEP = "step",
 }
 
-export function replaceParams<T extends Record<RouteParam, string>>(
+export function replaceParams<T extends { [P in RouteParam]?: string }>(
   path: string,
   params: T
 ): string {

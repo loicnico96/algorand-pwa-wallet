@@ -1,11 +1,14 @@
 import { toError } from "lib/utils/error"
 import { useCallback, useState } from "react"
+import { useMountedRef } from "./useMountedRef"
 
 export function useAsyncHandler<P extends any[], T>(
   handler: (...args: P) => unknown,
   onError?: (error: Error) => void
 ): [(...args: P) => void, boolean] {
   const [isRunning, setRunning] = useState(false)
+
+  const mountedRef = useMountedRef()
 
   const asyncHandler = useCallback(
     async (...args: P) => {
@@ -18,11 +21,13 @@ export function useAsyncHandler<P extends any[], T>(
             onError(toError(error))
           }
         } finally {
-          setRunning(false)
+          if (mountedRef.current) {
+            setRunning(false)
+          }
         }
       }
     },
-    [handler, isRunning]
+    [handler, isRunning, mountedRef]
   )
 
   return [asyncHandler, isRunning]
