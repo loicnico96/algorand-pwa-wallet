@@ -23,7 +23,9 @@ yarn-error.log*
 
 # production
 /build
-/public/fallback-development.js
+
+# pwa
+/public/fallback-*.js
 /public/sw.js
 /public/sw.js.map
 /public/workbox-*.js

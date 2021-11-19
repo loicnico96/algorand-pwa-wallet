@@ -2607,6 +2607,7 @@ __metadata:
     react-dom: 17.0.2
     swr: 1.0.1
     typescript: 4.4.3
+    workbox-window: 6.4.1
   languageName: unknown
   linkType: soft
 
@@ -9731,6 +9732,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"workbox-core@npm:6.4.1":
+  version: 6.4.1
+  resolution: "workbox-core@npm:6.4.1"
+  checksum: 0e58c7fbf0de50b3e805227498523a6ca9790936ed7b88cc1572a9e49e8bb3b5e47bac2a5bf734d4f255a9d28ae356bedbe79df79d024c0d4598867919adc48b
+  languageName: node
+  linkType: hard
+
 "workbox-expiration@npm:6.4.0":
   version: 6.4.0
   resolution: "workbox-expiration@npm:6.4.0"
@@ -9854,6 +9862,16 @@ __metadata:
     "@types/trusted-types": ^2.0.2
     workbox-core: 6.4.0
   checksum: f4208e944600760a95e6b15a3133732f372dd879dc01e286b13d1f3ac248b63851aa7429468d63beebef3652370f67d6ace0c7d95f90e6dd8341ff98f0a23177
+  languageName: node
+  linkType: hard
+
+"workbox-window@npm:6.4.1":
+  version: 6.4.1
+  resolution: "workbox-window@npm:6.4.1"
+  dependencies:
+    "@types/trusted-types": ^2.0.2
+    workbox-core: 6.4.1
+  checksum: e453aabb265dbfaf7c0c188a07b0eac08c965c0fd7997c15b1089d09303b0b466cde02d527739b9a4bf3e9cdbad508023061971dbd3bdec7b6c888e6bc5b75ae
   languageName: node
   linkType: hard
 
