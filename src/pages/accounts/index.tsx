@@ -11,7 +11,7 @@ export default function HomePage() {
       {accounts
         .filter(account => account.key)
         .map(account => {
-          const href = replaceParams(Route.ACCOUNT_VIEW, {
+          const href = replaceParams(Route.ACCOUNTS_VIEW, {
             [RouteParam.ADDRESS]: account.address,
           })
 
@@ -23,12 +23,12 @@ export default function HomePage() {
             </Link>
           )
         })}
-      <Link href={Route.ACCOUNT_CREATE}>
+      <Link href={Route.ACCOUNTS_CREATE}>
         <a>
           <button>Create account</button>
         </a>
       </Link>
-      <Link href={Route.ACCOUNT_RESTORE}>
+      <Link href={Route.ACCOUNTS_RESTORE}>
         <a>
           <button>Restore account</button>
         </a>

@@ -19,7 +19,7 @@ export default function ViewAccountPage() {
   if (!address || !algosdk.isValidAddress(address)) {
     return (
       <PageError message="This address is invalid.">
-        <Link href={Route.ACCOUNT_LIST}>
+        <Link href={Route.ACCOUNTS_LIST}>
           <a>Bring me home.</a>
         </Link>
       </PageError>

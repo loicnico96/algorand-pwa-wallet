@@ -32,10 +32,10 @@ export function CreateAccountPages() {
   )
 
   const { onBack, onNext, step } = useSteps({
-    onFirstStepBack: () => router.push(Route.ACCOUNT_LIST),
+    onFirstStepBack: () => router.push(Route.ACCOUNTS_LIST),
     onLastStepNext: async () => {
       if (account) {
-        const accountUrl = replaceParams(Route.ACCOUNT_VIEW, {
+        const accountUrl = replaceParams(Route.ACCOUNTS_VIEW, {
           [RouteParam.ADDRESS]: account.addr,
         })
 

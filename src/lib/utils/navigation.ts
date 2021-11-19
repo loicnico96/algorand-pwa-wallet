@@ -1,8 +1,9 @@
 export enum Route {
-  ACCOUNT_CREATE = "/accounts/create",
-  ACCOUNT_LIST = "/",
-  ACCOUNT_RESTORE = "/accounts/restore",
-  ACCOUNT_VIEW = "/accounts/[address]",
+  ACCOUNTS_CREATE = "/accounts/create",
+  ACCOUNTS_LIST = "/accounts",
+  ACCOUNTS_RESTORE = "/accounts/restore",
+  ACCOUNTS_VIEW = "/accounts/[address]",
+  CONTACTS = "/contacts",
 }
 
 export enum RouteParam {

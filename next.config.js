@@ -12,4 +12,11 @@ module.exports = withPWA({
     register: false,
   },
   reactStrictMode: true,
+  redirects: () => [
+    {
+      destination: "/accounts",
+      permanent: true,
+      source: "/",
+    }
+  ]
 })
