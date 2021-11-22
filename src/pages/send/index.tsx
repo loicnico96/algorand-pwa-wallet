@@ -19,7 +19,7 @@ import { useAssetInfo } from "hooks/useAssetInfo"
 import { useParamState } from "hooks/useParamState"
 import { useTransactionParams } from "hooks/useTransactionParams"
 import { createTransferTransaction } from "lib/algo/transactions/Transfer"
-import { printDecimals } from "lib/utils/int"
+import { toError } from "lib/utils/error"
 import { RouteParam } from "lib/utils/navigation"
 
 export default function SendPage() {
@@ -101,14 +101,13 @@ export default function SendPage() {
       sender: fromAddress,
     })
 
-    const transactionId = await signTransaction(transaction)
-
-    if (transactionId !== null) {
+    try {
+      await signTransaction(transaction)
       toast.info(
-        `Sending ${printDecimals(amount, asset.params.decimals)} ${
-          asset.params["unit-name"]
-        } to ${toAddress}...`
+        "Transaction sent. It should get confirmed within a few seconds."
       )
+    } catch (error) {
+      toast.error(toError(error).message)
     }
   }, [
     amount,
