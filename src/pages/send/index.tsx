@@ -1,7 +1,11 @@
 import algosdk from "algosdk"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
+import { AccountSelect } from "components/Form/AccountSelect"
+import { AmountSelect } from "components/Form/AmountSelect"
+import { AssetDisplay } from "components/Form/AssetDisplay"
+import { AssetSelect } from "components/Form/AssetSelect"
 import { PageContent } from "components/PageContent"
 import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
@@ -9,120 +13,8 @@ import { useAccountInfo } from "hooks/useAccountInfo"
 import { useAssetInfo } from "hooks/useAssetInfo"
 import { useParamState } from "hooks/useParamState"
 import { AssetId } from "lib/algo/Asset"
-import { printDecimals, readDecimals } from "lib/utils/int"
 import { DefaultLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
-
-export interface AssetDisplayProps {
-  amount: number | null
-  assetId: AssetId
-}
-
-export function AssetDisplay({ amount, assetId }: AssetDisplayProps) {
-  const { data: asset } = useAssetInfo(assetId)
-
-  const unitName = asset?.params["unit-name"]
-
-  const strAmount =
-    amount === null || asset === null
-      ? "..."
-      : printDecimals(amount, asset.params.decimals)
-
-  return <span>{unitName ? `${strAmount} ${unitName}` : strAmount}</span>
-}
-
-export interface AssetSelectOptionProps {
-  assetId: AssetId
-}
-
-export function AssetSelectOption({ assetId }: AssetSelectOptionProps) {
-  const { data: asset } = useAssetInfo(assetId)
-
-  return (
-    <option
-      label={asset?.params.name ?? String(assetId)}
-      value={String(assetId)}
-    />
-  )
-}
-
-export interface AssetSelectProps {
-  assetIds: AssetId[]
-  disabled?: boolean
-  onChange: (assetId: AssetId) => unknown
-  value: AssetId
-}
-
-export function AssetSelect({
-  assetIds,
-  onChange,
-  value,
-  ...selectProps
-}: AssetSelectProps) {
-  return (
-    <select
-      onChange={e => onChange(Number(e.target.value))}
-      value={String(value)}
-      {...selectProps}
-    >
-      {assetIds.map(assetId => (
-        <AssetSelectOption assetId={assetId} key={assetId} />
-      ))}
-    </select>
-  )
-}
-
-export interface AmountSelectProps {
-  decimals: number
-  disabled?: boolean
-  max?: number
-  onChange: (amount: number) => unknown
-  unit?: string
-  value: number
-}
-
-export function AmountSelect({
-  decimals,
-  disabled = false,
-  unit,
-  max,
-  onChange,
-  value,
-  ...inputProps
-}: AmountSelectProps) {
-  const [inputValue, setInputValue] = useState(printDecimals(0, decimals))
-
-  return (
-    <div>
-      <input
-        disabled={disabled}
-        min={0}
-        onBlur={() => setInputValue(printDecimals(value, decimals))}
-        onFocus={e => e.target.select()}
-        onChange={e => {
-          setInputValue(e.target.value)
-          onChange(readDecimals(e.target.value, decimals))
-        }}
-        step={1}
-        type="number"
-        value={inputValue}
-        {...inputProps}
-      />
-      {!!unit && <span>{unit}</span>}
-      {max !== undefined && (
-        <button
-          disabled={disabled || value === max}
-          onClick={() => {
-            setInputValue(printDecimals(max, decimals))
-            onChange(max)
-          }}
-        >
-          Max
-        </button>
-      )}
-    </div>
-  )
-}
 
 export default function SendPage() {
   const [from, setFrom] = useParamState(RouteParam.ADDRESS_FROM)
@@ -191,65 +83,21 @@ export default function SendPage() {
     <PageContent>
       <div>
         <p>From:</p>
-        <select
-          onChange={e => {
-            setFrom(e.target.value)
-            setAssetId(null)
-            setAmount(null)
-          }}
-          value={from ?? undefined}
-        >
-          {accounts
-            .filter(account => account.key)
-            .map(account => (
-              <option
-                key={account.address}
-                label={
-                  account.name
-                    ? `${account.name} (${account.address})`
-                    : account.address
-                }
-                value={account.address}
-              />
-            ))}
-        </select>
+        <AccountSelect
+          accounts={accounts.filter(account => account.key)}
+          onChange={setFrom}
+          value={from ?? ""}
+        />
         {fromError && <div>{fromError.message}</div>}
       </div>
       <div>
         <p>To:</p>
-        <select
-          onChange={e => {
-            setTo(e.target.value !== "other" ? e.target.value : null)
-            setAssetId(null)
-            setAmount(null)
-          }}
-          value={
-            to && accounts.some(account => account.address === to)
-              ? to
-              : "other"
-          }
-        >
-          {accounts.map(account => (
-            <option
-              key={account.address}
-              label={
-                account.name
-                  ? `${account.name} (${account.address})`
-                  : account.address
-              }
-              value={account.address}
-            />
-          ))}
-          <option label="Other..." value="other" />
-        </select>
-        {accounts.every(account => account.address !== to) && (
-          <input
-            onChange={e => setTo(e.target.value)}
-            placeholder="Select address"
-            type="text"
-            value={to ?? ""}
-          />
-        )}
+        <AccountSelect
+          accounts={accounts}
+          allowManual
+          onChange={setTo}
+          value={to ?? ""}
+        />
         {toError && <div>{toError.message}</div>}
       </div>
       <div>
@@ -262,7 +110,7 @@ export default function SendPage() {
           }
           value={realAssetId}
         />
-        {!isToOptedInAssetId && (
+        {!!toAccount && !isToOptedInAssetId && (
           <div>Recipient has not opted in this asset.</div>
         )}
         {assetError && <div>{assetError.message}</div>}
@@ -303,7 +151,7 @@ export default function SendPage() {
         </p>
       </div>
       <AsyncButton
-        disabled={!fromAccount || !toAccount || !asset || !isAbleToConfirm}
+        disabled={!fromAccount || !asset || !isAbleToConfirm}
         label="Confirm"
         onClick={() => DefaultLogger.warn("Not implemented")}
       />
