@@ -67,8 +67,8 @@ export interface AccountInfo {
   address: Address
   amount: number
   "amount-without-pending-rewards": number
-  "apps-local-state": AccountAppState[]
-  "apps-total-schema": AppSchema
+  "apps-local-state"?: AccountAppState[]
+  "apps-total-schema"?: AppSchema
   assets?: AccountAsset[]
   "auth-addr"?: Address
   "closed-at-round"?: number

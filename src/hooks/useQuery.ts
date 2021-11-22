@@ -3,7 +3,8 @@ import { createLogger } from "lib/utils/logger"
 import { useCallback } from "react"
 import useSWR from "swr"
 
-export interface UseQueryOptions {
+export interface UseQueryOptions<T> {
+  defaultValue?: T
   immutable?: boolean
 }
 
@@ -17,7 +18,7 @@ export interface UseQueryResult<T> {
 export function useQuery<T>(
   cacheKey: string | null,
   fetcher: (() => Promise<T>) | null,
-  options: UseQueryOptions = {}
+  options: UseQueryOptions<T> = {}
 ): UseQueryResult<T> {
   const { data, error, isValidating, mutate } = useSWR(
     cacheKey,
@@ -34,6 +35,7 @@ export function useQuery<T>(
         }
       }),
     {
+      fallbackData: options.defaultValue,
       revalidateIfStale: !options.immutable,
       revalidateOnFocus: !options.immutable,
       revalidateOnReconnect: !options.immutable,

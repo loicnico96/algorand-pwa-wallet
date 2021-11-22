@@ -1,5 +1,5 @@
 import algosdk from "algosdk"
-import { useEffect } from "react"
+import { useCallback, useEffect } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
 import { AccountSelect } from "components/Form/AccountSelect"
@@ -9,75 +9,124 @@ import { AssetSelect } from "components/Form/AssetSelect"
 import { PageContent } from "components/PageContent"
 import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
+import { useAccountAssetIds } from "hooks/useAccountAssetIds"
+import { useAccountBalance } from "hooks/useAccountBalance"
 import { useAccountInfo } from "hooks/useAccountInfo"
+import { useAccountMinBalance } from "hooks/useAccountMinBalance"
 import { useAssetInfo } from "hooks/useAssetInfo"
 import { useParamState } from "hooks/useParamState"
-import { AssetId } from "lib/algo/Asset"
-import { DefaultLogger } from "lib/utils/logger"
+import { useTransactionConfirm } from "hooks/useTransactionConfirm"
+import { useTransactionParams } from "hooks/useTransactionParams"
+import { createTransferTransaction } from "lib/algo/transactions/Transfer"
+import { printDecimals } from "lib/utils/int"
 import { RouteParam } from "lib/utils/navigation"
 
 export default function SendPage() {
-  const [from, setFrom] = useParamState(RouteParam.ADDRESS_FROM)
-  const [to, setTo] = useParamState(RouteParam.ADDRESS_TO)
-  const [amount, setAmount] = useParamState(RouteParam.AMOUNT)
-  const [assetId, setAssetId] = useParamState(RouteParam.ASSET_ID)
-
-  const isValidFrom = !!from && algosdk.isValidAddress(from)
-  const isValidTo = !!to && algosdk.isValidAddress(to)
-
-  useEffect(() => {
-    if (amount !== null && !amount?.match(/^[0-9]+$/)) {
-      setAmount(null)
-    }
-  }, [amount, setAmount])
-
-  useEffect(() => {
-    if (assetId !== null && !assetId?.match(/^[0-9]+$/)) {
-      setAssetId(null)
-    }
-  }, [assetId, setAssetId])
-
   const { accounts } = useAddressBook()
   const { config } = useNetworkContext()
+  const { refetch: refetchParams } = useTransactionParams()
 
-  const { data: fromAccount, error: fromError } = useAccountInfo(
-    isValidFrom ? from : null
-  )
+  const nativeAssetId = config.native_asset.index
 
-  const { data: toAccount, error: toError } = useAccountInfo(
-    isValidTo ? to : null
-  )
+  const [fromParam, setFromParam] = useParamState(RouteParam.ADDRESS_FROM)
+  const isValidFrom = !!fromParam && algosdk.isValidAddress(fromParam)
+  const fromAddress = isValidFrom ? fromParam : null
 
-  const fromAssets: AssetId[] = [
-    config.native_asset.index,
-    ...(fromAccount?.assets?.map(asset => asset["asset-id"]) ?? []),
-  ]
+  const { data: fromAccount, error: fromAccountError } =
+    useAccountInfo(fromAddress)
 
-  const toAssets: AssetId[] = [
-    config.native_asset.index,
-    ...(toAccount?.assets?.map(asset => asset["asset-id"]) ?? []),
-  ]
+  const [toParam, setToParam] = useParamState(RouteParam.ADDRESS_TO)
+  const isValidTo = !!toParam && algosdk.isValidAddress(toParam)
+  const toAddress = isValidTo ? toParam : null
 
-  const realAssetId = Number(assetId) || config.native_asset.index
-  const isToOptedInAssetId = toAssets.includes(Number(realAssetId))
+  const { data: toAccount, error: toAccountError } = useAccountInfo(toAddress)
 
-  const { data: asset, error: assetError } = useAssetInfo(Number(realAssetId))
+  const [assetIdParam, setAssetIdParam] = useParamState(RouteParam.ASSET_ID)
+  const assetId = assetIdParam?.match(/^[0-9]+$/)
+    ? Number(assetIdParam)
+    : nativeAssetId
 
-  const nativeBalance = fromAccount?.amount ?? 0
+  const { data: asset, error: assetError } = useAssetInfo(assetId)
 
-  const nativeAvailable = Math.max(nativeBalance - config.params.MinTxnFee, 0)
+  const [amountParam, setAmountParam] = useParamState(RouteParam.AMOUNT)
+  const amount = amountParam?.match(/^[0-9]+$/) ? Number(amountParam) : 0
+
+  const [noteParam, setNoteParam] = useParamState(RouteParam.NOTE)
+  const note = noteParam ?? ""
+
+  useEffect(() => {
+    if (assetIdParam !== null && !assetIdParam.match(/^[0-9]+$/)) {
+      setAssetIdParam(null)
+    }
+  }, [assetIdParam, setAssetIdParam])
+
+  useEffect(() => {
+    if (amountParam !== null && !amountParam.match(/^[0-9]+$/)) {
+      setAmountParam(null)
+    }
+  }, [amountParam, setAmountParam])
+
+  const fromAssetIds = useAccountAssetIds(fromAccount)
+  const toAssetIds = useAccountAssetIds(toAccount)
+  const isToOptedInAsset = toAssetIds.includes(assetId)
+
+  const assetBalance = useAccountBalance(fromAccount, assetId)
+  const nativeBalance = useAccountBalance(fromAccount, nativeAssetId)
+  const nativeLocked = useAccountMinBalance(fromAccount)
+
+  const nativeFee = config.params.MinTxnFee
+  const nativeAvailable = Math.max(0, nativeBalance - nativeLocked - nativeFee)
 
   const assetAvailable =
-    realAssetId === config.native_asset.index
-      ? nativeAvailable
-      : fromAccount?.assets?.find(a => a["asset-id"] === realAssetId)?.amount ??
-        0
+    assetId === nativeAssetId ? nativeAvailable : assetBalance
 
-  const isAbleToConfirm =
+  const isSufficientFunds = amount <= assetAvailable
+
+  const { isAbleToSign, signTransaction } = useTransactionConfirm(fromAddress)
+
+  const isAbleToSubmit =
     isValidFrom &&
     isValidTo &&
-    isToOptedInAssetId &&
-    Number(amount) <= assetAvailable
+    isAbleToSign &&
+    isToOptedInAsset &&
+    isSufficientFunds
+
+  const onSubmit = useCallback(async () => {
+    if (!fromAddress || !toAddress || !asset || !isAbleToSubmit) {
+      return
+    }
+
+    const transaction = createTransferTransaction(config, {
+      amount,
+      assetId,
+      note,
+      params: await refetchParams(),
+      receiver: toAddress,
+      sender: fromAddress,
+    })
+
+    const transactionId = await signTransaction(transaction)
+
+    if (transactionId !== null) {
+      // eslint-disable-next-line no-alert
+      window.alert(
+        `Sending ${printDecimals(amount, asset.params.decimals)} ${
+          asset.params["unit-name"]
+        } to ${toAddress}...\nTransaction ID: ${transactionId}`
+      )
+    }
+  }, [
+    amount,
+    isAbleToSubmit,
+    config,
+    refetchParams,
+    asset,
+    assetId,
+    note,
+    fromAddress,
+    toAddress,
+    signTransaction,
+  ])
 
   return (
     <PageContent>
@@ -85,32 +134,32 @@ export default function SendPage() {
         <p>From:</p>
         <AccountSelect
           accounts={accounts.filter(account => account.key)}
-          onChange={setFrom}
-          value={from ?? ""}
+          onChange={setFromParam}
+          value={fromParam ?? ""}
         />
-        {fromError && <div>{fromError.message}</div>}
+        {fromAccountError && <div>{fromAccountError.message}</div>}
       </div>
       <div>
         <p>To:</p>
         <AccountSelect
           accounts={accounts}
           allowManual
-          onChange={setTo}
-          value={to ?? ""}
+          onChange={setToParam}
+          value={toParam ?? ""}
         />
-        {toError && <div>{toError.message}</div>}
+        {toAccountError && <div>{toAccountError.message}</div>}
       </div>
       <div>
         <p>Asset:</p>
         <AssetSelect
-          assetIds={fromAssets}
+          assetIds={fromAssetIds}
           disabled={!fromAccount}
           onChange={id =>
-            setAssetId(id === config.native_asset.index ? null : String(id))
+            setAssetIdParam(id === nativeAssetId ? null : String(id))
           }
-          value={realAssetId}
+          value={assetId}
         />
-        {!!toAccount && !isToOptedInAssetId && (
+        {!!toAccount && !isToOptedInAsset && (
           <div>Recipient has not opted in this asset.</div>
         )}
         {assetError && <div>{assetError.message}</div>}
@@ -118,42 +167,49 @@ export default function SendPage() {
       <div>
         <p>Amount:</p>
         <div>
-          Available:{" "}
-          <AssetDisplay amount={assetAvailable} assetId={realAssetId} />
+          Available: <AssetDisplay amount={assetAvailable} assetId={assetId} />
         </div>
+        {assetId === nativeAssetId && (
+          <div>
+            Locked:{" "}
+            <AssetDisplay amount={nativeLocked} assetId={nativeAssetId} />
+          </div>
+        )}
         <AmountSelect
           decimals={
             asset?.params.decimals ?? config.native_asset.params.decimals
           }
           disabled={!fromAccount}
           max={assetAvailable}
-          onChange={value => setAmount(String(value))}
+          onChange={value => setAmountParam(String(value))}
           unit={asset?.params["unit-name"]}
           value={Number(amount)}
         />
-        {Number(amount) > assetAvailable && <div>Not enough funds.</div>}
+        {!isSufficientFunds && <div>Not enough funds.</div>}
       </div>
       <div>
         <p>Fee:</p>
-        <p>
+        <div>
           Balance:{" "}
-          <AssetDisplay
-            amount={nativeBalance}
-            assetId={config.native_asset.index}
-          />
-        </p>
-        <p>
-          Fee:{" "}
-          <AssetDisplay
-            amount={config.params.MinTxnFee}
-            assetId={config.native_asset.index}
-          />
-        </p>
+          <AssetDisplay amount={nativeBalance} assetId={nativeAssetId} />
+        </div>
+        <div>
+          Fee: <AssetDisplay amount={nativeFee} assetId={nativeAssetId} />
+        </div>
+      </div>
+      <div>
+        <p>Note:</p>
+        <input
+          onChange={e => setNoteParam(e.target.value)}
+          placeholder="Note (optional)"
+          type="text"
+          value={note}
+        />
       </div>
       <AsyncButton
-        disabled={!fromAccount || !asset || !isAbleToConfirm}
+        disabled={!fromAccount || !asset || !isAbleToSubmit}
         label="Confirm"
-        onClick={() => DefaultLogger.warn("Not implemented")}
+        onClick={onSubmit}
       />
     </PageContent>
   )
