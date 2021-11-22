@@ -33,7 +33,7 @@ export default function ContactsPage() {
     <div>
       <h3>Contacts:</h3>
       {accounts
-        .filter(account => !account.key)
+        .filter(account => !account.watch)
         .map(account => (
           <div key={account.address}>
             <p title={account.address}>{account.name}</p>

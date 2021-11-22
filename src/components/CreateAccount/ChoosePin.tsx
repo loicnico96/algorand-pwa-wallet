@@ -22,9 +22,9 @@ export function ChoosePin({ account, onBack, onNext }: ChoosePinProps) {
     if (pin.match(PIN_REGEX)) {
       const key = encryptKey(account.sk, pin)
       if (data) {
-        await updateAccount(account.addr, { key })
+        await updateAccount(account.addr, { key, watch: true })
       } else {
-        await addAccount(account.addr, { key })
+        await addAccount(account.addr, { key, watch: true })
       }
       onNext()
     }

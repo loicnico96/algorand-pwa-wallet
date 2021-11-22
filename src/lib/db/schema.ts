@@ -10,6 +10,7 @@ export interface AccountData {
   key?: string
   name?: string
   note?: string
+  watch?: boolean
 }
 
 export interface Account extends AccountData {

@@ -9,7 +9,7 @@ export default function HomePage() {
   return (
     <div>
       {accounts
-        .filter(account => account.key)
+        .filter(account => account.watch)
         .map(account => {
           const href = replaceParams(Route.ACCOUNTS_VIEW, {
             [RouteParam.ADDRESS]: account.address,
