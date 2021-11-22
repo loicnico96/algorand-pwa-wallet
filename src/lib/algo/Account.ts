@@ -69,7 +69,7 @@ export interface AccountInfo {
   "amount-without-pending-rewards": number
   "apps-local-state": AccountAppState[]
   "apps-total-schema": AppSchema
-  assets: AccountAsset[]
+  assets?: AccountAsset[]
   "auth-addr"?: Address
   "closed-at-round"?: number
   "created-apps"?: AccountAppCreated[]

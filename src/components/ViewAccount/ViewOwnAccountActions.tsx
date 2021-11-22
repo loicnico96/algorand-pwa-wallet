@@ -1,4 +1,5 @@
 import algosdk from "algosdk"
+import Link from "next/link"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
 
@@ -9,7 +10,7 @@ import { useTransactionParams } from "hooks/useTransactionParams"
 import { AccountInfo } from "lib/algo/Account"
 import { AccountData } from "lib/db/schema"
 import { decryptKey, encryptKey, promptPIN } from "lib/utils/auth"
-import { Route } from "lib/utils/navigation"
+import { Route, RouteParam, withSearchParams } from "lib/utils/navigation"
 
 export interface ViewOwnAccountActionsProps {
   account: AccountInfo
@@ -23,7 +24,7 @@ export function ViewOwnAccountActions({
   const router = useRouter()
 
   const { address } = account
-  const { api, config } = useNetworkContext()
+  const { api } = useNetworkContext()
 
   const { removeAccount, updateAccount } = useAddressBook()
 
@@ -62,127 +63,127 @@ export function ViewOwnAccountActions({
     }
   }, [address, data, removeAccount, router])
 
-  const onSend = useCallback(async () => {
-    if (!data?.key) {
-      return
-    }
-
-    // eslint-disable-next-line no-alert
-    const to = window.prompt("Receiver address:")
-    if (to === null) {
-      return
-    }
-
-    if (!algosdk.isValidAddress(to)) {
-      throw Error("Invalid address")
-    }
-
-    // eslint-disable-next-line no-alert
-    const amountStr = window.prompt("Amount (Algos):")
-    if (amountStr === null) {
-      return
-    }
-
-    const amount = Number(amountStr)
-
-    if (!Number.isFinite(amount)) {
-      throw Error("Invalid address")
-    }
-
-    // eslint-disable-next-line no-alert
-    const note = window.prompt("Note (optional):")
-
-    const suggestedParams = await refetchParams()
-
-    const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
-      amount: Math.ceil(amount * 10 ** config.native_asset.params.decimals),
-      from: address,
-      note: note ? new TextEncoder().encode(note) : undefined,
-      suggestedParams,
-      to,
-    })
-
-    const pin = promptPIN("Enter your PIN:")
-    if (pin) {
-      const key = decryptKey(data.key, pin)
-      const signed = transaction.signTxn(key)
-
-      await api.sendRawTransaction(signed).do()
-
-      // eslint-disable-next-line no-alert
-      window.alert(
-        `Sending ${Math.ceil(
-          amount * 10 ** config.native_asset.params.decimals
-        )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
-      )
-    }
-  }, [data, address, api, config, refetchParams])
-
-  const onSendAsset = useCallback(async () => {
-    if (!data?.key) {
-      return
-    }
-
-    // eslint-disable-next-line no-alert
-    const assetId = window.prompt("Asset ID:")
-    if (assetId === null) {
-      return
-    }
-
-    if (!Number.isInteger(Number(assetId)) || Number(assetId) < 0) {
-      throw Error("Invalid asset ID")
-    }
-
-    // eslint-disable-next-line no-alert
-    const to = window.prompt("Receiver address:")
-    if (to === null) {
-      return
-    }
-
-    if (!algosdk.isValidAddress(to)) {
-      throw Error("Invalid address")
-    }
-
-    // eslint-disable-next-line no-alert
-    const amountStr = window.prompt("Amount:")
-    if (amountStr === null) {
-      return
-    }
-
-    const amount = Number(amountStr)
-
-    if (!Number.isFinite(amount)) {
-      throw Error("Invalid address")
-    }
-
-    // eslint-disable-next-line no-alert
-    const note = window.prompt("Note (optional):")
-
-    const suggestedParams = await refetchParams()
-
-    const transaction =
-      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        amount,
-        assetIndex: Number(assetId),
-        from: address,
-        note: note ? new TextEncoder().encode(note) : undefined,
-        suggestedParams,
-        to,
-      })
-
-    const pin = promptPIN("Enter your PIN:")
-    if (pin) {
-      const key = decryptKey(data.key, pin)
-      const signed = transaction.signTxn(key)
-
-      await api.sendRawTransaction(signed).do()
-
-      // eslint-disable-next-line no-alert
-      window.alert(
-        `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
-      )
-    }
-  }, [data, address, api, refetchParams])
+  // const onSend = useCallback(async () => {
+  //   if (!data?.key) {
+  //     return
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const to = window.prompt("Receiver address:")
+  //   if (to === null) {
+  //     return
+  //   }
+  //
+  //   if (!algosdk.isValidAddress(to)) {
+  //     throw Error("Invalid address")
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const amountStr = window.prompt("Amount (Algos):")
+  //   if (amountStr === null) {
+  //     return
+  //   }
+  //
+  //   const amount = Number(amountStr)
+  //
+  //   if (!Number.isFinite(amount)) {
+  //     throw Error("Invalid address")
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const note = window.prompt("Note (optional):")
+  //
+  //   const suggestedParams = await refetchParams()
+  //
+  //   const transaction = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+  //     amount: Math.ceil(amount * 10 ** config.native_asset.params.decimals),
+  //     from: address,
+  //     note: note ? new TextEncoder().encode(note) : undefined,
+  //     suggestedParams,
+  //     to,
+  //   })
+  //
+  //   const pin = promptPIN("Enter your PIN:")
+  //   if (pin) {
+  //     const key = decryptKey(data.key, pin)
+  //     const signed = transaction.signTxn(key)
+  //
+  //     await api.sendRawTransaction(signed).do()
+  //
+  //     // eslint-disable-next-line no-alert
+  //     window.alert(
+  //       `Sending ${Math.ceil(
+  //         amount * 10 ** config.native_asset.params.decimals
+  //       )} Algos to ${to}...\nTransaction ID: ${transaction.txID()}`
+  //     )
+  //   }
+  // }, [data, address, api, config, refetchParams])
+  //
+  // const onSendAsset = useCallback(async () => {
+  //   if (!data?.key) {
+  //     return
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const assetId = window.prompt("Asset ID:")
+  //   if (assetId === null) {
+  //     return
+  //   }
+  //
+  //   if (!Number.isInteger(Number(assetId)) || Number(assetId) < 0) {
+  //     throw Error("Invalid asset ID")
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const to = window.prompt("Receiver address:")
+  //   if (to === null) {
+  //     return
+  //   }
+  //
+  //   if (!algosdk.isValidAddress(to)) {
+  //     throw Error("Invalid address")
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const amountStr = window.prompt("Amount:")
+  //   if (amountStr === null) {
+  //     return
+  //   }
+  //
+  //   const amount = Number(amountStr)
+  //
+  //   if (!Number.isFinite(amount)) {
+  //     throw Error("Invalid address")
+  //   }
+  //
+  //   // eslint-disable-next-line no-alert
+  //   const note = window.prompt("Note (optional):")
+  //
+  //   const suggestedParams = await refetchParams()
+  //
+  //   const transaction =
+  //     algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+  //       amount,
+  //       assetIndex: Number(assetId),
+  //       from: address,
+  //       note: note ? new TextEncoder().encode(note) : undefined,
+  //       suggestedParams,
+  //       to,
+  //     })
+  //
+  //   const pin = promptPIN("Enter your PIN:")
+  //   if (pin) {
+  //     const key = decryptKey(data.key, pin)
+  //     const signed = transaction.signTxn(key)
+  //
+  //     await api.sendRawTransaction(signed).do()
+  //
+  //     // eslint-disable-next-line no-alert
+  //     window.alert(
+  //       `Sending ${amount} of asset ${assetId} to ${to}...\nTransaction ID: ${transaction.txID()}`
+  //     )
+  //   }
+  // }, [data, address, api, refetchParams])
 
   const addApplication = useCallback(async () => {
     if (!data?.key) {
@@ -298,6 +299,10 @@ export function ViewOwnAccountActions({
     }
   }, [data, address, api, refetchParams])
 
+  const sendUrl = withSearchParams(Route.SEND, {
+    [RouteParam.ADDRESS_FROM]: address,
+  })
+
   return (
     <div>
       <AsyncButton onClick={onChangePin} label="Change PIN" />
@@ -306,8 +311,11 @@ export function ViewOwnAccountActions({
       <AsyncButton onClick={addApplication} label="Add application" />
       <AsyncButton onClick={removeApplication} label="Remove application" />
       <AsyncButton onClick={addAsset} label="Add asset" />
-      <AsyncButton onClick={onSend} label="Send Algos" />
-      <AsyncButton onClick={onSendAsset} label="Send asset" />
+      <Link href={sendUrl}>
+        <a>
+          <button>Send</button>
+        </a>
+      </Link>
     </div>
   )
 }

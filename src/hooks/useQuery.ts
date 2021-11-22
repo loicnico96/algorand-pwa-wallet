@@ -15,23 +15,24 @@ export interface UseQueryResult<T> {
 }
 
 export function useQuery<T>(
-  cacheKey: string,
-  fetcher: () => Promise<T>,
+  cacheKey: string | null,
+  fetcher: (() => Promise<T>) | null,
   options: UseQueryOptions = {}
 ): UseQueryResult<T> {
   const { data, error, isValidating, mutate } = useSWR(
     cacheKey,
-    async key => {
-      const logger = createLogger(key)
-      try {
-        const result = await fetcher()
-        logger.log("Success", result)
-        return result
-      } catch (error) {
-        logger.error(error)
-        throw error
-      }
-    },
+    fetcher &&
+      (async key => {
+        const logger = createLogger(key)
+        try {
+          const result = await fetcher()
+          logger.log("Success", result)
+          return result
+        } catch (error) {
+          logger.error(error)
+          throw error
+        }
+      }),
     {
       revalidateIfStale: !options.immutable,
       revalidateOnFocus: !options.immutable,
