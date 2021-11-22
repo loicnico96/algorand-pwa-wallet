@@ -1,5 +1,6 @@
 import algosdk from "algosdk"
 import { useCallback, useEffect } from "react"
+import { toast } from "react-toastify"
 
 import { AsyncButton } from "components/AsyncButton"
 import { AccountSelect } from "components/Form/AccountSelect"
@@ -9,13 +10,13 @@ import { AssetSelect } from "components/Form/AssetSelect"
 import { PageContent } from "components/PageContent"
 import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
+import { useTransactionContext } from "context/TransactionContext"
 import { useAccountAssetIds } from "hooks/useAccountAssetIds"
 import { useAccountBalance } from "hooks/useAccountBalance"
 import { useAccountInfo } from "hooks/useAccountInfo"
 import { useAccountMinBalance } from "hooks/useAccountMinBalance"
 import { useAssetInfo } from "hooks/useAssetInfo"
 import { useParamState } from "hooks/useParamState"
-import { useTransactionConfirm } from "hooks/useTransactionConfirm"
 import { useTransactionParams } from "hooks/useTransactionParams"
 import { createTransferTransaction } from "lib/algo/transactions/Transfer"
 import { printDecimals } from "lib/utils/int"
@@ -25,6 +26,7 @@ export default function SendPage() {
   const { accounts } = useAddressBook()
   const { config } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
+  const { signTransaction } = useTransactionContext()
 
   const nativeAssetId = config.native_asset.index
 
@@ -82,17 +84,11 @@ export default function SendPage() {
 
   const isSufficientFunds = amount <= assetAvailable
 
-  const { isAbleToSign, signTransaction } = useTransactionConfirm(fromAddress)
-
   const isAbleToSubmit =
-    isValidFrom &&
-    isValidTo &&
-    isAbleToSign &&
-    isToOptedInAsset &&
-    isSufficientFunds
+    isValidFrom && isValidTo && isToOptedInAsset && isSufficientFunds
 
   const onSubmit = useCallback(async () => {
-    if (!fromAddress || !toAddress || !asset || !isAbleToSubmit) {
+    if (!fromAddress || !toAddress || !asset) {
       return
     }
 
@@ -108,16 +104,14 @@ export default function SendPage() {
     const transactionId = await signTransaction(transaction)
 
     if (transactionId !== null) {
-      // eslint-disable-next-line no-alert
-      window.alert(
+      toast.info(
         `Sending ${printDecimals(amount, asset.params.decimals)} ${
           asset.params["unit-name"]
-        } to ${toAddress}...\nTransaction ID: ${transactionId}`
+        } to ${toAddress}...`
       )
     }
   }, [
     amount,
-    isAbleToSubmit,
     config,
     refetchParams,
     asset,

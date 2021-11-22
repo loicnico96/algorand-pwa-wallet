@@ -6,6 +6,9 @@ import useSWR from "swr"
 export interface UseQueryOptions<T> {
   defaultValue?: T
   immutable?: boolean
+  onError?: (error: Error) => unknown
+  onSuccess?: (result: T) => unknown
+  pollInterval?: number
 }
 
 export interface UseQueryResult<T> {
@@ -18,7 +21,7 @@ export interface UseQueryResult<T> {
 export function useQuery<T>(
   cacheKey: string | null,
   fetcher: (() => Promise<T>) | null,
-  options: UseQueryOptions<T> = {}
+  { defaultValue, immutable, pollInterval, ...options }: UseQueryOptions<T> = {}
 ): UseQueryResult<T> {
   const { data, error, isValidating, mutate } = useSWR(
     cacheKey,
@@ -35,10 +38,12 @@ export function useQuery<T>(
         }
       }),
     {
-      fallbackData: options.defaultValue,
-      revalidateIfStale: !options.immutable,
-      revalidateOnFocus: !options.immutable,
-      revalidateOnReconnect: !options.immutable,
+      ...options,
+      fallbackData: defaultValue,
+      refreshInterval: pollInterval,
+      revalidateIfStale: !immutable,
+      revalidateOnFocus: !immutable,
+      revalidateOnReconnect: !immutable,
     }
   )
 
