@@ -10,7 +10,7 @@ export interface ChooseNameProps {
 }
 
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
-  const { addAccount, updateAccount } = useAddressBook()
+  const { updateAccount } = useAddressBook()
 
   const data = useAccountData(address)
 
@@ -19,20 +19,13 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
 
   const onConfirm = useCallback(async () => {
     if (name.trim()) {
-      if (data) {
-        await updateAccount(address, {
-          name: name.trim(),
-          note: note.trim() || undefined,
-        })
-      } else {
-        await addAccount(address, {
-          name: name.trim(),
-          note: note.trim() || undefined,
-        })
-      }
+      await updateAccount(address, {
+        name: name.trim(),
+        note: note.trim() || undefined,
+      })
       onNext()
     }
-  }, [addAccount, address, data, name, note, onNext, updateAccount])
+  }, [address, name, note, onNext, updateAccount])
 
   return (
     <div>

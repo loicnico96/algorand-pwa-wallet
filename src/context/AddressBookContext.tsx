@@ -6,12 +6,11 @@ import { useStorage } from "./StorageContext"
 
 export interface AddressBookContextValue {
   accounts: Record<string, AccountData>
-  addAccount(address: string, data: AccountData): Promise<void>
   error: Error | null
   loading: boolean
   refetch(): Promise<Record<string, AccountData>>
   removeAccount(address: string): Promise<void>
-  updateAccount(address: string, data: Partial<AccountData>): Promise<void>
+  updateAccount(address: string, data: AccountData): Promise<void>
 }
 
 export const AddressBookContext = createEmptyContext<AddressBookContextValue>()
@@ -30,36 +29,25 @@ export function AddressBookContextProvider({ children }: ProviderProps) {
 
   const value: AddressBookContextValue = {
     accounts: data ?? {},
-    addAccount: async (address, accountData) => {
-      const newData = { ...data }
-      newData[address] = {
-        ...accountData,
-      }
-
-      await setItem("accounts", newData)
-      await refetch()
-    },
     error,
     loading,
     refetch,
     removeAccount: async address => {
-      const newData = { ...data }
+      const newData = await refetch()
       delete newData[address]
-
       await setItem("accounts", newData)
       await refetch()
     },
     updateAccount: async (address, accountData) => {
-      const newData = { ...data }
-      if (newData[address]) {
-        newData[address] = {
+      const newData = await refetch()
+      await setItem("accounts", {
+        ...newData,
+        [address]: {
           ...newData[address],
           ...accountData,
-        }
-
-        await setItem("accounts", newData)
-        await refetch()
-      }
+        },
+      })
+      await refetch()
     },
   }
 

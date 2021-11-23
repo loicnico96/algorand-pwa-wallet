@@ -38,21 +38,25 @@ export function AccountSelect({
         }}
         value={selectedOption}
       >
-        {Object.keys(accounts).map(address => {
-          const account = accounts[address]
-
-          if (onlyOwnAccounts && !account.auth) {
-            return null
-          }
-
-          return (
-            <option
-              key={address}
-              label={account.name ? `${account.name} (${address})` : address}
-              value={address}
-            />
+        {Object.keys(accounts)
+          .sort((a, b) =>
+            (accounts[a]?.name ?? a).localeCompare(accounts[b]?.name ?? b)
           )
-        })}
+          .map(address => {
+            const account = accounts[address]
+
+            if (onlyOwnAccounts && !account.auth) {
+              return null
+            }
+
+            return (
+              <option
+                key={address}
+                label={account.name ? `${account.name} (${address})` : address}
+                value={address}
+              />
+            )
+          })}
         {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
       </select>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (

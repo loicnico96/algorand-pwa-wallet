@@ -13,6 +13,8 @@ export function AssetSelect({
   value,
   ...selectProps
 }: AssetSelectProps) {
+  assetIds.sort((a, b) => a - b)
+
   return (
     <select
       onChange={e => onChange(Number(e.target.value))}

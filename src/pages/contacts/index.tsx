@@ -1,11 +1,11 @@
-import AppStorage from "@randlabs/encrypted-local-storage"
+import Link from "next/link"
 
 import { AsyncButton } from "components/AsyncButton"
 import { useAddressBook } from "context/AddressBookContext"
+import { Route } from "lib/utils/navigation"
 
 export default function ContactsPage() {
-  const { accounts, removeAccount, updateAccount, addAccount } =
-    useAddressBook()
+  const { accounts, removeAccount, updateAccount } = useAddressBook()
 
   const onRenameContact = async (address: string) => {
     // eslint-disable-next-line no-alert
@@ -22,18 +22,20 @@ export default function ContactsPage() {
 
   const onAddContact = async () => {
     // eslint-disable-next-line no-alert
-    const address = window.prompt("string")
+    const address = window.prompt("Address")
     // eslint-disable-next-line no-alert
     const name = window.prompt("Name")
 
     if (address && name) {
-      await AppStorage.setItem("key", "item")
-      await addAccount(address, { name })
+      await updateAccount(address, { name })
     }
   }
 
   return (
     <div>
+      <Link href={Route.ACCOUNTS_LIST}>
+        <a>Back</a>
+      </Link>
       <h3>Contacts:</h3>
       {Object.keys(accounts)
         .filter(address => !accounts[address].auth)

@@ -14,7 +14,7 @@ export type AccountDetailsProps = {
 }
 
 export default function AccountDetails({ account, data }: AccountDetailsProps) {
-  const { addAccount, updateAccount } = useAddressBook()
+  const { updateAccount } = useAddressBook()
   const { config } = useNetworkContext()
   const { address } = account
 
@@ -23,26 +23,18 @@ export default function AccountDetails({ account, data }: AccountDetailsProps) {
     const name = window.prompt("Enter name:", data?.name)
 
     if (name) {
-      if (data) {
-        await updateAccount(address, { name })
-      } else {
-        await addAccount(address, { name })
-      }
+      await updateAccount(address, { name })
     }
-  }, [addAccount, address, data, updateAccount])
+  }, [address, data, updateAccount])
 
   const onChangeNote = useCallback(async () => {
     // eslint-disable-next-line no-alert
     const note = window.prompt("Enter note:", data?.note)
 
     if (note) {
-      if (data) {
-        await updateAccount(address, { note })
-      } else {
-        await addAccount(address, { note })
-      }
+      await updateAccount(address, { note })
     }
-  }, [addAccount, address, data, updateAccount])
+  }, [address, data, updateAccount])
 
   return (
     <div>

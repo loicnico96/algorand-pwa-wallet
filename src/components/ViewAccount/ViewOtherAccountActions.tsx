@@ -13,16 +13,16 @@ export function ViewOtherAccountActions({
   address,
   data,
 }: ViewOtherAccountActionsProps) {
-  const { addAccount, removeAccount, updateAccount } = useAddressBook()
+  const { removeAccount, updateAccount } = useAddressBook()
 
   const onAddContact = useCallback(async () => {
     // eslint-disable-next-line no-alert
     const name = window.prompt("Enter name:")
 
     if (name) {
-      await addAccount(address, { name })
+      await updateAccount(address, { name })
     }
-  }, [address, addAccount])
+  }, [address, updateAccount])
 
   const onRemoveContact = useCallback(async () => {
     await removeAccount(address)

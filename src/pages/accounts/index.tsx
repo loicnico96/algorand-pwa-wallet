@@ -33,6 +33,9 @@ export default function HomePage() {
           <button>Restore account</button>
         </a>
       </Link>
+      <Link href={Route.CONTACTS}>
+        <a>Contacts</a>
+      </Link>
     </div>
   )
 }
