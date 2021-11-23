@@ -14,11 +14,11 @@ import { useSteps } from "./useSteps"
 
 export enum CreateAccountStep {
   CREATE_ACCOUNT = "",
-  STORE_PASSPHRASE = "passphrase",
-  CONFIRM_PASSPHRASE = "passphrase/confirm",
-  CHOOSE_PASSWORD = "password",
-  CHOOSE_NAME = "details",
-  CONFIRM_ACCOUNT = "ready",
+  STORE_PASSPHRASE = "store-passphrase",
+  CONFIRM_PASSPHRASE = "confirm-passphrase",
+  CHOOSE_PASSWORD = "choose-password",
+  CHOOSE_NAME = "account-details",
+  CONFIRM_ACCOUNT = "last-steps",
 }
 
 export function CreateAccountPages() {

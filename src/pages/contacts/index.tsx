@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { AsyncButton } from "components/AsyncButton"
 import { useAddressBook } from "context/AddressBookContext"
-import { Route } from "lib/utils/navigation"
+import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 export default function ContactsPage() {
   const { accounts, removeAccount, updateAccount } = useAddressBook()
@@ -37,11 +37,19 @@ export default function ContactsPage() {
         <a>Back</a>
       </Link>
       <h3>Contacts:</h3>
-      {Object.keys(accounts)
-        .filter(address => !accounts[address].auth)
-        .map(address => (
+      {Object.keys(accounts).map(address => {
+        const account = accounts[address]
+        const accountUrl = replaceParams(Route.ACCOUNTS_VIEW, {
+          [RouteParam.ADDRESS]: address,
+        })
+
+        return (
           <div key={address}>
-            <p title={address}>{accounts[address].name}</p>
+            <Link href={accountUrl}>
+              <a>
+                <p title={address}>{account.name}</p>
+              </a>
+            </Link>
             <AsyncButton
               label="Rename"
               onClick={() => onRenameContact(address)}
@@ -51,7 +59,8 @@ export default function ContactsPage() {
               onClick={() => onRemoveContact(address)}
             />
           </div>
-        ))}
+        )
+      })}
       <AsyncButton label="Add" onClick={onAddContact} />
     </div>
   )

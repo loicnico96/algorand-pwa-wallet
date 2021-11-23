@@ -12,9 +12,9 @@ import { useSteps } from "./useSteps"
 
 export enum RestoreAccountStep {
   RESTORE_ACCOUNT = "",
-  RESTORE_PASSPHRASE = "passphrase",
-  CHOOSE_PASSWORD = "password",
-  CHOOSE_NAME = "details",
+  RESTORE_PASSPHRASE = "restore-passphrase",
+  CHOOSE_PASSWORD = "choose-password",
+  CHOOSE_NAME = "account-details",
 }
 
 export function RestoreAccountPages() {
