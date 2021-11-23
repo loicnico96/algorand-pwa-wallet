@@ -1,6 +1,6 @@
 import algosdk from "algosdk"
 import { useNetworkContext } from "context/NetworkContext"
-import { usePinModal } from "context/PinModalContext"
+import { useSecurityContext } from "context/SecurityContext"
 import { PendingTransaction } from "lib/algo/Transaction"
 import { toError } from "lib/utils/error"
 import { useCallback } from "react"
@@ -20,7 +20,7 @@ export interface UseSignTransactionResult {
 
 export function useSignTransaction(): UseSignTransactionResult {
   const { api, network } = useNetworkContext()
-  const { getPrivateKey } = usePinModal()
+  const { getPrivateKey } = useSecurityContext()
 
   const waitForConfirmation = useCallback(
     async (txId: string) => {

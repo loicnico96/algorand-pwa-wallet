@@ -1,9 +1,8 @@
 import { AsyncButton } from "components/AsyncButton"
-import { Address } from "lib/algo/Account"
 import { toClipboard } from "lib/utils/clipboard"
 
 export interface ConfirmAccountProps {
-  address: Address
+  address: string
   onBack: () => unknown
   onNext: () => unknown
 }

@@ -1,9 +1,8 @@
 import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo } from "lib/algo/Account"
-import { AssetId } from "lib/algo/Asset"
 import { useMemo } from "react"
 
-export function useAccountAssetIds(account: AccountInfo | null): AssetId[] {
+export function useAccountAssetIds(account: AccountInfo | null): number[] {
   const { config } = useNetworkContext()
 
   return useMemo(() => {

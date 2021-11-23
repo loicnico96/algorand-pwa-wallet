@@ -1,15 +1,10 @@
 import { useNetworkContext } from "context/NetworkContext"
-import {
-  AccountInfo,
-  AccountStatus,
-  Address,
-  SignatureType,
-} from "lib/algo/Account"
+import { AccountInfo, AccountStatus, SignatureType } from "lib/algo/Account"
 import { toError } from "lib/utils/error"
 import { useQuery, UseQueryResult } from "./useQuery"
 
 export function useAccountInfo(
-  address: Address | null
+  address: string | null
 ): UseQueryResult<AccountInfo> {
   const { network, indexer } = useNetworkContext()
 

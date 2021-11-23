@@ -1,11 +1,10 @@
 import { useQuery } from "hooks/useQuery"
-import { AssetId } from "lib/algo/Asset"
 import { fetchJson } from "lib/utils/fetchJson"
 import { useContext } from "react"
 import { useNetworkContext } from "./NetworkContext"
 import { createEmptyContext, ProviderProps } from "./utils"
 
-export type AssetPrices = { [assetId in AssetId]?: number }
+export type AssetPrices = { [assetId in number]?: number }
 
 export interface AssetPriceContextValue {
   error: Error | null
@@ -60,6 +59,6 @@ export function useAssetPrices(): AssetPriceContextValue {
   return useContext(AssetPriceContext)
 }
 
-export function useAssetPrice(assetId: AssetId): number | null {
+export function useAssetPrice(assetId: number): number | null {
   return useAssetPrices().prices[assetId] ?? null
 }

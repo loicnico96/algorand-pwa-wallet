@@ -2,11 +2,10 @@ import { useCallback } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
 import { useAddressBook } from "context/AddressBookContext"
-import { Address } from "lib/algo/Account"
-import { AccountData } from "lib/db/schema"
+import { AccountData } from "lib/storage/schema"
 
 export interface ViewOtherAccountActionsProps {
-  address: Address
+  address: string
   data: AccountData | null
 }
 

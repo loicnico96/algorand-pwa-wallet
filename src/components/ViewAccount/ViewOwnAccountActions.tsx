@@ -2,180 +2,47 @@ import algosdk from "algosdk"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
+import { toast } from "react-toastify"
 
 import { AsyncButton } from "components/AsyncButton"
 import { useAddressBook } from "context/AddressBookContext"
-import { useNetworkContext } from "context/NetworkContext"
-import { useTransactionParams } from "hooks/useTransactionParams"
+import { useSecurityContext } from "context/SecurityContext"
 import { AccountInfo } from "lib/algo/Account"
-import { AccountData } from "lib/db/schema"
-import { decryptKey, encryptKey, promptPIN } from "lib/utils/auth"
 import { Route, RouteParam, withSearchParams } from "lib/utils/navigation"
 
 export interface ViewOwnAccountActionsProps {
   account: AccountInfo
-  data: AccountData
 }
 
-export function ViewOwnAccountActions({
-  account,
-  data,
-}: ViewOwnAccountActionsProps) {
+export function ViewOwnAccountActions({ account }: ViewOwnAccountActionsProps) {
   const router = useRouter()
 
   const { address } = account
-  const { api } = useNetworkContext()
 
-  const { removeAccount, updateAccount } = useAddressBook()
+  const { removeAccount } = useAddressBook()
+  const { changePassword, getPrivateKey, removePrivateKey } =
+    useSecurityContext()
 
-  const { refetch: refetchParams } = useTransactionParams()
+  const onChangePassword = useCallback(async () => {
+    await changePassword(address)
+    toast.info("Your password has been changed.")
+  }, [address, changePassword])
 
-  const onChangePin = useCallback(async () => {
-    if (data?.key) {
-      const oldPin = promptPIN("Enter your current PIN:")
-      if (oldPin) {
-        const newPin = promptPIN("Choose your new PIN:")
-        if (newPin) {
-          const key = decryptKey(data.key, oldPin)
-          await updateAccount(address, {
-            key: encryptKey(key, newPin),
-          })
-        }
-      }
-    }
-  }, [address, data, updateAccount])
-
-  const onShowPassphrase = useCallback(() => {
-    if (data?.key) {
-      const pin = promptPIN("Enter your PIN:")
-      if (pin) {
-        const key = decryptKey(data.key, pin)
-        // eslint-disable-next-line no-alert
-        window.alert(algosdk.secretKeyToMnemonic(key))
-      }
-    }
-  }, [data])
+  const onShowPassphrase = useCallback(async () => {
+    const key = await getPrivateKey(address)
+    // eslint-disable-next-line no-alert
+    window.alert(algosdk.secretKeyToMnemonic(key))
+  }, [address, getPrivateKey])
 
   const onRemoveAccount = useCallback(async () => {
-    if (data) {
+    // eslint-disable-next-line no-alert
+    const confirmed = window.prompt("Are you sure? Type 'yes'.")
+    if (confirmed === "yes") {
       await removeAccount(address)
+      await removePrivateKey(address)
       await router.replace(Route.ACCOUNTS_LIST)
     }
-  }, [address, data, removeAccount, router])
-
-  const addApplication = useCallback(async () => {
-    if (!data?.key) {
-      return
-    }
-
-    // eslint-disable-next-line no-alert
-    const appId = window.prompt("Application ID:")
-    if (appId === null) {
-      return
-    }
-
-    if (!Number.isInteger(Number(appId)) || Number(appId) < 0) {
-      throw Error("Invalid application ID")
-    }
-
-    const suggestedParams = await refetchParams()
-
-    const transaction = algosdk.makeApplicationOptInTxnFromObject({
-      appIndex: Number(appId),
-      from: address,
-      suggestedParams,
-    })
-
-    const pin = promptPIN("Enter your PIN:")
-    if (pin) {
-      const key = decryptKey(data.key, pin)
-      const signed = transaction.signTxn(key)
-
-      await api.sendRawTransaction(signed).do()
-
-      // eslint-disable-next-line no-alert
-      window.alert(
-        `Adding application ${appId}...\nTransaction ID: ${transaction.txID()}`
-      )
-    }
-  }, [data, address, api, refetchParams])
-
-  const removeApplication = useCallback(async () => {
-    if (!data?.key) {
-      return
-    }
-
-    // eslint-disable-next-line no-alert
-    const appId = window.prompt("Application ID:")
-    if (appId === null) {
-      return
-    }
-
-    if (!Number.isInteger(Number(appId)) || Number(appId) < 0) {
-      throw Error("Invalid application ID")
-    }
-
-    const suggestedParams = await refetchParams()
-
-    const transaction = algosdk.makeApplicationCloseOutTxnFromObject({
-      appIndex: Number(appId),
-      from: address,
-      suggestedParams,
-    })
-
-    const pin = promptPIN("Enter your PIN:")
-    if (pin) {
-      const key = decryptKey(data.key, pin)
-      const signed = transaction.signTxn(key)
-
-      await api.sendRawTransaction(signed).do()
-
-      // eslint-disable-next-line no-alert
-      window.alert(
-        `Removing application ${appId}...\nTransaction ID: ${transaction.txID()}`
-      )
-    }
-  }, [data, address, api, refetchParams])
-
-  const addAsset = useCallback(async () => {
-    if (!data?.key) {
-      return
-    }
-
-    // eslint-disable-next-line no-alert
-    const assetId = window.prompt("Asset ID:")
-    if (assetId === null) {
-      return
-    }
-
-    if (!Number.isInteger(Number(assetId)) || Number(assetId) < 0) {
-      throw Error("Invalid asset ID")
-    }
-
-    const suggestedParams = await refetchParams()
-
-    const transaction =
-      algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
-        amount: 0,
-        assetIndex: Number(assetId),
-        from: address,
-        suggestedParams,
-        to: address,
-      })
-
-    const pin = promptPIN("Enter your PIN:")
-    if (pin) {
-      const key = decryptKey(data.key, pin)
-      const signed = transaction.signTxn(key)
-
-      await api.sendRawTransaction(signed).do()
-
-      // eslint-disable-next-line no-alert
-      window.alert(
-        `Adding asset ${assetId}...\nTransaction ID: ${transaction.txID()}`
-      )
-    }
-  }, [data, address, api, refetchParams])
+  }, [address, removeAccount, removePrivateKey, router])
 
   const sendUrl = withSearchParams(Route.SEND, {
     [RouteParam.ADDRESS_FROM]: address,
@@ -183,12 +50,9 @@ export function ViewOwnAccountActions({
 
   return (
     <div>
-      <AsyncButton onClick={onChangePin} label="Change PIN" />
+      <AsyncButton onClick={onChangePassword} label="Change password" />
       <AsyncButton onClick={onShowPassphrase} label="Show passphrase" />
       <AsyncButton onClick={onRemoveAccount} label="Remove account" />
-      <AsyncButton onClick={addApplication} label="Add application" />
-      <AsyncButton onClick={removeApplication} label="Remove application" />
-      <AsyncButton onClick={addAsset} label="Add asset" />
       <Link href={sendUrl}>
         <a>
           <button>Send</button>

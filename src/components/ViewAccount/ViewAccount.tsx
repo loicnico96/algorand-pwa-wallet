@@ -6,7 +6,7 @@ import { PageLoader } from "components/PageLoader"
 import { useAccountData } from "context/AddressBookContext"
 import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/useAccountInfo"
-import { AccountStatus, Address } from "lib/algo/Account"
+import { AccountStatus } from "lib/algo/Account"
 import { toClipboard } from "lib/utils/clipboard"
 import { Route } from "lib/utils/navigation"
 
@@ -15,7 +15,7 @@ import { ViewOtherAccountActions } from "./ViewOtherAccountActions"
 import { ViewOwnAccountActions } from "./ViewOwnAccountActions"
 
 export interface ViewAccountProps {
-  address: Address
+  address: string
 }
 
 export function ViewAccount({ address }: ViewAccountProps) {
@@ -34,7 +34,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
   if (account.status === AccountStatus.EMPTY) {
     return (
       <PageError message="This account has not been funded.">
-        {accountData?.key && (
+        {accountData?.auth && (
           <p>
             You can activate it by sending at least 0.1 Algos to {address}
             {network === Network.TEST && (
@@ -62,8 +62,8 @@ export function ViewAccount({ address }: ViewAccountProps) {
         <a>Back</a>
       </Link>
       <AccountDetails account={account} data={accountData} />
-      {accountData?.key ? (
-        <ViewOwnAccountActions account={account} data={accountData} />
+      {accountData?.auth ? (
+        <ViewOwnAccountActions account={account} />
       ) : (
         <ViewOtherAccountActions address={account.address} data={accountData} />
       )}

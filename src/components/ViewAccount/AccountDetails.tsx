@@ -3,7 +3,7 @@ import { useCallback } from "react"
 import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo } from "lib/algo/Account"
-import { AccountData } from "lib/db/schema"
+import { AccountData } from "lib/storage/schema"
 import { toClipboard } from "lib/utils/clipboard"
 
 import { StandardAsset } from "./StandardAsset"

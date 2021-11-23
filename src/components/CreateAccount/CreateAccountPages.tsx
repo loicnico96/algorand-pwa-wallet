@@ -5,7 +5,7 @@ import { useMemo, useState } from "react"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
-import { ChoosePin } from "./ChoosePin"
+import { ChoosePassword } from "./ChoosePassword"
 import { ConfirmAccount } from "./ConfirmAccount"
 import { ConfirmPassphrase } from "./ConfirmPassphrase"
 import { CreateAccount } from "./CreateAccount"
@@ -15,10 +15,10 @@ import { useSteps } from "./useSteps"
 export enum CreateAccountStep {
   CREATE_ACCOUNT = "",
   STORE_PASSPHRASE = "passphrase",
-  CONFIRM_PASSPHRASE = "confirm-passphrase",
-  CHOOSE_PIN = "choose-pin",
-  CHOOSE_NAME = "choose-name",
-  CONFIRM_ACCOUNT = "last-steps",
+  CONFIRM_PASSPHRASE = "passphrase/confirm",
+  CHOOSE_PASSWORD = "password",
+  CHOOSE_NAME = "details",
+  CONFIRM_ACCOUNT = "ready",
 }
 
 export function CreateAccountPages() {
@@ -46,7 +46,7 @@ export function CreateAccountPages() {
       CreateAccountStep.CREATE_ACCOUNT,
       CreateAccountStep.STORE_PASSPHRASE,
       CreateAccountStep.CONFIRM_PASSPHRASE,
-      CreateAccountStep.CHOOSE_PIN,
+      CreateAccountStep.CHOOSE_PASSWORD,
       CreateAccountStep.CHOOSE_NAME,
       CreateAccountStep.CONFIRM_ACCOUNT,
     ],
@@ -74,8 +74,10 @@ export function CreateAccountPages() {
         />
       )
 
-    case CreateAccountStep.CHOOSE_PIN:
-      return <ChoosePin account={account} onBack={onBack} onNext={onNext} />
+    case CreateAccountStep.CHOOSE_PASSWORD:
+      return (
+        <ChoosePassword account={account} onBack={onBack} onNext={onNext} />
+      )
 
     case CreateAccountStep.CHOOSE_NAME:
       return (

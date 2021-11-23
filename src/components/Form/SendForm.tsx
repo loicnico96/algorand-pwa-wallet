@@ -10,7 +10,8 @@ import { useAccountBalance } from "hooks/useAccountBalance"
 import { useAccountInfo } from "hooks/useAccountInfo"
 import { useAccountMinBalance } from "hooks/useAccountMinBalance"
 import { useAssetInfo } from "hooks/useAssetInfo"
-import { useIntParamState, useParamState } from "hooks/useParamState"
+import { useIntParamState } from "hooks/useIntParamState"
+import { useParamState } from "hooks/useParamState"
 import { useSignTransaction } from "hooks/useSignTransaction"
 import { useTransactionParams } from "hooks/useTransactionParams"
 import { createTransferTransaction } from "lib/algo/transactions/Transfer"
@@ -164,12 +165,11 @@ export function SendForm() {
       <div>
         <p>From:</p>
         <AccountSelect
-          accounts={accounts.filter(account => account.key)}
-          onChange={value => {
-            setFromParam(value)
-            setAssetId(algoId)
-            setAmount(0)
-          }}
+          accounts={accounts}
+          onChange={value =>
+            Promise.all([setFromParam(value), setAssetId(algoId), setAmount(0)])
+          }
+          onlyOwnAccounts
           value={fromParam}
         />
         {senderError !== null && (
@@ -201,10 +201,7 @@ export function SendForm() {
         <AssetSelect
           assetIds={senderAssetIds}
           disabled={sender === null || !isSenderFunded}
-          onChange={value => {
-            setAssetId(value)
-            setAmount(0)
-          }}
+          onChange={value => Promise.all([setAssetId(value), setAmount(0)])}
           value={assetId}
         />
         {assetError !== null && (

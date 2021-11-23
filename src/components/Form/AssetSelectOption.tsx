@@ -1,8 +1,7 @@
 import { useAssetInfo } from "hooks/useAssetInfo"
-import { AssetId } from "lib/algo/Asset"
 
 export interface AssetSelectOptionProps {
-  assetId: AssetId
+  assetId: number
 }
 
 export function AssetSelectOption({ assetId }: AssetSelectOptionProps) {

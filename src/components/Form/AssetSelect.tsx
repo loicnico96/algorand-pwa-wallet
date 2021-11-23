@@ -1,12 +1,10 @@
-import { AssetId } from "lib/algo/Asset"
-
 import { AssetSelectOption } from "./AssetSelectOption"
 
 export interface AssetSelectProps {
-  assetIds: AssetId[]
+  assetIds: number[]
   disabled?: boolean
-  onChange: (assetId: AssetId) => unknown
-  value: AssetId
+  onChange: (assetId: number) => unknown
+  value: number
 }
 
 export function AssetSelect({

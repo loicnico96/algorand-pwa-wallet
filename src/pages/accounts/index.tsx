@@ -8,17 +8,17 @@ export default function HomePage() {
 
   return (
     <div>
-      {accounts
-        .filter(account => account.watch)
-        .map(account => {
+      {Object.keys(accounts)
+        .filter(address => accounts[address].auth)
+        .map(address => {
           const href = replaceParams(Route.ACCOUNTS_VIEW, {
-            [RouteParam.ADDRESS]: account.address,
+            [RouteParam.ADDRESS]: address,
           })
 
           return (
-            <Link href={href} key={account.address}>
+            <Link href={href} key={address}>
               <a>
-                <div title={account.address}>{account.name}</div>
+                <div title={address}>{accounts[address].name}</div>
               </a>
             </Link>
           )

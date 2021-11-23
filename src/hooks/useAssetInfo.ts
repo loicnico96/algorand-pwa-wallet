@@ -1,8 +1,8 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AssetId, AssetInfo } from "lib/algo/Asset"
+import { AssetInfo } from "lib/algo/Asset"
 import { useQuery, UseQueryResult } from "./useQuery"
 
-export function useAssetInfo(assetId: AssetId): UseQueryResult<AssetInfo> {
+export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
   const { config, network, indexer } = useNetworkContext()
 
   return useQuery(

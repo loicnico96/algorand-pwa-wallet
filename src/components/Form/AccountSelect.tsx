@@ -1,12 +1,12 @@
-import { Address } from "lib/algo/Account"
-import { Account } from "lib/db/schema"
+import { AccountData } from "lib/storage/schema"
 
 export interface AccountSelectProps {
-  accounts: Account[]
+  accounts: Record<string, AccountData>
   allowManual?: boolean
   disabled?: boolean
-  onChange: (address: Address) => unknown
-  value: Address
+  onChange: (address: string) => unknown
+  onlyOwnAccounts?: boolean
+  value: string
 }
 
 const OPTION_VALUE_MANUAL = "manual"
@@ -16,9 +16,10 @@ export function AccountSelect({
   accounts,
   allowManual = false,
   onChange,
+  onlyOwnAccounts = false,
   value,
 }: AccountSelectProps) {
-  const selectedOption = accounts.some(account => account.address === value)
+  const selectedOption = accounts[value]
     ? value
     : allowManual
     ? OPTION_VALUE_MANUAL
@@ -37,17 +38,21 @@ export function AccountSelect({
         }}
         value={selectedOption}
       >
-        {accounts.map(account => (
-          <option
-            key={account.address}
-            label={
-              account.name
-                ? `${account.name} (${account.address})`
-                : account.address
-            }
-            value={account.address}
-          />
-        ))}
+        {Object.keys(accounts).map(address => {
+          const account = accounts[address]
+
+          if (onlyOwnAccounts && !account.auth) {
+            return null
+          }
+
+          return (
+            <option
+              key={address}
+              label={account.name ? `${account.name} (${address})` : address}
+              value={address}
+            />
+          )
+        })}
         {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
       </select>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (

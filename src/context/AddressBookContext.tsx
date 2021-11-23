@@ -1,22 +1,15 @@
-import {
-  Account,
-  AccountData,
-  addAccount,
-  getAccounts,
-  removeAccount,
-  updateAccount,
-} from "lib/db/schema"
+import { AccountData } from "lib/storage/schema"
 import { createEmptyContext, ProviderProps } from "./utils"
 import { useContext } from "react"
-import { useNetworkContext } from "./NetworkContext"
 import { useQuery } from "hooks/useQuery"
+import { useStorage } from "./StorageContext"
 
 export interface AddressBookContextValue {
-  accounts: Account[]
+  accounts: Record<string, AccountData>
   addAccount(address: string, data: AccountData): Promise<void>
   error: Error | null
   loading: boolean
-  refetch(): Promise<Account[]>
+  refetch(): Promise<Record<string, AccountData>>
   removeAccount(address: string): Promise<void>
   updateAccount(address: string, data: Partial<AccountData>): Promise<void>
 }
@@ -24,30 +17,49 @@ export interface AddressBookContextValue {
 export const AddressBookContext = createEmptyContext<AddressBookContextValue>()
 
 export function AddressBookContextProvider({ children }: ProviderProps) {
-  const { network } = useNetworkContext()
+  const { getItem, setItem } = useStorage()
 
   const { data, error, loading, refetch } = useQuery(
-    `${network}:contacts`,
-    () => getAccounts(network),
+    "storage/accounts",
+    async () => {
+      const value = await getItem("accounts")
+      return value ?? {}
+    },
     { immutable: true }
   )
 
   const value: AddressBookContextValue = {
-    accounts: data ?? [],
-    addAccount: async (address, data) => {
-      await addAccount(network, address, data)
+    accounts: data ?? {},
+    addAccount: async (address, accountData) => {
+      const newData = { ...data }
+      newData[address] = {
+        ...accountData,
+      }
+
+      await setItem("accounts", newData)
       await refetch()
     },
     error,
     loading,
     refetch,
     removeAccount: async address => {
-      await removeAccount(network, address)
+      const newData = { ...data }
+      delete newData[address]
+
+      await setItem("accounts", newData)
       await refetch()
     },
-    updateAccount: async (address, data) => {
-      await updateAccount(network, address, data)
-      await refetch()
+    updateAccount: async (address, accountData) => {
+      const newData = { ...data }
+      if (newData[address]) {
+        newData[address] = {
+          ...newData[address],
+          ...accountData,
+        }
+
+        await setItem("accounts", newData)
+        await refetch()
+      }
     },
   }
 
@@ -62,7 +74,7 @@ export function useAddressBook(): AddressBookContextValue {
   return useContext(AddressBookContext)
 }
 
-export function useAccountData(address: string | null): Account | null {
+export function useAccountData(address: string | null): AccountData | null {
   const { accounts } = useAddressBook()
-  return accounts.find(account => account.address === address) ?? null
+  return address ? accounts[address] ?? null : null
 }

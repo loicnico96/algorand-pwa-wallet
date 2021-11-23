@@ -1,10 +1,9 @@
 import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo } from "lib/algo/Account"
-import { AssetId } from "lib/algo/Asset"
 
 export function useAccountBalance(
   account: AccountInfo | null,
-  assetId: AssetId
+  assetId: number
 ): number {
   const { config } = useNetworkContext()
 

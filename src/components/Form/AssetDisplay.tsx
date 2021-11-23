@@ -1,10 +1,9 @@
 import { useAssetInfo } from "hooks/useAssetInfo"
-import { AssetId } from "lib/algo/Asset"
 import { printDecimals } from "lib/utils/int"
 
 export interface AssetDisplayProps {
   amount: number | null
-  assetId: AssetId
+  assetId: number
 }
 
 export function AssetDisplay({ amount, assetId }: AssetDisplayProps) {

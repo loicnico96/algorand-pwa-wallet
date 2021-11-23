@@ -2,17 +2,14 @@ import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
 
-import { Address } from "../Account"
-import { AssetId } from "../Asset"
-
 export interface TransferTransactionParams {
   amount: number
-  assetId?: AssetId
+  assetId?: number
   close?: boolean
   note?: string
   params: SuggestedParams
-  receiver: Address
-  sender: Address
+  receiver: string
+  sender: string
 }
 
 export function createTransferTransaction(

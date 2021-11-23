@@ -1,8 +1,4 @@
-import { AssetId, AssetInfo } from "./Asset"
-
-export type Address = string
-
-export type AppId = number
+import { AssetInfo } from "./Asset"
 
 export interface AppSchema {
   "num-byte-slice": number
@@ -23,7 +19,7 @@ export interface AppStateEntry {
 export interface AppParams {
   "approval-program": string
   "clear-state-program": string
-  creator: Address
+  creator: string
   "global-state": AppStateEntry[]
   "global-state-schema": AppSchema
   "local-state-schema": AppSchema
@@ -39,7 +35,7 @@ export interface AccountAppCreated {
 export interface AccountAppState {
   "closed-out-at-round"?: number
   deleted: boolean
-  id: AppId
+  id: number
   "key-value"?: AppStateEntry[]
   "opted-in-at-round": number
   schema: AppSchema
@@ -47,8 +43,8 @@ export interface AccountAppState {
 
 export interface AccountAsset {
   amount: number
-  "asset-id": AssetId
-  creator: Address
+  "asset-id": number
+  creator: string
   deleted: boolean
   "is-frozen": boolean
   "opted-in-at-round": number
@@ -75,13 +71,13 @@ export enum AccountStatus {
 }
 
 export interface AccountInfo {
-  address: Address
+  address: string
   amount: number
   "amount-without-pending-rewards": number
   "apps-local-state"?: AccountAppState[]
   "apps-total-schema"?: AppSchema
   assets?: AccountAsset[]
-  "auth-addr"?: Address
+  "auth-addr"?: string
   "closed-at-round"?: number
   "created-apps"?: AccountAppCreated[]
   "created-assets"?: AssetInfo[]

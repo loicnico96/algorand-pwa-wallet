@@ -1,18 +1,14 @@
-import { Address } from "./Account"
-
-export type AssetId = number
-
 export interface AssetParams {
-  clawback?: Address
-  creator: Address
+  clawback?: string
+  creator: string
   decimals: number
   "default-frozen": boolean
-  freeze?: Address
-  manager?: Address
+  freeze?: string
+  manager?: string
   "metadata-hash"?: string
   name?: string
   "name-b64"?: string
-  reserve?: Address
+  reserve?: string
   total: number
   "unit-name"?: string
   "unit-name-b64"?: string
@@ -24,6 +20,6 @@ export interface AssetInfo {
   "created-at-round": number
   deleted: boolean
   "destroyed-at-round"?: number
-  index: AssetId
+  index: number
   params: AssetParams
 }

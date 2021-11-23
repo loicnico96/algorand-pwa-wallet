@@ -1,3 +1,5 @@
+import AppStorage from "@randlabs/encrypted-local-storage"
+
 import { AsyncButton } from "components/AsyncButton"
 import { useAddressBook } from "context/AddressBookContext"
 
@@ -20,11 +22,12 @@ export default function ContactsPage() {
 
   const onAddContact = async () => {
     // eslint-disable-next-line no-alert
-    const address = window.prompt("Address")
+    const address = window.prompt("string")
     // eslint-disable-next-line no-alert
     const name = window.prompt("Name")
 
     if (address && name) {
+      await AppStorage.setItem("key", "item")
       await addAccount(address, { name })
     }
   }
@@ -32,18 +35,18 @@ export default function ContactsPage() {
   return (
     <div>
       <h3>Contacts:</h3>
-      {accounts
-        .filter(account => !account.watch)
-        .map(account => (
-          <div key={account.address}>
-            <p title={account.address}>{account.name}</p>
+      {Object.keys(accounts)
+        .filter(address => !accounts[address].auth)
+        .map(address => (
+          <div key={address}>
+            <p title={address}>{accounts[address].name}</p>
             <AsyncButton
               label="Rename"
-              onClick={() => onRenameContact(account.address)}
+              onClick={() => onRenameContact(address)}
             />
             <AsyncButton
               label="Remove"
-              onClick={() => onRemoveContact(account.address)}
+              onClick={() => onRemoveContact(address)}
             />
           </div>
         ))}

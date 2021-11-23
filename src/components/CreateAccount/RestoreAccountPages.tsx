@@ -5,7 +5,7 @@ import { useState } from "react"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
-import { ChoosePin } from "./ChoosePin"
+import { ChoosePassword } from "./ChoosePassword"
 import { RestoreAccount } from "./RestoreAccount"
 import { RestorePassphrase } from "./RestorePassphrase"
 import { useSteps } from "./useSteps"
@@ -13,8 +13,8 @@ import { useSteps } from "./useSteps"
 export enum RestoreAccountStep {
   RESTORE_ACCOUNT = "",
   RESTORE_PASSPHRASE = "passphrase",
-  CHOOSE_PIN = "choose-pin",
-  CHOOSE_NAME = "choose-name",
+  CHOOSE_PASSWORD = "password",
+  CHOOSE_NAME = "details",
 }
 
 export function RestoreAccountPages() {
@@ -36,7 +36,7 @@ export function RestoreAccountPages() {
     steps: [
       RestoreAccountStep.RESTORE_ACCOUNT,
       RestoreAccountStep.RESTORE_PASSPHRASE,
-      RestoreAccountStep.CHOOSE_PIN,
+      RestoreAccountStep.CHOOSE_PASSWORD,
       RestoreAccountStep.CHOOSE_NAME,
     ],
   })
@@ -56,12 +56,14 @@ export function RestoreAccountPages() {
         />
       )
 
-    case RestoreAccountStep.CHOOSE_PIN:
+    case RestoreAccountStep.CHOOSE_PASSWORD:
       if (!account) {
         throw Error("Invalid state")
       }
 
-      return <ChoosePin account={account} onBack={onBack} onNext={onNext} />
+      return (
+        <ChoosePassword account={account} onBack={onBack} onNext={onNext} />
+      )
 
     case RestoreAccountStep.CHOOSE_NAME:
       if (!account) {
