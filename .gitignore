@@ -8,7 +8,6 @@
 
 # yarn
 .yarn/cache
-.yarn/plugins
 .yarn/install-state.gz
 
 # debug
