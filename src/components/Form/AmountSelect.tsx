@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { printDecimals, readDecimals } from "lib/utils/int"
 
 export interface AmountSelectProps {
   decimals: number
   disabled?: boolean
+  min?: number
   max?: number
   onChange: (amount: number) => unknown
   unit?: string
@@ -16,22 +17,30 @@ export function AmountSelect({
   disabled = false,
   unit,
   max,
+  min,
   onChange,
   value,
   ...inputProps
 }: AmountSelectProps) {
   const [inputValue, setInputValue] = useState(printDecimals(value, decimals))
 
+  useEffect(() => {
+    setInputValue(printDecimals(value, decimals))
+  }, [value, setInputValue, decimals])
+
   return (
     <div>
       <input
         disabled={disabled}
         min={0}
-        onBlur={() => setInputValue(printDecimals(value, decimals))}
-        onFocus={e => e.target.select()}
+        onBlur={e => {
+          onChange(readDecimals(e.target.value, decimals))
+        }}
+        onFocus={e => {
+          e.target.select()
+        }}
         onChange={e => {
           setInputValue(e.target.value)
-          onChange(readDecimals(e.target.value, decimals))
         }}
         step={1}
         type="number"
@@ -41,10 +50,11 @@ export function AmountSelect({
       {!!unit && <span>{unit}</span>}
       {max !== undefined && (
         <button
-          disabled={disabled || value === max}
+          disabled={disabled}
           onClick={() => {
-            setInputValue(printDecimals(max, decimals))
-            onChange(max)
+            if (value !== max) {
+              onChange(max)
+            }
           }}
         >
           Max

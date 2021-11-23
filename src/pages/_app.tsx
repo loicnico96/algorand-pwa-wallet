@@ -5,9 +5,9 @@ import { ErrorBoundary } from "components/ErrorBoundary"
 import { AddressBookContextProvider } from "context/AddressBookContext"
 import { AssetPriceContextProvider } from "context/AssetPriceContext"
 import { Network, NetworkContextProvider } from "context/NetworkContext"
+import { PinModalContextProvider } from "context/PinModalContext"
 import { ThemeProvider } from "context/theme/ThemeProvider"
 import { ToastProvider } from "context/ToastContext"
-import { TransactionContextProvider } from "context/TransactionContext"
 import { useServiceWorker } from "hooks/useServiceWorker"
 
 Modal.setAppElement("#__next")
@@ -22,9 +22,9 @@ export default function App({ Component, pageProps }: AppProps) {
           <NetworkContextProvider defaultNetwork={Network.TEST}>
             <AddressBookContextProvider>
               <AssetPriceContextProvider>
-                <TransactionContextProvider>
+                <PinModalContextProvider>
                   <Component {...pageProps} />
-                </TransactionContextProvider>
+                </PinModalContextProvider>
               </AssetPriceContextProvider>
             </AddressBookContextProvider>
           </NetworkContextProvider>

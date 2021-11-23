@@ -63,6 +63,17 @@ export interface AccountParticipation {
   "vote-participation-key": string
 }
 
+export enum SignatureType {
+  SINGLE = "sig",
+}
+
+export enum AccountStatus {
+  ONLINE = "Online",
+  OFFLINE = "Offline",
+  // Custom value to represent empty (not funded) account
+  EMPTY = "Empty",
+}
+
 export interface AccountInfo {
   address: Address
   amount: number
@@ -74,13 +85,13 @@ export interface AccountInfo {
   "closed-at-round"?: number
   "created-apps"?: AccountAppCreated[]
   "created-assets"?: AssetInfo[]
-  "created-at-round": number
-  deleted: boolean
+  "created-at-round"?: number
+  deleted?: boolean
   participation?: AccountParticipation
-  "pending-rewards": number
-  "reward-base": number
-  rewards: number
-  round: number
-  "sig-type": "sig"
-  status: "Offline" | "Online"
+  "pending-rewards"?: number
+  "reward-base"?: number
+  rewards?: number
+  round?: number
+  "sig-type": SignatureType
+  status: AccountStatus
 }

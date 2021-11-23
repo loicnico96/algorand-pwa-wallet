@@ -48,7 +48,7 @@ export function AccountSelect({
             value={account.address}
           />
         ))}
-        <option label="Other..." value={OPTION_VALUE_MANUAL} />
+        {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
       </select>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (
         <input

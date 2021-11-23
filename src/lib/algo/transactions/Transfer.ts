@@ -8,6 +8,7 @@ import { AssetId } from "../Asset"
 export interface TransferTransactionParams {
   amount: number
   assetId?: AssetId
+  close?: boolean
   note?: string
   params: SuggestedParams
   receiver: Address
@@ -16,13 +17,22 @@ export interface TransferTransactionParams {
 
 export function createTransferTransaction(
   config: NetworkConfig,
-  { amount, assetId, note, params, receiver, sender }: TransferTransactionParams
+  {
+    amount,
+    assetId,
+    close,
+    note,
+    params,
+    receiver,
+    sender,
+  }: TransferTransactionParams
 ): algosdk.Transaction {
   if (assetId === undefined || assetId === config.native_asset.index) {
     return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount,
+      closeRemainderTo: close ? receiver : undefined,
       from: sender,
-      note: note ? new TextEncoder().encode(note) : undefined,
+      note: note?.trim() ? new TextEncoder().encode(note.trim()) : undefined,
       suggestedParams: params,
       to: receiver,
     })
@@ -31,8 +41,9 @@ export function createTransferTransaction(
   return algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
     amount,
     assetIndex: assetId,
+    closeRemainderTo: close ? receiver : undefined,
     from: sender,
-    note: note ? new TextEncoder().encode(note) : undefined,
+    note: note?.trim() ? new TextEncoder().encode(note.trim()) : undefined,
     suggestedParams: params,
     to: receiver,
   })

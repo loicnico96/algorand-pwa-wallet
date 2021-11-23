@@ -6,7 +6,8 @@ import { PageLoader } from "components/PageLoader"
 import { useAccountData } from "context/AddressBookContext"
 import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/useAccountInfo"
-import { Address } from "lib/algo/Account"
+import { AccountStatus, Address } from "lib/algo/Account"
+import { toClipboard } from "lib/utils/clipboard"
 import { Route } from "lib/utils/navigation"
 
 import AccountDetails from "./AccountDetails"
@@ -23,33 +24,36 @@ export function ViewAccount({ address }: ViewAccountProps) {
   const accountData = useAccountData(address)
 
   if (error) {
-    if (error.message.match(/found/i)) {
-      return (
-        <PageError message="This account has not been funded.">
-          {accountData?.key && (
-            <p>
-              You can activate it by sending at least 0.1 Algos to {address}
-              {network === Network.TEST && (
-                <>
-                  {" "}
-                  or by using the faucet at{" "}
-                  <a href="https://bank.testnet.algorand.network">
-                    https://bank.testnet.algorand.network
-                  </a>
-                </>
-              )}
-              .
-            </p>
-          )}
-        </PageError>
-      )
-    }
-
     return <PageError message={error.message} />
   }
 
   if (!account) {
     return <PageLoader message="Loading account details..." />
+  }
+
+  if (account.status === AccountStatus.EMPTY) {
+    return (
+      <PageError message="This account has not been funded.">
+        {accountData?.key && (
+          <p>
+            You can activate it by sending at least 0.1 Algos to {address}
+            {network === Network.TEST && (
+              <>
+                {" "}
+                or by using the faucet at{" "}
+                <a href="https://bank.testnet.algorand.network">
+                  https://bank.testnet.algorand.network
+                </a>
+              </>
+            )}
+            .
+            <button onClick={() => toClipboard(address)}>
+              Copy to clipboard
+            </button>
+          </p>
+        )}
+      </PageError>
+    )
   }
 
   return (

@@ -8,6 +8,16 @@ export function isError(value: unknown): value is Error {
 
 export function toError(value: unknown): Error {
   if (isError(value)) {
+    // Algorand API errors return a JSON as message
+    if (value.message.startsWith("{")) {
+      try {
+        const { message } = JSON.parse(value.message)
+        return Error(message)
+      } catch (parseError) {
+        return value
+      }
+    }
+
     return value
   }
 

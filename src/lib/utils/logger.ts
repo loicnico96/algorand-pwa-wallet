@@ -1,4 +1,5 @@
 import { isDev } from "./environment"
+import { toError } from "./error"
 
 export enum LogLevel {
   NONE = 0,
@@ -22,10 +23,10 @@ export function createLogger(
       if (level >= LogLevel.ERROR) {
         if (namespace) {
           // eslint-disable-next-line no-console
-          console.error(`[${namespace}]`, error)
+          console.error(`[${namespace}]`, toError(error))
         } else {
           // eslint-disable-next-line no-console
-          console.error(error)
+          console.error(toError(error))
         }
       }
     },

@@ -6,7 +6,7 @@ export function useAccountMinBalance(account: AccountInfo | null): number {
 
   let amount = 0
 
-  if (account) {
+  if (account?.amount) {
     amount += config.params.MinBalance
 
     account.assets?.forEach(() => {
