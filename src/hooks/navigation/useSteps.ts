@@ -1,8 +1,7 @@
 import { useRouter } from "next/router"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { useRouteParam } from "./useRouteParam"
-import { DefaultLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
 export interface UseStepsParams<T extends string> {
@@ -22,46 +21,36 @@ export function useSteps<T extends string>({
   onLastStepNext,
   steps,
 }: UseStepsParams<T>): UseStepsResult<T> {
-  const lastStepIndex = useRef(0)
+  const [step, setStep] = useState(0)
 
   const router = useRouter()
   const stepParam = useRouteParam(RouteParam.STEP)
-  const stepIndex = steps.indexOf(stepParam as T)
-  const step =
-    stepIndex < 0 || stepIndex > lastStepIndex.current
-      ? steps[lastStepIndex.current] ?? steps[0]
-      : steps[stepIndex]
 
   useEffect(() => {
-    if (router.isReady && step !== stepParam) {
-      router.replace(step).catch(error => {
-        DefaultLogger.error(error)
-      })
+    if (router.isReady && steps[step] !== stepParam) {
+      router.replace(steps[step], undefined, { shallow: true })
     }
-  }, [router, stepParam, step])
+  }, [router, stepParam, step, steps])
 
   const onBack = useCallback(async () => {
-    const backStep = steps[steps.indexOf(step) - 1]
-    if (backStep) {
-      router.back()
+    if (step > 0) {
+      setStep(step - 1)
     } else {
       await onFirstStepBack()
     }
-  }, [onFirstStepBack, router, step, steps])
+  }, [onFirstStepBack, step])
 
   const onNext = useCallback(async () => {
-    lastStepIndex.current = steps.indexOf(step) + 1
-    const nextStep = steps[steps.indexOf(step) + 1]
-    if (nextStep) {
-      await router.push(nextStep)
+    if (step < steps.length - 1) {
+      setStep(step + 1)
     } else {
       await onLastStepNext()
     }
-  }, [onLastStepNext, router, step, steps])
+  }, [onLastStepNext, step, steps])
 
   return {
     onBack,
     onNext,
-    step,
+    step: steps[step],
   }
 }

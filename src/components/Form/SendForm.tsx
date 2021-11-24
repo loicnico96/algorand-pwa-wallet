@@ -9,13 +9,13 @@ import { useAccountBalance } from "hooks/api/useAccountBalance"
 import { useAccountInfo } from "hooks/api/useAccountInfo"
 import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
-import { useSignTransaction } from "hooks/api/useSignTransaction"
+import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useIntParamState } from "hooks/navigation/useIntParamState"
 import { useParamState } from "hooks/navigation/useParamState"
 import { useContacts } from "hooks/storage/useContacts"
 import { createTransferTransaction } from "lib/algo/transactions/Transfer"
-import { DefaultLogger } from "lib/utils/logger"
+import { createLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
 import { AccountSelect } from "./AccountSelect"
@@ -27,7 +27,7 @@ export function SendForm() {
   const { data: contacts } = useContacts()
   const { config } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
-  const { signTransaction } = useSignTransaction()
+  const { signTransaction, waitForConfirmation } = useTransaction()
 
   const algoId = config.native_asset.index
 
@@ -130,20 +130,26 @@ export function SendForm() {
         sender: sender.address,
       })
 
+      const logger = createLogger("Transaction")
+
       try {
-        await signTransaction(transaction, {
-          onConfirmed: () => {
+        logger.log("Sign", transaction)
+        const transactionId = await signTransaction(transaction)
+        logger.log(`Sent ${transactionId}`, transaction)
+        toast.info("Transaction sent.")
+
+        waitForConfirmation(transactionId).then(
+          confirmed => {
+            logger.log(`Confirmed ${transactionId}`, confirmed)
             toast.success("Transaction confirmed.")
           },
-          onRejected: error => {
-            DefaultLogger.error(error)
+          error => {
+            logger.error(error)
             toast.error("Transaction rejected.")
-          },
-        })
-
-        toast.info("Transaction sent.")
+          }
+        )
       } catch (error) {
-        DefaultLogger.error(error)
+        logger.error(error)
         toast.warn("Transaction aborted.")
       }
     }
@@ -151,6 +157,7 @@ export function SendForm() {
     config,
     signTransaction,
     refetchParams,
+    waitForConfirmation,
     isClosing,
     sender,
     receiver,
@@ -172,6 +179,12 @@ export function SendForm() {
           onlyOwnAccounts
           value={fromParam}
         />
+        {fromParam === "" && (
+          <div style={{ color: "red" }}>Missing sender address.</div>
+        )}
+        {fromParam !== "" && !isValidSender && (
+          <div style={{ color: "red" }}>Invalid sender address.</div>
+        )}
         {senderError !== null && (
           <div style={{ color: "red" }}>{senderError.message}</div>
         )}
@@ -187,6 +200,12 @@ export function SendForm() {
           onChange={setToParam}
           value={toParam}
         />
+        {toParam === "" && (
+          <div style={{ color: "red" }}>Missing recipient address.</div>
+        )}
+        {toParam !== "" && !isValidReceiver && (
+          <div style={{ color: "red" }}>Invalid recipient address.</div>
+        )}
         {receiverError !== null && (
           <div style={{ color: "red" }}>{receiverError.message}</div>
         )}
@@ -251,7 +270,7 @@ export function SendForm() {
             This transaction will close your account.
           </div>
         )}
-        {isAbleToSubmit && amount === 0 && (
+        {amount === 0 && (
           <div style={{ color: "orange" }}>
             This transaction will not transfer any assets.
           </div>

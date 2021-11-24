@@ -20,7 +20,6 @@ export function useContacts(): UseContactsResult {
       return value ?? {}
     },
     {
-      defaultValue: {},
       immutable: true,
     }
   )
