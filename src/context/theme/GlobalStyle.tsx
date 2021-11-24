@@ -22,7 +22,7 @@ export function GlobalStyle() {
 
         a {
           color: inherit;
-          // text-decoration: none;
+          text-decoration: none;
         }
         `}
     />

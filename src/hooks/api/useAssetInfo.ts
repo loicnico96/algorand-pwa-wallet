@@ -16,8 +16,7 @@ export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
       return asset as AssetInfo
     },
     {
-      defaultValue:
-        assetId === config.native_asset.index ? config.native_asset : undefined,
+      immutable: true,
     }
   )
 }

@@ -24,7 +24,14 @@ export function AsyncButton({
   const [onClickAsync, loading] = useAsyncHandler(onClick, onError)
 
   return (
-    <button disabled={disabled || loading} onClick={onClickAsync} {...props}>
+    <button
+      disabled={disabled || loading}
+      onClick={e => {
+        e.preventDefault()
+        onClickAsync()
+      }}
+      {...props}
+    >
       {loading ? labelLoading ?? label : label}
     </button>
   )
