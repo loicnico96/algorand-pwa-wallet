@@ -2,10 +2,25 @@ import { useCallback, useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
 
+import { Passphrase, PASSPHRASE_LENGTH, PASSPHRASE_REGEX } from "./Passphrase"
+
 export interface ConfirmPassphraseProps {
   onBack: () => unknown
   onNext: () => unknown
   passphrase: string[]
+}
+
+export function selectRandomIndexes(): number[] {
+  const allIndexes = Array(PASSPHRASE_LENGTH)
+    .fill(0)
+    .map((_, i) => i)
+  const selectedIndexes: number[] = []
+  while (allIndexes.length > 0 && selectedIndexes.length < 6) {
+    const random = Math.floor(Math.random() * allIndexes.length)
+    selectedIndexes.push(...allIndexes.splice(random, 1))
+  }
+
+  return selectedIndexes
 }
 
 export function ConfirmPassphrase({
@@ -13,25 +28,18 @@ export function ConfirmPassphrase({
   onNext,
   passphrase,
 }: ConfirmPassphraseProps) {
-  const [indexes] = useState([2, 6, 8, 14, 15, 21])
+  const [indexes] = useState(selectRandomIndexes)
   const [words, setWords] = useState(
-    passphrase.map((word, index) => (indexes.includes(index) ? "" : word))
+    passphrase.map((w, i) => (indexes.includes(i) ? "" : w))
   )
 
-  const setWord = useCallback((index: number, word: string) => {
-    setWords(phrase => phrase.map((v, i) => (i === index ? word : v)))
-  }, [])
-
   const onConfirm = useCallback(() => {
-    if (words.every((word, index) => word === passphrase[index])) {
-      onNext()
-    } else {
-      setWords(
-        passphrase.map((word, index) =>
-          word !== passphrase[index] ? "" : word
-        )
-      )
+    if (words.some((w, i) => w !== passphrase[i])) {
+      setWords(words.map((w, i) => (w !== passphrase[i] ? "" : w)))
+      throw Error("Passphrase does not match.")
     }
+
+    onNext()
   }, [onNext, words, passphrase])
 
   return (
@@ -41,19 +49,9 @@ export function ConfirmPassphrase({
         Confirm that you have stored your passphrase correctly by filling the
         missing words.
       </p>
-      {words.map((value, index) => (
-        <div key={index}>
-          <pre>{index}:</pre>
-          <input
-            disabled={!indexes.includes(index)}
-            onChange={e => setWord(index, e.target.value)}
-            type="text"
-            value={value}
-          />
-        </div>
-      ))}
+      <Passphrase editable={indexes} words={words} setWords={setWords} />
       <AsyncButton
-        disabled={!words.every(Boolean)}
+        disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
         label="Confirm"
         onClick={onConfirm}
       />

@@ -1,6 +1,8 @@
-import { useCallback, useState } from "react"
+import { useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
+
+import { Passphrase, PASSPHRASE_LENGTH, PASSPHRASE_REGEX } from "./Passphrase"
 
 export interface RestorePassphraseProps {
   onBack: () => unknown
@@ -8,34 +10,17 @@ export interface RestorePassphraseProps {
 }
 
 export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
-  const [words, setWords] = useState(Array(25).fill(""))
-
-  const setWord = useCallback((index: number, word: string) => {
-    setWords(phrase => phrase.map((v, i) => (i === index ? word : v)))
-  }, [])
-
-  const onConfirm = useCallback(() => {
-    onNext(words)
-  }, [onNext, words])
+  const [words, setWords] = useState(Array(PASSPHRASE_LENGTH).fill(""))
 
   return (
     <div>
       <a onClick={onBack}>Back</a>
       <p>Fill your passphrase (order matters).</p>
-      {words.map((value, index) => (
-        <div key={index}>
-          <pre>{index}:</pre>
-          <input
-            onChange={e => setWord(index, e.target.value)}
-            type="text"
-            value={value}
-          />
-        </div>
-      ))}
+      <Passphrase editable words={words} setWords={setWords} />
       <AsyncButton
-        disabled={!words.every(Boolean)}
+        disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
         label="Confirm"
-        onClick={onConfirm}
+        onClick={() => onNext(words)}
       />
     </div>
   )

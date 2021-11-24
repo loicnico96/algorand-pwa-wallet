@@ -1,5 +1,7 @@
 import { AsyncButton } from "components/AsyncButton"
 
+import { Passphrase } from "./Passphrase"
+
 export interface StorePassphraseProps {
   onBack: () => unknown
   onNext: () => unknown
@@ -19,13 +21,7 @@ export function StorePassphrase({
         (order matters), store it somewhere safe, and never share it with
         anyone. It will be required to restore your account from another device.
       </p>
-      {passphrase.map((value, index) => (
-        <div key={index}>
-          <pre>
-            {index}: {value}
-          </pre>
-        </div>
-      ))}
+      <Passphrase words={passphrase} />
       <AsyncButton label="Confirm" onClick={onNext} />
     </div>
   )
