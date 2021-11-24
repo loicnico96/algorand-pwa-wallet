@@ -1,7 +1,7 @@
 import { STORAGE_KEY_CONTACTS, useStorage } from "context/StorageContext"
 import { ContactData } from "lib/storage/contacts"
 import { useCallback } from "react"
-import { useQuery, UseQueryResult } from "../useQuery"
+import { useQuery, UseQueryResult } from "hooks/api/useQuery"
 
 export interface UseContactsResult
   extends UseQueryResult<Record<string, ContactData>> {

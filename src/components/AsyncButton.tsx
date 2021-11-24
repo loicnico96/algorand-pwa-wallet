@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from "react"
 
-import { useAsyncHandler } from "hooks/useAsyncHandler"
+import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>

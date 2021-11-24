@@ -3,10 +3,10 @@ import { AssetInfo } from "lib/algo/Asset"
 import { useQuery, UseQueryResult } from "./useQuery"
 
 export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
-  const { config, network, indexer } = useNetworkContext()
+  const { config, indexer } = useNetworkContext()
 
   return useQuery(
-    `${network}:assets/${assetId}`,
+    `api/assets/${assetId}`,
     async () => {
       if (assetId === config.native_asset.index) {
         return config.native_asset

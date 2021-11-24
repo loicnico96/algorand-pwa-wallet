@@ -2,6 +2,7 @@ import algosdk from "algosdk"
 import { useRouter } from "next/router"
 import { useMemo, useState } from "react"
 
+import { useSteps } from "hooks/navigation/useSteps"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
@@ -10,15 +11,14 @@ import { ConfirmAccount } from "./ConfirmAccount"
 import { ConfirmPassphrase } from "./ConfirmPassphrase"
 import { CreateAccount } from "./CreateAccount"
 import { StorePassphrase } from "./StorePassphrase"
-import { useSteps } from "./useSteps"
 
 export enum CreateAccountStep {
   CREATE_ACCOUNT = "",
-  STORE_PASSPHRASE = "store-passphrase",
-  CONFIRM_PASSPHRASE = "confirm-passphrase",
-  CHOOSE_PASSWORD = "choose-password",
-  CHOOSE_NAME = "account-details",
-  CONFIRM_ACCOUNT = "last-steps",
+  STORE_PASSPHRASE = "passphrase",
+  CONFIRM_PASSPHRASE = "passphrase/confirm",
+  CHOOSE_PASSWORD = "password",
+  CHOOSE_NAME = "details",
+  CONFIRM_ACCOUNT = "ready",
 }
 
 export function CreateAccountPages() {

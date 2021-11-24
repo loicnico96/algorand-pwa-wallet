@@ -1,5 +1,5 @@
-import { useAssetPrice } from "context/AssetPriceContext"
-import { useAssetInfo } from "hooks/useAssetInfo"
+import { useAssetInfo } from "hooks/api/useAssetInfo"
+import { useAssetPrice } from "hooks/api/useAssetPrice"
 
 import { Asset } from "./Asset"
 

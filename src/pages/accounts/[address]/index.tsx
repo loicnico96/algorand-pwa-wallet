@@ -5,7 +5,7 @@ import { useRouter } from "next/router"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
 import { ViewAccount } from "components/ViewAccount/ViewAccount"
-import { useRouteParam } from "hooks/useRouteParam"
+import { useRouteParam } from "hooks/navigation/useRouteParam"
 import { Route, RouteParam } from "lib/utils/navigation"
 
 export default function ViewAccountPage() {
@@ -16,7 +16,7 @@ export default function ViewAccountPage() {
     return <PageLoader />
   }
 
-  if (!address || !algosdk.isValidAddress(address)) {
+  if (!algosdk.isValidAddress(address)) {
     return (
       <PageError message="This address is invalid.">
         <Link href={Route.ACCOUNTS_LIST}>

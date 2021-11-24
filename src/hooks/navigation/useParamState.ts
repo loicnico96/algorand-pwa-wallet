@@ -1,23 +1,26 @@
 import { RouteParam } from "lib/utils/navigation"
-import { useRouter } from "next/router"
+import { NextRouter, useRouter } from "next/router"
 import { useCallback } from "react"
-import { getRouteParam } from "./useRouteParam"
 
-export function useParamState(
-  key: RouteParam
-): [
-  state: string,
-  setState: (newState: string) => Promise<void>,
+export type UseParamStateResult<T> = [
+  state: T,
+  setState: (newState: T) => Promise<void>,
   isReady: boolean
-] {
+]
+
+export function getParamState(router: NextRouter, key: RouteParam): string {
+  const value = router.query[key]
+  return Array.isArray(value) ? value[0] ?? "" : value ?? ""
+}
+
+export function useParamState(key: RouteParam): UseParamStateResult<string> {
   const router = useRouter()
 
-  const state = getRouteParam(router.query, key) ?? ""
+  const state = getParamState(router, key)
 
   const setState = useCallback(
     async (newState: string) => {
-      const oldState = getRouteParam(router.query, key) ?? ""
-      console.log(key, oldState, newState, oldState === newState)
+      const oldState = getParamState(router, key)
       if (oldState !== newState) {
         const query = { ...router.query }
 

@@ -1,3 +1,4 @@
+import { useNetworkContext } from "context/NetworkContext"
 import { toError } from "lib/utils/error"
 import { createLogger } from "lib/utils/logger"
 import { useCallback } from "react"
@@ -23,8 +24,9 @@ export function useQuery<T>(
   fetcher: (() => Promise<T>) | null,
   { defaultValue, immutable, pollInterval, ...options }: UseQueryOptions<T> = {}
 ): UseQueryResult<T> {
+  const { network } = useNetworkContext()
   const { data, error, isValidating, mutate } = useSWR(
-    cacheKey,
+    `${network}:${cacheKey}`,
     fetcher &&
       (async key => {
         const logger = createLogger(key)

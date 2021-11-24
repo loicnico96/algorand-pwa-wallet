@@ -1,15 +1,11 @@
 import { RouteParam } from "lib/utils/navigation"
 import { useCallback, useEffect } from "react"
-import { useParamState } from "./useParamState"
+import { useParamState, UseParamStateResult } from "./useParamState"
 
 export function useIntParamState(
   key: RouteParam,
   defaultState: number = 0
-): [
-  state: number,
-  setState: (newState: number) => Promise<void>,
-  isReady: boolean
-] {
+): UseParamStateResult<number> {
   const [state, setState, isReady] = useParamState(key)
 
   const parsedState = Number.parseInt(state, 10)

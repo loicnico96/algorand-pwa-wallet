@@ -2,7 +2,6 @@ import { AppProps } from "next/app"
 import Modal from "react-modal"
 
 import { ErrorBoundary } from "components/ErrorBoundary"
-import { AssetPriceContextProvider } from "context/AssetPriceContext"
 import { Network, NetworkContextProvider } from "context/NetworkContext"
 import { SecurityContextProvider } from "context/SecurityContext"
 import { StorageContextProvider } from "context/StorageContext"
@@ -22,9 +21,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <NetworkContextProvider defaultNetwork={Network.TEST}>
             <StorageContextProvider>
               <SecurityContextProvider>
-                <AssetPriceContextProvider>
-                  <Component {...pageProps} />
-                </AssetPriceContextProvider>
+                <Component {...pageProps} />
               </SecurityContextProvider>
             </StorageContextProvider>
           </NetworkContextProvider>

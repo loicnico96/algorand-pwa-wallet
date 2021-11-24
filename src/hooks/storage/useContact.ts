@@ -1,7 +1,7 @@
 import { ContactData } from "lib/storage/contacts"
 import { useCallback } from "react"
 import { useContacts } from "./useContacts"
-import { UseQueryResult } from "../useQuery"
+import { UseQueryResult } from "hooks/api/useQuery"
 
 export interface UseContactResult extends UseQueryResult<ContactData> {
   data: ContactData

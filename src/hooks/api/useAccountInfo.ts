@@ -6,10 +6,10 @@ import { useQuery, UseQueryResult } from "./useQuery"
 export function useAccountInfo(
   address: string | null
 ): UseQueryResult<AccountInfo> {
-  const { network, indexer } = useNetworkContext()
+  const { indexer } = useNetworkContext()
 
   return useQuery(
-    address ? `${network}:accounts/${address}` : null,
+    address ? `api/accounts/${address}` : null,
     address
       ? async () => {
           try {

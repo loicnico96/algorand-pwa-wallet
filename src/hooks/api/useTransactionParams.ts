@@ -5,7 +5,7 @@ import { useQuery, UseQueryResult } from "./useQuery"
 export function useTransactionParams(): UseQueryResult<SuggestedParams> {
   const { api, network } = useNetworkContext()
 
-  return useQuery(`${network}:transactions/params`, () =>
+  return useQuery("api/transactions/params", () =>
     api.getTransactionParams().do()
   )
 }

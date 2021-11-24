@@ -1,7 +1,7 @@
 import { useRouter } from "next/router"
 import { useCallback, useEffect, useRef } from "react"
 
-import { useRouteParam } from "hooks/useRouteParam"
+import { useRouteParam } from "./useRouteParam"
 import { DefaultLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
@@ -25,7 +25,7 @@ export function useSteps<T extends string>({
   const lastStepIndex = useRef(0)
 
   const router = useRouter()
-  const stepParam = useRouteParam(RouteParam.STEP) ?? ""
+  const stepParam = useRouteParam(RouteParam.STEP)
   const stepIndex = steps.indexOf(stepParam as T)
   const step =
     stepIndex < 0 || stepIndex > lastStepIndex.current

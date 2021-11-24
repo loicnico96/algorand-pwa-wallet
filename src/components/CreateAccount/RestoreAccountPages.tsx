@@ -2,19 +2,19 @@ import algosdk from "algosdk"
 import { useRouter } from "next/router"
 import { useState } from "react"
 
+import { useSteps } from "hooks/navigation/useSteps"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { ChooseName } from "./ChooseName"
 import { ChoosePassword } from "./ChoosePassword"
 import { RestoreAccount } from "./RestoreAccount"
 import { RestorePassphrase } from "./RestorePassphrase"
-import { useSteps } from "./useSteps"
 
 export enum RestoreAccountStep {
   RESTORE_ACCOUNT = "",
-  RESTORE_PASSPHRASE = "restore-passphrase",
-  CHOOSE_PASSWORD = "choose-password",
-  CHOOSE_NAME = "account-details",
+  RESTORE_PASSPHRASE = "passphrase",
+  CHOOSE_PASSWORD = "password",
+  CHOOSE_NAME = "details",
 }
 
 export function RestoreAccountPages() {

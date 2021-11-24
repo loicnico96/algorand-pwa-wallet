@@ -1,4 +1,4 @@
-import { useAssetInfo } from "hooks/useAssetInfo"
+import { useAssetInfo } from "hooks/api/useAssetInfo"
 
 export interface AssetSelectOptionProps {
   assetId: number
