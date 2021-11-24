@@ -49,8 +49,14 @@ export function ConfirmPassphrase({
         Confirm that you have stored your passphrase correctly by filling the
         missing words.
       </p>
-      <Passphrase editable={indexes} words={words} setWords={setWords} />
+      <Passphrase
+        autoFocus
+        editable={indexes}
+        words={words}
+        setWords={setWords}
+      />
       <AsyncButton
+        id="submit"
         disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
         label="Confirm"
         onClick={onConfirm}

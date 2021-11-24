@@ -25,7 +25,7 @@ export function ConfirmAccount({
         label="Copy to clipboard"
         onClick={() => toClipboard(address)}
       />
-      <AsyncButton label="Confirm" onClick={onNext} />
+      <AsyncButton autoFocus id="submit" label="Confirm" onClick={onNext} />
     </div>
   )
 }

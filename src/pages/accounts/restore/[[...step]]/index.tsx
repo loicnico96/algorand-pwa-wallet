@@ -1,5 +1,10 @@
 import { RestoreAccountPages } from "components/CreateAccount/RestoreAccountPages"
+import { PageContent } from "components/PageContent"
 
 export default function CreateAccountPage() {
-  return <RestoreAccountPages />
+  return (
+    <PageContent>
+      <RestoreAccountPages />
+    </PageContent>
+  )
 }

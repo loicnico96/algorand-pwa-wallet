@@ -16,8 +16,9 @@ export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
     <div>
       <a onClick={onBack}>Back</a>
       <p>Fill your passphrase (order matters).</p>
-      <Passphrase editable words={words} setWords={setWords} />
+      <Passphrase autoFocus editable words={words} setWords={setWords} />
       <AsyncButton
+        id="submit"
         disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
         label="Confirm"
         onClick={() => onNext(words)}

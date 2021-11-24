@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from "react"
+import { ButtonHTMLAttributes, ReactNode, useRef } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
@@ -22,9 +22,13 @@ export function AsyncButton({
   ...props
 }: AsyncButtonProps) {
   const [onClickAsync, loading] = useAsyncHandler(onClick, onError)
+  const buttonRef = useRef<HTMLButtonElement | null>()
 
   return (
     <button
+      ref={ref => {
+        buttonRef.current = ref
+      }}
       disabled={disabled || loading}
       onClick={e => {
         e.preventDefault()

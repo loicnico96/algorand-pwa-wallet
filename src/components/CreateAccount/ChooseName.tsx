@@ -33,12 +33,15 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         device only.
       </p>
       <input
+        autoFocus
+        id="input-name"
         onChange={e => setName(e.target.value)}
         placeholder="Name"
         type="text"
         value={name}
       />
       <input
+        id="input-note"
         onChange={e => setNote(e.target.value)}
         placeholder="Note (optional)"
         type="text"
@@ -47,6 +50,7 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
       <AsyncButton
         disabled={!name.trim()}
         label="Confirm"
+        id="submit"
         onClick={onConfirm}
       />
     </div>

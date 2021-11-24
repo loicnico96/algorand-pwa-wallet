@@ -22,7 +22,7 @@ export function StorePassphrase({
         anyone. It will be required to restore your account from another device.
       </p>
       <Passphrase words={passphrase} />
-      <AsyncButton label="Confirm" onClick={onNext} />
+      <AsyncButton autoFocus label="Confirm" onClick={onNext} id="submit" />
     </div>
   )
 }

@@ -12,7 +12,7 @@ export function CreateAccount({ onBack, onNext }: CreateAccountProps) {
       <p>
         This wizard will help you create a new empty account on the blockchain.
       </p>
-      <AsyncButton label="Start" onClick={onNext} />
+      <AsyncButton autoFocus id="submit" label="Start" onClick={onNext} />
     </div>
   )
 }

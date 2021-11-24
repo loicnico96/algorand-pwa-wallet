@@ -39,11 +39,14 @@ export function ChoosePassword({
         transactions.
       </p>
       <input
+        autoFocus
+        id="input-password"
         onChange={e => setPassword(e.target.value)}
         type="password"
         value={password}
       />
       <AsyncButton
+        id="submit"
         disabled={!password.match(PASSWORD_REGEX)}
         label="Confirm"
         onClick={onConfirm}

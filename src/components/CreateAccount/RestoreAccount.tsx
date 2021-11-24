@@ -13,7 +13,7 @@ export function RestoreAccount({ onBack, onNext }: RestoreAccountProps) {
         This wizard will help you restore an existing account via your
         passphrase.
       </p>
-      <AsyncButton label="Start" onClick={onNext} />
+      <AsyncButton autoFocus id="submit" label="Start" onClick={onNext} />
     </div>
   )
 }
