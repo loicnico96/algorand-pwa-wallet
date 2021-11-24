@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAccountData, useAddressBook } from "context/AddressBookContext"
+import { useContact } from "hooks/storage/useContact"
 
 export interface ChooseNameProps {
   address: string
@@ -10,22 +10,20 @@ export interface ChooseNameProps {
 }
 
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
-  const { updateAccount } = useAddressBook()
+  const { data: contactData, updateContact } = useContact(address)
 
-  const data = useAccountData(address)
-
-  const [name, setName] = useState(data?.name ?? "")
-  const [note, setNote] = useState(data?.note ?? "")
+  const [name, setName] = useState(contactData?.name ?? "")
+  const [note, setNote] = useState(contactData?.note ?? "")
 
   const onConfirm = useCallback(async () => {
     if (name.trim()) {
-      await updateAccount(address, {
+      await updateContact({
         name: name.trim(),
         note: note.trim() || undefined,
       })
-      onNext()
+      await onNext()
     }
-  }, [address, name, note, onNext, updateAccount])
+  }, [name, note, onNext, updateContact])
 
   return (
     <div>

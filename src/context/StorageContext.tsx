@@ -1,43 +1,71 @@
 import AppStorage from "@randlabs/encrypted-local-storage"
-import { AccountData } from "lib/storage/schema"
+import { ContactData } from "lib/storage/contacts"
+import { isServer } from "lib/utils/environment"
 import { useContext, useState } from "react"
 import { createEmptyContext, ProviderProps } from "./utils"
 
 export interface Storage {
-  accounts: Record<string, AccountData>
+  contacts: Record<string, ContactData>
 }
 
 export interface StorageContextValue {
   getItem<K extends keyof Storage>(key: K): Promise<Storage[K] | null>
-  setItem<K extends keyof Storage>(key: K, item: Storage[K]): Promise<void>
+  removeItem<K extends keyof Storage>(key: K): Promise<void>
+  setItem<K extends keyof Storage>(key: K, data: Storage[K]): Promise<void>
+  updateItem<K extends keyof Storage>(
+    key: K,
+    updateFn: (data: Storage[K] | null) => Storage[K]
+  ): Promise<Storage[K]>
 }
 
 export const StorageContext = createEmptyContext<StorageContextValue>()
 
 export const STORAGE_KEY = "storage"
+export const STORAGE_KEY_CONTACTS = "contacts"
 
-export async function initStorage(): Promise<AppStorage> {
-  const storageKey = await AppStorage.getItem(STORAGE_KEY)
-  if (storageKey) {
-    return new AppStorage(storageKey)
-  } else {
-    const storage = new AppStorage()
-    AppStorage.setItem(STORAGE_KEY, storage.getStorageKey())
+export function initStorage(): () => Promise<AppStorage> {
+  let storage: AppStorage
+
+  return async () => {
+    if (isServer) {
+      throw Error("IndexedDB is not available.")
+    }
+
+    if (!storage) {
+      const storageKey = await AppStorage.getItem(STORAGE_KEY)
+      if (storageKey) {
+        storage = new AppStorage(storageKey)
+      } else {
+        storage = new AppStorage()
+        await AppStorage.setItem(STORAGE_KEY, storage.getStorageKey())
+      }
+    }
+
     return storage
   }
 }
 
 export function StorageContextProvider({ children }: ProviderProps) {
-  const [storagePromise] = useState(initStorage)
+  const [getStorage] = useState(initStorage)
 
   const value: StorageContextValue = {
     getItem: async key => {
-      const storage = await storagePromise
-      return storage.loadItemFromStorage(key)
+      const storage = await getStorage()
+      const data = await storage.loadItemFromStorage(key)
+      return data
     },
-    setItem: async (key, item) => {
-      const storage = await storagePromise
-      return storage.saveItemToStorage(key, item)
+    removeItem: async key => {
+      await AppStorage.removeItem(key)
+    },
+    setItem: async (key, data) => {
+      const storage = await getStorage()
+      await storage.saveItemToStorage(key, data)
+    },
+    updateItem: async (key, updateFn) => {
+      const storage = await getStorage()
+      const data = updateFn(await storage.loadItemFromStorage(key))
+      await storage.saveItemToStorage(key, data)
+      return data
     },
   }
 

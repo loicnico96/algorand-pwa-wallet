@@ -3,8 +3,8 @@ import { useCallback } from "react"
 import { toast } from "react-toastify"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
+import { useContacts } from "hooks/storage/useContacts"
 import { useAccountAssetIds } from "hooks/useAccountAssetIds"
 import { useAccountBalance } from "hooks/useAccountBalance"
 import { useAccountInfo } from "hooks/useAccountInfo"
@@ -24,7 +24,7 @@ import { AssetDisplay } from "./AssetDisplay"
 import { AssetSelect } from "./AssetSelect"
 
 export function SendForm() {
-  const { accounts } = useAddressBook()
+  const { data: contacts } = useContacts()
   const { config } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
   const { signTransaction } = useSignTransaction()
@@ -165,7 +165,7 @@ export function SendForm() {
       <div>
         <p>From:</p>
         <AccountSelect
-          accounts={accounts}
+          accounts={contacts}
           onChange={value =>
             Promise.all([setFromParam(value), setAssetId(algoId), setAmount(0)])
           }
@@ -182,7 +182,7 @@ export function SendForm() {
       <div>
         <p>To:</p>
         <AccountSelect
-          accounts={accounts}
+          accounts={contacts}
           allowManual
           onChange={setToParam}
           value={toParam}

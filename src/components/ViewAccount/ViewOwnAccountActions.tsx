@@ -5,8 +5,8 @@ import { useCallback } from "react"
 import { toast } from "react-toastify"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAddressBook } from "context/AddressBookContext"
 import { useSecurityContext } from "context/SecurityContext"
+import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
 import { Route, RouteParam, withSearchParams } from "lib/utils/navigation"
 
@@ -18,8 +18,7 @@ export function ViewOwnAccountActions({ account }: ViewOwnAccountActionsProps) {
   const router = useRouter()
 
   const { address } = account
-
-  const { removeAccount } = useAddressBook()
+  const { removeContact } = useContact(address)
   const { changePassword, getPrivateKey, removePrivateKey } =
     useSecurityContext()
 
@@ -38,11 +37,11 @@ export function ViewOwnAccountActions({ account }: ViewOwnAccountActionsProps) {
     // eslint-disable-next-line no-alert
     const confirmed = window.prompt("Are you sure? Type 'yes'.")
     if (confirmed === "yes") {
-      await removeAccount(address)
+      await removeContact()
       await removePrivateKey(address)
       await router.replace(Route.ACCOUNTS_LIST)
     }
-  }, [address, removeAccount, removePrivateKey, router])
+  }, [address, removeContact, removePrivateKey, router])
 
   const sendUrl = withSearchParams(Route.SEND, {
     [RouteParam.ADDRESS_FROM]: address,

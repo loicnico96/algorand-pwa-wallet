@@ -1,63 +1,58 @@
 import { useCallback } from "react"
 
-import { useAddressBook } from "context/AddressBookContext"
 import { useNetworkContext } from "context/NetworkContext"
+import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
-import { AccountData } from "lib/storage/schema"
 import { toClipboard } from "lib/utils/clipboard"
 
 import { StandardAsset } from "./StandardAsset"
 
 export type AccountDetailsProps = {
   account: AccountInfo
-  data: AccountData | null
 }
 
-export default function AccountDetails({ account, data }: AccountDetailsProps) {
-  const { updateAccount } = useAddressBook()
-  const { config } = useNetworkContext()
+export default function AccountDetails({ account }: AccountDetailsProps) {
   const { address } = account
+  const { data: contactData, updateContact } = useContact(address)
+  const { config } = useNetworkContext()
 
   const onChangeName = useCallback(async () => {
     // eslint-disable-next-line no-alert
-    const name = window.prompt("Enter name:", data?.name)
+    const name = window.prompt("Enter name:", contactData.name)
 
     if (name) {
-      await updateAccount(address, { name })
+      await updateContact({ name })
     }
-  }, [address, data, updateAccount])
+  }, [contactData, updateContact])
 
   const onChangeNote = useCallback(async () => {
     // eslint-disable-next-line no-alert
-    const note = window.prompt("Enter note:", data?.note)
+    const note = window.prompt("Enter note:", contactData.note)
 
     if (note) {
-      await updateAccount(address, { note })
+      await updateContact({ note })
     }
-  }, [address, data, updateAccount])
+  }, [contactData, updateContact])
 
   return (
     <div>
       <p>
-        <a
-          onClick={() => toClipboard(account.address)}
-          title="Copy to clipboard"
-        >
-          {account.address}
+        <a onClick={() => toClipboard(address)} title="Copy to clipboard">
+          {address}
         </a>
       </p>
-      {data?.name ? (
+      {contactData.name ? (
         <p>
-          {data?.name} <a onClick={onChangeName}>(Edit name)</a>
+          {contactData.name} <a onClick={onChangeName}>(Edit name)</a>
         </p>
       ) : (
         <p>
           <a onClick={onChangeName}>(Add name)</a>
         </p>
       )}
-      {data?.note ? (
+      {contactData.note ? (
         <p>
-          {data?.note} <a onClick={onChangeNote}>(Edit note)</a>
+          {contactData.note} <a onClick={onChangeNote}>(Edit note)</a>
         </p>
       ) : (
         <p>
@@ -77,7 +72,7 @@ export default function AccountDetails({ account, data }: AccountDetailsProps) {
       <p>
         <a
           target="_blank"
-          href={`${config.algo_explorer.url}/address/${account.address}`}
+          href={`${config.algo_explorer.url}/address/${address}`}
           rel="noreferrer"
         >
           See in explorer

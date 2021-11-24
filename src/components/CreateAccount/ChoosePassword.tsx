@@ -2,9 +2,9 @@ import algosdk from "algosdk"
 import { useCallback, useState } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAddressBook } from "context/AddressBookContext"
 import { useSecurityContext } from "context/SecurityContext"
-import { AuthType } from "lib/storage/schema"
+import { useContact } from "hooks/storage/useContact"
+import { AuthType } from "lib/storage/contacts"
 import { PASSWORD_REGEX } from "lib/utils/auth"
 
 export interface ChoosePasswordProps {
@@ -18,7 +18,7 @@ export function ChoosePassword({
   onBack,
   onNext,
 }: ChoosePasswordProps) {
-  const { updateAccount } = useAddressBook()
+  const { updateContact } = useContact(account.addr)
   const { addPrivateKey } = useSecurityContext()
 
   const [password, setPassword] = useState("")
@@ -26,10 +26,10 @@ export function ChoosePassword({
   const onConfirm = useCallback(async () => {
     if (password.match(PASSWORD_REGEX)) {
       await addPrivateKey(account.addr, password, account.sk)
-      await updateAccount(account.addr, { auth: AuthType.SINGLE })
+      await updateContact({ auth: AuthType.SINGLE })
       onNext()
     }
-  }, [account, onNext, password, addPrivateKey, updateAccount])
+  }, [account, onNext, password, addPrivateKey, updateContact])
 
   return (
     <div>

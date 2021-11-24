@@ -1,7 +1,9 @@
-import { AccountData } from "lib/storage/schema"
+import { useMemo } from "react"
+
+import { ContactData, getContactName } from "lib/storage/contacts"
 
 export interface AccountSelectProps {
-  accounts: Record<string, AccountData>
+  accounts: Record<string, ContactData>
   allowManual?: boolean
   disabled?: boolean
   onChange: (address: string) => unknown
@@ -25,6 +27,18 @@ export function AccountSelect({
     ? OPTION_VALUE_MANUAL
     : undefined
 
+  const sortedAddresses = useMemo(
+    () =>
+      Object.keys(accounts)
+        .filter(address => !onlyOwnAccounts || accounts[address].auth)
+        .sort((addressA, addressB) => {
+          const nameA = getContactName(addressA, accounts[addressA])
+          const nameB = getContactName(addressB, accounts[addressB])
+          return nameA.localeCompare(nameB)
+        }),
+    [accounts, onlyOwnAccounts]
+  )
+
   return (
     <>
       <select
@@ -38,25 +52,13 @@ export function AccountSelect({
         }}
         value={selectedOption}
       >
-        {Object.keys(accounts)
-          .sort((a, b) =>
-            (accounts[a]?.name ?? a).localeCompare(accounts[b]?.name ?? b)
-          )
-          .map(address => {
-            const account = accounts[address]
-
-            if (onlyOwnAccounts && !account.auth) {
-              return null
-            }
-
-            return (
-              <option
-                key={address}
-                label={account.name ? `${account.name} (${address})` : address}
-                value={address}
-              />
-            )
-          })}
+        {sortedAddresses.map(address => (
+          <option
+            key={address}
+            label={getContactName(address, accounts[address])}
+            value={address}
+          />
+        ))}
         {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
       </select>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (

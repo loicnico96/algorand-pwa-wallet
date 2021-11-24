@@ -3,8 +3,8 @@ import Link from "next/link"
 import { PageContent } from "components/PageContent"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
-import { useAccountData } from "context/AddressBookContext"
 import { Network, useNetworkContext } from "context/NetworkContext"
+import { useContact } from "hooks/storage/useContact"
 import { useAccountInfo } from "hooks/useAccountInfo"
 import { AccountStatus } from "lib/algo/Account"
 import { toClipboard } from "lib/utils/clipboard"
@@ -21,7 +21,7 @@ export interface ViewAccountProps {
 export function ViewAccount({ address }: ViewAccountProps) {
   const { network } = useNetworkContext()
   const { data: account, error } = useAccountInfo(address)
-  const accountData = useAccountData(address)
+  const { data: contactData } = useContact(address)
 
   if (error) {
     return <PageError message={error.message} />
@@ -34,7 +34,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
   if (account.status === AccountStatus.EMPTY) {
     return (
       <PageError message="This account has not been funded.">
-        {accountData?.auth && (
+        {contactData.auth && (
           <p>
             You can activate it by sending at least 0.1 Algos to {address}
             {network === Network.TEST && (
@@ -61,11 +61,11 @@ export function ViewAccount({ address }: ViewAccountProps) {
       <Link href={Route.ACCOUNTS_LIST}>
         <a>Back</a>
       </Link>
-      <AccountDetails account={account} data={accountData} />
-      {accountData?.auth ? (
+      <AccountDetails account={account} />
+      {contactData.auth ? (
         <ViewOwnAccountActions account={account} />
       ) : (
-        <ViewOtherAccountActions address={account.address} data={accountData} />
+        <ViewOtherAccountActions account={account} />
       )}
     </PageContent>
   )

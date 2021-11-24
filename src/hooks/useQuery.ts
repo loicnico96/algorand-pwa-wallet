@@ -57,7 +57,7 @@ export function useQuery<T>(
   }, [])
 
   return {
-    data: data ?? null,
+    data: data ?? defaultValue ?? null,
     error: error ? toError(error) : null,
     loading: isValidating,
     refetch,

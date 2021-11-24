@@ -1,23 +1,25 @@
 import Link from "next/link"
+import { useMemo } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAddressBook } from "context/AddressBookContext"
+import { useContacts } from "hooks/storage/useContacts"
+import { getContactName } from "lib/storage/contacts"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 export default function ContactsPage() {
-  const { accounts, removeAccount, updateAccount } = useAddressBook()
+  const { data: accounts, removeContact, updateContact } = useContacts()
 
   const onRenameContact = async (address: string) => {
     // eslint-disable-next-line no-alert
     const name = window.prompt("Name")
 
     if (name) {
-      await updateAccount(address, { name })
+      await updateContact(address, { name })
     }
   }
 
   const onRemoveContact = async (address: string) => {
-    await removeAccount(address)
+    await removeContact(address)
   }
 
   const onAddContact = async () => {
@@ -27,9 +29,19 @@ export default function ContactsPage() {
     const name = window.prompt("Name")
 
     if (address && name) {
-      await updateAccount(address, { name })
+      await updateContact(address, { name })
     }
   }
+
+  const sortedAddresses = useMemo(
+    () =>
+      Object.keys(accounts).sort((addressA, addressB) => {
+        const nameA = getContactName(addressA, accounts[addressA])
+        const nameB = getContactName(addressB, accounts[addressB])
+        return nameA.localeCompare(nameB)
+      }),
+    [accounts]
+  )
 
   return (
     <div>
@@ -37,8 +49,7 @@ export default function ContactsPage() {
         <a>Back</a>
       </Link>
       <h3>Contacts:</h3>
-      {Object.keys(accounts).map(address => {
-        const account = accounts[address]
+      {sortedAddresses.map(address => {
         const accountUrl = replaceParams(Route.ACCOUNTS_VIEW, {
           [RouteParam.ADDRESS]: address,
         })
@@ -47,7 +58,9 @@ export default function ContactsPage() {
           <div key={address}>
             <Link href={accountUrl}>
               <a>
-                <p title={address}>{account.name}</p>
+                <p title={address}>
+                  {getContactName(address, accounts[address])}
+                </p>
               </a>
             </Link>
             <AsyncButton

@@ -1,47 +1,46 @@
 import { useCallback } from "react"
 
 import { AsyncButton } from "components/AsyncButton"
-import { useAddressBook } from "context/AddressBookContext"
-import { AccountData } from "lib/storage/schema"
+import { useContact } from "hooks/storage/useContact"
+import { AccountInfo } from "lib/algo/Account"
 
 export interface ViewOtherAccountActionsProps {
-  address: string
-  data: AccountData | null
+  account: AccountInfo
 }
 
 export function ViewOtherAccountActions({
-  address,
-  data,
+  account,
 }: ViewOtherAccountActionsProps) {
-  const { removeAccount, updateAccount } = useAddressBook()
+  const { address } = account
+  const {
+    data: contactData,
+    removeContact,
+    updateContact,
+  } = useContact(address)
 
   const onAddContact = useCallback(async () => {
     // eslint-disable-next-line no-alert
     const name = window.prompt("Enter name:")
 
     if (name) {
-      await updateAccount(address, { name })
+      await updateContact({ name })
     }
-  }, [address, updateAccount])
-
-  const onRemoveContact = useCallback(async () => {
-    await removeAccount(address)
-  }, [address, removeAccount])
+  }, [updateContact])
 
   const onRenameContact = useCallback(async () => {
     // eslint-disable-next-line no-alert
     const name = window.prompt("Enter new name:")
 
     if (name) {
-      await updateAccount(address, { name })
+      await updateContact({ name })
     }
-  }, [address, updateAccount])
+  }, [updateContact])
 
-  if (data) {
+  if (contactData.name) {
     return (
       <div>
         <AsyncButton onClick={onRenameContact} label="Rename contact" />
-        <AsyncButton onClick={onRemoveContact} label="Remove contact" />
+        <AsyncButton onClick={removeContact} label="Remove contact" />
       </div>
     )
   }
