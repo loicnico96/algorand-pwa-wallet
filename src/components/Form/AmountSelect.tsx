@@ -30,12 +30,12 @@ export function AmountSelect({
 
   useEffect(() => {
     setInputValue(printDecimals(value, decimals))
-  }, [value, setInputValue, decimals])
+  }, [value, decimals])
 
   return (
     <div>
       <InputBase
-        autoFocus
+        autoSelect
         disabled={disabled}
         min={0}
         max={max !== undefined ? max / 10 ** decimals : undefined}

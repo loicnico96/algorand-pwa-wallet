@@ -2,10 +2,14 @@ import { useMemo } from "react"
 
 import { ContactData, getContactName } from "lib/storage/contacts"
 
+import { InputSelect } from "./Primitives/InputSelect"
+import { InputText } from "./Primitives/InputText"
+
 export interface AccountSelectProps {
   accounts: Record<string, ContactData>
   allowManual?: boolean
   disabled?: boolean
+  label?: string
   name: string
   onChange: (address: string) => unknown
   onlyOwnAccounts?: boolean
@@ -18,6 +22,7 @@ export function AccountSelect({
   disabled = false,
   accounts,
   allowManual = false,
+  label,
   name,
   onChange,
   onlyOwnAccounts = false,
@@ -27,7 +32,7 @@ export function AccountSelect({
     ? value
     : allowManual
     ? OPTION_VALUE_MANUAL
-    : undefined
+    : ""
 
   const sortedAddresses = useMemo(
     () =>
@@ -43,15 +48,15 @@ export function AccountSelect({
 
   return (
     <>
-      <select
+      <InputSelect
         disabled={disabled}
-        id={`input-${name}`}
+        label={label}
         name={name}
-        onChange={e => {
-          if (e.target.value !== OPTION_VALUE_MANUAL) {
-            onChange(e.target.value)
-          } else {
+        onChange={newValue => {
+          if (newValue === OPTION_VALUE_MANUAL) {
             onChange("")
+          } else {
+            onChange(newValue)
           }
         }}
         value={selectedOption}
@@ -64,12 +69,13 @@ export function AccountSelect({
           />
         ))}
         {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
-      </select>
+      </InputSelect>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (
-        <input
-          onChange={e => onChange(e.target.value)}
+        <InputText
+          label={label}
+          name={`${name}-manual`}
+          onChange={onChange}
           placeholder="Select address"
-          type="text"
           value={value}
         />
       )}

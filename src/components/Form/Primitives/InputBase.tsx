@@ -8,6 +8,7 @@ export interface InputBaseProps extends Omit<InputProps, OmitProps> {
   allowKeys?: string | RegExp
   autoSelect?: boolean
   onChange?: (value: string) => void
+  label?: string
   pattern?: string | RegExp
   name: string
 }
@@ -16,6 +17,7 @@ export function InputBase({
   allowKeys,
   autoSelect,
   disabled,
+  label,
   name,
   onBlur,
   onChange,
@@ -27,6 +29,7 @@ export function InputBase({
 }: InputBaseProps) {
   return (
     <input
+      aria-label={label}
       aria-required={required ? "true" : undefined}
       disabled={disabled ?? !onChange}
       id={`input-${name}`}

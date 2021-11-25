@@ -6,11 +6,13 @@ type OmitProps = "children" | "id" | "onChange" | "value"
 
 export interface InputTextAreaProps extends Omit<TextAreaProps, OmitProps> {
   onChange: (value: string) => void
+  label?: string
   name: string
   value: string
 }
 
 export function InputTextArea({
+  label,
   name,
   onBlur,
   onChange,
@@ -20,6 +22,7 @@ export function InputTextArea({
 }: InputTextAreaProps) {
   return (
     <textarea
+      aria-label={label}
       aria-required={required ? "true" : undefined}
       id={`input-${name}`}
       name={name}

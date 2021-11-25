@@ -1,11 +1,17 @@
-export interface FormSubmitProps {
-  autoFocus?: boolean
-  disabled?: boolean
+import { ButtonHTMLAttributes } from "react"
+
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
+
+type OmitProps = "children" | "type"
+
+export interface FormSubmitProps extends Omit<ButtonProps, OmitProps> {
   label: string
 }
 
 export function FormSubmit({ label, ...props }: FormSubmitProps) {
   return (
-    <input id="submit" title={label} type="submit" value={label} {...props} />
+    <button id="submit" title={label} type="submit" {...props}>
+      {label}
+    </button>
   )
 }

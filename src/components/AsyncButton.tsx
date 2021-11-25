@@ -26,14 +26,15 @@ export function AsyncButton({
 
   return (
     <button
-      ref={ref => {
-        buttonRef.current = ref
-      }}
       disabled={disabled || loading}
       onClick={e => {
         e.preventDefault()
         onClickAsync()
       }}
+      ref={ref => {
+        buttonRef.current = ref
+      }}
+      type="button"
       {...props}
     >
       {loading ? labelLoading ?? label : label}

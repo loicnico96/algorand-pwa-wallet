@@ -26,6 +26,8 @@ import { AssetDisplay } from "./AssetDisplay"
 import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
 import { FormSubmit } from "./Primitives/FormSubmit"
+import { GroupLabel } from "./Primitives/GroupLabel"
+import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
 import { InputText } from "./Primitives/InputText"
 import { InputTextArea } from "./Primitives/InputTextArea"
@@ -181,10 +183,11 @@ export function SendForm() {
 
   return (
     <Form onSubmit={onSubmitAsync}>
-      <div>
-        <InputLabel name="from">Sender:</InputLabel>
+      <InputGroup group="from">
+        <GroupLabel group="from">Sender</GroupLabel>
         <AccountSelect
           accounts={contacts}
+          label="Sender"
           name="from"
           onChange={value =>
             Promise.all([setFromParam(value), setAssetId(algoId), setAmount(0)])
@@ -204,12 +207,13 @@ export function SendForm() {
         {sender !== null && !isSenderFunded && (
           <div style={{ color: "red" }}>This account is not funded.</div>
         )}
-      </div>
-      <div>
-        <InputLabel name="to">Recipient:</InputLabel>
+      </InputGroup>
+      <InputGroup group="to">
+        <GroupLabel group="to">Recipient</GroupLabel>
         <AccountSelect
           accounts={contacts}
           allowManual
+          label="Recipient"
           name="to"
           onChange={setToParam}
           value={toParam}
@@ -228,9 +232,10 @@ export function SendForm() {
             The recipient address is equal to the sender.
           </div>
         )}
-      </div>
-      <div>
-        <InputLabel name="asset">Asset:</InputLabel>
+      </InputGroup>
+      <InputGroup group="asset">
+        <GroupLabel group="asset">Asset</GroupLabel>
+        <InputLabel name="asset">Asset</InputLabel>
         <AssetSelect
           assetIds={senderAssetIds}
           disabled={sender === null || !isSenderFunded}
@@ -246,11 +251,11 @@ export function SendForm() {
             Recipient has not opted in this asset.
           </div>
         )}
-      </div>
-      <div>
-        <p>Amount:</p>
+      </InputGroup>
+      <InputGroup group="amount">
+        <GroupLabel group="amount">Amount</GroupLabel>
         <div>
-          <InputLabel name="amount">Amount:</InputLabel>
+          <InputLabel name="amount">Amount</InputLabel>
           <AmountSelect
             decimals={assetDecimals}
             disabled={sender === null || !isSenderFunded}
@@ -288,7 +293,19 @@ export function SendForm() {
         )}
         {asset !== null && (
           <div>
-            <InputLabel name="available">Available:</InputLabel>
+            <InputLabel name="balance">Balance</InputLabel>
+            <InputText
+              disabled
+              name="balance"
+              value={`${printDecimals(assetBalance, asset.params.decimals)} ${
+                asset.params["unit-name"]
+              }`}
+            />
+          </div>
+        )}
+        {asset !== null && (
+          <div>
+            <InputLabel name="available">Available</InputLabel>
             <InputText
               disabled
               name="available"
@@ -300,7 +317,7 @@ export function SendForm() {
         )}
         {assetId === algoId && (
           <div>
-            <InputLabel name="locked">Locked:</InputLabel>
+            <InputLabel name="locked">Locked</InputLabel>
             <InputText
               disabled
               name="locked"
@@ -310,33 +327,62 @@ export function SendForm() {
             />
           </div>
         )}
-      </div>
-      <div role="group">
-        <p>Fees:</p>
+        {asset !== null && (
+          <div>
+            <InputLabel name="remaining">Remaining</InputLabel>
+            <InputText
+              disabled
+              name="remaining"
+              value={`${printDecimals(
+                assetId === algoId
+                  ? assetBalance - amount - minFee
+                  : assetBalance - amount,
+                asset.params.decimals
+              )} ${asset.params["unit-name"]}`}
+            />
+          </div>
+        )}
+      </InputGroup>
+      <InputGroup group="fees">
+        <GroupLabel group="fees">Fees</GroupLabel>
         <div>
-          <InputLabel name="fee">Transaction fee:</InputLabel>
+          <InputLabel name="algo-balance">Balance</InputLabel>
           <InputText
             disabled
-            name="fee"
+            name="algo-balance"
+            value={`${printDecimals(senderBalance, algoDecimals)} ${
+              config.native_asset.params["unit-name"]
+            }`}
+          />
+        </div>
+        <div>
+          <InputLabel name="algo-fee">Transaction fee</InputLabel>
+          <InputText
+            disabled
+            name="algo-fee"
             value={`${printDecimals(minFee, algoDecimals)} ${
               config.native_asset.params["unit-name"]
             }`}
           />
         </div>
         <div>
-          <InputLabel name="balance">Balance:</InputLabel>
+          <InputLabel name="algo-remaining">Remaining</InputLabel>
           <InputText
             disabled
-            name="balance"
-            value={`${printDecimals(senderBalance, algoDecimals)} ${
-              config.native_asset.params["unit-name"]
-            }`}
+            name="algo-remaining"
+            value={`${printDecimals(
+              assetId === algoId
+                ? senderBalance - amount - minFee
+                : senderBalance - minFee,
+              algoDecimals
+            )} ${config.native_asset.params["unit-name"]}`}
           />
         </div>
-      </div>
-      <div role="group">
+      </InputGroup>
+      <InputGroup group="advanced">
+        <GroupLabel group="advanced">Advanced</GroupLabel>
         <div>
-          <InputLabel name="note">Note:</InputLabel>
+          <InputLabel name="note">Note</InputLabel>
         </div>
         <div>
           <InputTextArea
@@ -346,7 +392,7 @@ export function SendForm() {
             value={note}
           />
         </div>
-      </div>
+      </InputGroup>
       <FormSubmit disabled={!isAbleToSubmit || isSubmitting} label="Confirm" />
     </Form>
   )

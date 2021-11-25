@@ -1,8 +1,10 @@
 import { AssetSelectOption } from "./AssetSelectOption"
+import { InputSelect } from "./Primitives/InputSelect"
 
 export interface AssetSelectProps {
   assetIds: number[]
   disabled?: boolean
+  label?: string
   name: string
   onChange: (assetId: number) => unknown
   value: number
@@ -10,7 +12,6 @@ export interface AssetSelectProps {
 
 export function AssetSelect({
   assetIds,
-  name,
   onChange,
   value,
   ...selectProps
@@ -18,16 +19,14 @@ export function AssetSelect({
   assetIds.sort((a, b) => a - b)
 
   return (
-    <select
-      name={name}
-      id={`input-${name}`}
-      onChange={e => onChange(Number(e.target.value))}
+    <InputSelect
+      onChange={newValue => onChange(Number(newValue))}
       value={String(value)}
       {...selectProps}
     >
       {assetIds.map(assetId => (
         <AssetSelectOption assetId={assetId} key={assetId} />
       ))}
-    </select>
+    </InputSelect>
   )
 }

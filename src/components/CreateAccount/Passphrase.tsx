@@ -2,6 +2,7 @@ import styled from "@emotion/styled"
 
 import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
+import { InputGroup } from "components/Form/Primitives/InputGroup"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
 import { InputText } from "components/Form/Primitives/InputText"
 import { FieldOptions, useForm } from "components/Form/Primitives/useForm"
@@ -19,8 +20,6 @@ export const PASSPHRASE_LENGTH = 25
 export const PASSPHRASE_REGEX = /^[a-z]+$/
 
 const FIELD_NAMES = fill(PASSPHRASE_LENGTH, index => `word-${index}`)
-
-const WordInputGroup = styled.div``
 
 const WordInputLabel = styled(InputLabel)`
   display: inline-block;
@@ -70,7 +69,7 @@ export function Passphrase({
 
   return (
     <Form {...formProps}>
-      <WordInputGroup role="group">
+      <InputGroup group="words">
         {FIELD_NAMES.map((name, index) => {
           const props = fieldProps[name]
           const disabled = Array.isArray(editable)
@@ -136,7 +135,7 @@ export function Passphrase({
             </div>
           )
         })}
-      </WordInputGroup>
+      </InputGroup>
       <FormSubmit
         autoFocus={autoFocus && !editable}
         disabled={isSubmitting || !isValid}
