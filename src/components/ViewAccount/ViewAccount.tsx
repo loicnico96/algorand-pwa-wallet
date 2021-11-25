@@ -7,6 +7,7 @@ import { useAccountInfo } from "hooks/api/useAccountInfo"
 import { useContact } from "hooks/storage/useContact"
 import { AccountStatus } from "lib/algo/Account"
 import { toClipboard } from "lib/utils/clipboard"
+import { printDecimals } from "lib/utils/int"
 import { Route } from "lib/utils/navigation"
 
 import AccountDetails from "./AccountDetails"
@@ -18,7 +19,7 @@ export interface ViewAccountProps {
 }
 
 export function ViewAccount({ address }: ViewAccountProps) {
-  const { network } = useNetworkContext()
+  const { config, network } = useNetworkContext()
   const { data: account, error } = useAccountInfo(address)
   const { data: contactData } = useContact(address)
 
@@ -35,7 +36,12 @@ export function ViewAccount({ address }: ViewAccountProps) {
       <PageError message="This account has not been funded.">
         {contactData.auth && (
           <p>
-            You can activate it by sending at least 0.1 Algos to {address}
+            You can activate it by sending at least{" "}
+            {printDecimals(
+              config.params.MinBalance,
+              config.native_asset.params.decimals
+            )}{" "}
+            Algos to {address}
             {network === Network.TEST && (
               <>
                 {" "}
