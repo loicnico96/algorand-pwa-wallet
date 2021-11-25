@@ -18,7 +18,16 @@ export interface ChooseNameProps {
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
   const { data: contactData, updateContact } = useContact(address)
 
-  const { onSubmit, isSubmitting, isValid, values, setValue } = useForm({
+  const { formProps, isSubmitting, isValid, fieldProps } = useForm({
+    fields: {
+      name: {
+        maxLength: NAME_MAX_LENGTH,
+        required: true,
+      },
+      note: {
+        maxLength: NOTE_MAX_LENGTH,
+      },
+    },
     initialValues: {
       name: contactData.name ?? "",
       note: contactData.note ?? "",
@@ -30,9 +39,6 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
       })
       await onNext()
     },
-    validators: {
-      name: name => !!name.trim(),
-    },
   })
 
   return (
@@ -42,32 +48,18 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         Choose a name for your account. This information will be stored on your
         device only.
       </p>
-      <Form onSubmit={onSubmit}>
+      <Form {...formProps}>
         <div>
           <InputLabel name="name">Name</InputLabel>
         </div>
         <div>
-          <InputText
-            autoFocus
-            maxLength={NAME_MAX_LENGTH}
-            name="name"
-            onChange={value => setValue("name", value)}
-            placeholder="Name"
-            required
-            value={values.name}
-          />
+          <InputText {...fieldProps.name} autoFocus placeholder="Name" />
         </div>
         <div>
           <InputLabel name="note">Note</InputLabel>
         </div>
         <div>
-          <InputTextArea
-            maxLength={NOTE_MAX_LENGTH}
-            name="note"
-            onChange={value => setValue("note", value)}
-            placeholder="Note (optional)"
-            value={values.note}
-          />
+          <InputTextArea {...fieldProps.note} placeholder="Note (optional)" />
         </div>
         <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
       </Form>

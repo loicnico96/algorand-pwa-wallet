@@ -24,7 +24,15 @@ export function ChoosePassword({
   const { updateContact } = useContact(account.addr)
   const { addPrivateKey } = useSecurityContext()
 
-  const { onSubmit, isSubmitting, isValid, values, setValue } = useForm({
+  const { formProps, isSubmitting, isValid, fieldProps } = useForm({
+    fields: {
+      password: {
+        minLength: PASSWORD_LENGTH,
+        maxLength: PASSWORD_LENGTH,
+        pattern: PASSWORD_REGEX,
+        required: true,
+      },
+    },
     initialValues: {
       password: "",
     },
@@ -32,9 +40,6 @@ export function ChoosePassword({
       await addPrivateKey(account.addr, password, account.sk)
       await updateContact({ auth: AuthType.SINGLE })
       await onNext()
-    },
-    validators: {
-      password: password => !!password.match(PASSWORD_REGEX),
     },
   })
 
@@ -45,26 +50,12 @@ export function ChoosePassword({
         Choose your secret pasword (6 digits). It will be required to confirm
         transactions.
       </p>
-      <Form onSubmit={onSubmit}>
+      <Form {...formProps}>
         <div>
           <InputLabel name="password">Password</InputLabel>
         </div>
         <div>
-          <InputPassword
-            autoFocus
-            name="password"
-            onChange={value => setValue("password", value)}
-            onKeyPress={e => {
-              if (!e.key.match("[0-9]|Enter")) {
-                e.preventDefault()
-              }
-            }}
-            maxLength={PASSWORD_LENGTH}
-            minLength={PASSWORD_LENGTH}
-            pattern={PASSWORD_REGEX}
-            required
-            value={values.password}
-          />
+          <InputPassword {...fieldProps.password} allowKeys="[0-9]" autoFocus />
         </div>
         <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
       </Form>

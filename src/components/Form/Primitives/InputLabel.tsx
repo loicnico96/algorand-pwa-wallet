@@ -1,10 +1,14 @@
-import { ReactNode } from "react"
+import { LabelHTMLAttributes, ReactNode } from "react"
 
-export interface InputLabelProps {
+export type LabelProps = LabelHTMLAttributes<HTMLLabelElement>
+
+type OmitProps = "htmlFor"
+
+export interface InputLabelProps extends Omit<LabelProps, OmitProps> {
   children: ReactNode
   name: string
 }
 
-export function InputLabel({ children, name }: InputLabelProps) {
-  return <label htmlFor={`input-${name}`}>{children}</label>
+export function InputLabel({ name, ...props }: InputLabelProps) {
+  return <label htmlFor={`input-${name}`} {...props} />
 }

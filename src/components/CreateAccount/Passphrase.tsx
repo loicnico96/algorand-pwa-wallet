@@ -4,7 +4,8 @@ import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
 import { InputText } from "components/Form/Primitives/InputText"
-import { useForm } from "components/Form/Primitives/useForm"
+import { FieldOptions, useForm } from "components/Form/Primitives/useForm"
+import { fill } from "lib/utils/arrays"
 import { handleGenericError } from "lib/utils/error"
 
 export interface PassphaseProps {
@@ -16,6 +17,8 @@ export interface PassphaseProps {
 
 export const PASSPHRASE_LENGTH = 25
 export const PASSPHRASE_REGEX = /^[a-z]+$/
+
+const FIELD_NAMES = fill(PASSPHRASE_LENGTH, index => `word-${index}`)
 
 const WordInputGroup = styled.div``
 
@@ -37,52 +40,53 @@ export function Passphrase({
 }: PassphaseProps) {
   const firstEditable = Array.isArray(editable) ? Math.min(...editable) : 0
 
-  const {
-    values,
-    isSubmitting,
-    isValid,
-    onSubmit: onFormSubmit,
-    setValue,
-  } = useForm({
-    initialValues: { words: initialValues },
+  const { fieldProps, formProps, isSubmitting, isValid } = useForm({
+    fields: FIELD_NAMES.reduce((result, name) => {
+      result[name] = {
+        pattern: PASSPHRASE_REGEX,
+        required: true,
+      }
+
+      return result
+    }, {} as Record<string, FieldOptions>),
+    initialValues: FIELD_NAMES.reduce((result, name, index) => {
+      result[name] = initialValues[index]
+
+      return result
+    }, {} as Record<string, string>),
     onError: error => {
       handleGenericError(error)
-      const el = document.getElementById(`input-word-${firstEditable}`)
-      if (el?.getAttribute("disabled") === null) {
-        el.focus()
+      // Focus first editable word
+      for (let i = 0; i < FIELD_NAMES.length; i++) {
+        const el = document.getElementById(`input-word-${i}`)
+        if (el?.getAttribute("disabled") === null) {
+          el.focus()
+          return
+        }
       }
     },
-    onSubmit: ({ words }) => onSubmit(words),
-    validators: {
-      words: words => words.every(word => word.match(PASSPHRASE_REGEX)),
-    },
+    onSubmit: values => onSubmit(FIELD_NAMES.map(name => values[name])),
   })
 
-  const setWord = (index: number, value: string) => {
-    setValue(
-      "words",
-      values.words.map((w, i) => (i === index ? value : w))
-    )
-  }
-
   return (
-    <Form onSubmit={onFormSubmit}>
+    <Form {...formProps}>
       <WordInputGroup role="group">
-        {values.words.map((word, index) => {
-          const name = `word-${index}`
+        {FIELD_NAMES.map((name, index) => {
+          const props = fieldProps[name]
           const disabled = Array.isArray(editable)
             ? !editable.includes(index)
             : !editable
 
           return (
-            <div key={index} title={`Word ${index + 1}`}>
+            <div key={name} title={`Word ${index + 1}`}>
               <WordInputLabel name={name}>{index + 1}</WordInputLabel>
               <InputText
+                {...props}
+                allowKeys="[^ ]"
                 autoCapitalize="off"
                 autoFocus={autoFocus && !disabled && index === firstEditable}
                 autoSelect={!disabled}
                 disabled={disabled}
-                onChange={value => setWord(index, value)}
                 onKeyPress={e => {
                   if (e.key === " ") {
                     e.preventDefault()
@@ -93,7 +97,7 @@ export function Passphrase({
 
                     if (e.currentTarget.value.match(PASSPHRASE_REGEX)) {
                       // Focus next editable word
-                      for (let i = index + 1; i < values.words.length; i++) {
+                      for (let i = index + 1; i < FIELD_NAMES.length; i++) {
                         const el = document.getElementById(`input-word-${i}`)
                         if (el?.getAttribute("disabled") === null) {
                           el.focus()
@@ -123,12 +127,8 @@ export function Passphrase({
                     }
                   }
                 }}
-                name={name}
-                pattern={PASSPHRASE_REGEX}
-                required={!disabled}
-                value={word}
               />
-              {word !== "" && !word.match(PASSPHRASE_REGEX) && (
+              {props.value !== "" && !props.value.match(PASSPHRASE_REGEX) && (
                 <WordInputError aria-live="polite">
                   Invalid character.
                 </WordInputError>

@@ -2,42 +2,85 @@ import { useCallback, useState } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
+import { keys } from "lib/utils/objects"
 
-export interface UseFormOptions<T extends Record<string, unknown>> {
-  initialValues: T
-  onError?: (error: Error) => void
-  onSubmit: (values: T) => Promise<void>
-  validators?: {
-    [K in keyof T]?: (value: T[K]) => boolean
-  }
+import { FormProps } from "./Form"
+
+export interface FieldOptions {
+  maxLength?: number
+  minLength?: number
+  pattern?: RegExp
+  required?: boolean
 }
 
-export interface UseFormResult<T extends Record<string, unknown>> {
+export interface FieldProps extends FieldOptions {
+  onChange: (value: string) => void
+  name: string
+  value: string
+}
+
+export interface UseFormOptions<K extends string> {
+  fields: Record<K, FieldOptions>
+  initialValues: Record<K, string>
+  onError?: (error: Error) => void
+  onSubmit: (values: Record<K, string>) => Promise<void>
+}
+
+export interface UseFormResult<K extends string> {
+  fieldProps: Record<K, FieldProps>
+  formProps: Omit<FormProps, "children">
   isSubmitting: boolean
   isValid: boolean
-  onSubmit: () => void
-  setValue: <K extends keyof T>(name: K, value: T[K]) => void
-  values: T
 }
 
-export function useForm<T extends Record<string, unknown>>({
+export function useForm<K extends string>({
+  fields,
   initialValues,
   onError = handleGenericError,
   onSubmit,
-  validators,
-}: UseFormOptions<T>): UseFormResult<T> {
+}: UseFormOptions<K>): UseFormResult<K> {
   const [values, setValues] = useState(initialValues)
 
-  const setValue = useCallback((key: keyof T, value: T[keyof T]) => {
-    setValues(current => ({ ...current, [key]: value }))
-  }, [])
+  const fieldProps = keys(fields).reduce((result, name) => {
+    result[name] = {
+      ...fields[name],
+      onChange: value => setValues(current => ({ ...current, [name]: value })),
+      value: values[name],
+      name,
+    }
+    return result
+  }, {} as Record<K, FieldProps>)
 
-  const isValid =
-    !validators ||
-    Object.keys(validators).some((name: keyof T) => {
-      const validator = validators[name]
-      return !validator || validator(values[name])
-    })
+  const isValid = keys(fields).every(name => {
+    const field = fields[name]
+    const value = values[name]
+
+    if (field.required) {
+      if (value.length === 0) {
+        return false
+      }
+    }
+
+    if (field.maxLength !== undefined) {
+      if (value.length > field.maxLength) {
+        return false
+      }
+    }
+
+    if (field.minLength !== undefined) {
+      if (value.length < field.minLength) {
+        return false
+      }
+    }
+
+    if (field.pattern !== undefined) {
+      if (!value.match(field.pattern)) {
+        return false
+      }
+    }
+
+    return true
+  })
 
   const [onSubmitAsync, isSubmitting] = useAsyncHandler(
     useCallback(async () => {
@@ -49,10 +92,11 @@ export function useForm<T extends Record<string, unknown>>({
   )
 
   return {
+    fieldProps,
+    formProps: {
+      onSubmit: onSubmitAsync,
+    },
     isSubmitting,
     isValid,
-    onSubmit: onSubmitAsync,
-    setValue,
-    values,
   }
 }

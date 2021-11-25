@@ -5,6 +5,7 @@ export type InputProps = InputHTMLAttributes<HTMLInputElement>
 type OmitProps = "id" | "onChange" | "pattern"
 
 export interface InputBaseProps extends Omit<InputProps, OmitProps> {
+  allowKeys?: string | RegExp
   autoSelect?: boolean
   onChange: (value: string) => void
   pattern?: string | RegExp
@@ -12,11 +13,13 @@ export interface InputBaseProps extends Omit<InputProps, OmitProps> {
 }
 
 export function InputBase({
+  allowKeys,
   autoSelect,
   name,
   onBlur,
   onChange,
   onFocus,
+  onKeyPress,
   pattern,
   required,
   ...props
@@ -43,6 +46,15 @@ export function InputBase({
 
         if (onFocus) {
           onFocus(e)
+        }
+      }}
+      onKeyPress={e => {
+        if (allowKeys && e.key !== "Enter" && !e.key.match(allowKeys)) {
+          e.preventDefault()
+        }
+
+        if (onKeyPress) {
+          onKeyPress(e)
         }
       }}
       pattern={pattern instanceof RegExp ? pattern.source : pattern}
