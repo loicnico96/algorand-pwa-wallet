@@ -1,10 +1,10 @@
 import algosdk from "algosdk"
-import Link from "next/link"
 import { useRouter } from "next/router"
 import { useCallback } from "react"
 import { toast } from "react-toastify"
 
 import { AsyncButton } from "components/AsyncButton"
+import { Link } from "components/Link"
 import { useSecurityContext } from "context/SecurityContext"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
@@ -53,9 +53,7 @@ export function ViewOwnAccountActions({ account }: ViewOwnAccountActionsProps) {
       <AsyncButton onClick={onShowPassphrase} label="Show passphrase" />
       <AsyncButton onClick={onRemoveAccount} label="Remove account" />
       <Link href={sendUrl}>
-        <a>
-          <button>Send</button>
-        </a>
+        <button>Send</button>
       </Link>
     </div>
   )

@@ -1,7 +1,7 @@
 import algosdk from "algosdk"
-import Link from "next/link"
 import { useRouter } from "next/router"
 
+import { Link } from "components/Link"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
 import { ViewAccount } from "components/ViewAccount/ViewAccount"
@@ -19,9 +19,7 @@ export default function ViewAccountPage() {
   if (!algosdk.isValidAddress(address)) {
     return (
       <PageError message="This address is invalid.">
-        <Link href={Route.ACCOUNTS_LIST}>
-          <a>Bring me home.</a>
-        </Link>
+        <Link href={Route.ACCOUNTS_LIST}>Bring me home.</Link>
       </PageError>
     )
   }

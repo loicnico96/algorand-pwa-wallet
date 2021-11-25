@@ -1,5 +1,4 @@
-import Link from "next/link"
-
+import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
@@ -41,9 +40,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
               <>
                 {" "}
                 or by using the faucet at{" "}
-                <a href="https://bank.testnet.algorand.network">
-                  https://bank.testnet.algorand.network
-                </a>
+                <Link href="https://bank.testnet.algorand.network" />
               </>
             )}
             .
@@ -58,9 +55,7 @@ export function ViewAccount({ address }: ViewAccountProps) {
 
   return (
     <PageContent>
-      <Link href={Route.ACCOUNTS_LIST}>
-        <a>Back</a>
-      </Link>
+      <Link href={Route.ACCOUNTS_LIST}>Back</Link>
       <AccountDetails account={account} />
       {contactData.auth ? (
         <ViewOwnAccountActions account={account} />

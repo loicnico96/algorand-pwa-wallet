@@ -1,5 +1,4 @@
 import styled from "@emotion/styled"
-import Link from "next/link"
 
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -11,6 +10,7 @@ import { printDecimals } from "lib/utils/int"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
 import { AsyncButton } from "./AsyncButton"
+import { Link } from "./Link"
 
 export interface AccountListItemProps {
   address: string
@@ -65,27 +65,25 @@ export function AccountListItem({ address, data }: AccountListItemProps) {
   })
 
   return (
-    <Link href={accountUrl}>
-      <a title={data.name ?? address}>
-        <Container>
-          <ContainerRow>
-            <Title>{data.name ? `${data.name} (${address})` : address}</Title>
-            <AsyncButton
-              label="Copy"
-              onClick={() => toClipboard(address)}
-              title="Copy address to clipboard"
-            />
-          </ContainerRow>
-          <ContainerRow>
-            {printDecimals(algoBalance, config.native_asset.params.decimals)}{" "}
-            {config.native_asset.params["unit-name"]} (
-            {algoValue?.toFixed(2) ?? "..."}$)
-          </ContainerRow>
-          <ContainerRow>
-            {`Portfolio value: ${totalValue?.toFixed(2) ?? "..."}$`}
-          </ContainerRow>
-        </Container>
-      </a>
+    <Link href={accountUrl} title={data.name ?? address}>
+      <Container>
+        <ContainerRow>
+          <Title>{data.name ? `${data.name} (${address})` : address}</Title>
+          <AsyncButton
+            label="Copy"
+            onClick={() => toClipboard(address)}
+            title="Copy address to clipboard"
+          />
+        </ContainerRow>
+        <ContainerRow>
+          {printDecimals(algoBalance, config.native_asset.params.decimals)}{" "}
+          {config.native_asset.params["unit-name"]} (
+          {algoValue?.toFixed(2) ?? "..."}$)
+        </ContainerRow>
+        <ContainerRow>
+          {`Portfolio value: ${totalValue?.toFixed(2) ?? "..."}$`}
+        </ContainerRow>
+      </Container>
     </Link>
   )
 }

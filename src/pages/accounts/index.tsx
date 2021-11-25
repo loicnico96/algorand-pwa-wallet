@@ -1,6 +1,5 @@
-import Link from "next/link"
-
 import { AccountList } from "components/AccountList"
+import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
 import { Route } from "lib/utils/navigation"
 
@@ -10,20 +9,14 @@ export default function HomePage() {
       <AccountList />
       <div>
         <Link href={Route.ACCOUNTS_CREATE}>
-          <a>
-            <button>Create account</button>
-          </a>
+          <button>Create account</button>
         </Link>
         <Link href={Route.ACCOUNTS_RESTORE}>
-          <a>
-            <button>Restore account</button>
-          </a>
+          <button>Restore account</button>
         </Link>
       </div>
       <div>
-        <Link href={Route.CONTACTS}>
-          <a>Contacts</a>
-        </Link>
+        <Link href={Route.CONTACTS}>Contacts</Link>
       </div>
     </PageContent>
   )
