@@ -1,14 +1,15 @@
-import { ButtonHTMLAttributes, ReactNode, useRef } from "react"
+import { ButtonHTMLAttributes } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
 
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
-export interface AsyncButtonProps
-  extends Omit<ButtonProps, "children" | "onError"> {
-  label: ReactNode
-  labelLoading?: ReactNode
+type OmitProps = "children" | "onError"
+
+export interface AsyncButtonProps extends Omit<ButtonProps, OmitProps> {
+  label: string
+  labelLoading?: string
   onClick: () => unknown
   onError?: (error: Error) => void
 }
@@ -16,13 +17,12 @@ export interface AsyncButtonProps
 export function AsyncButton({
   disabled = false,
   label,
-  labelLoading,
+  labelLoading = label,
   onClick,
   onError = handleGenericError,
   ...props
 }: AsyncButtonProps) {
   const [onClickAsync, loading] = useAsyncHandler(onClick, onError)
-  const buttonRef = useRef<HTMLButtonElement | null>()
 
   return (
     <button
@@ -31,13 +31,10 @@ export function AsyncButton({
         e.preventDefault()
         onClickAsync()
       }}
-      ref={ref => {
-        buttonRef.current = ref
-      }}
       type="button"
       {...props}
     >
-      {loading ? labelLoading ?? label : label}
+      {loading ? labelLoading : label}
     </button>
   )
 }
