@@ -1,5 +1,5 @@
 import { useRouter } from "next/router"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 import { useRouteParam } from "./useRouteParam"
 import { RouteParam } from "lib/utils/navigation"
@@ -21,10 +21,13 @@ export function useSteps<T extends string>({
   onLastStepNext,
   steps,
 }: UseStepsParams<T>): UseStepsResult<T> {
-  const [step, setStep] = useState(0)
+  const lastStep = useRef(0)
 
   const router = useRouter()
   const stepParam = useRouteParam(RouteParam.STEP)
+  const stepIndex = steps.indexOf(stepParam as T)
+  const step =
+    stepIndex < 0 || stepIndex > lastStep.current ? lastStep.current : stepIndex
 
   useEffect(() => {
     if (router.isReady && steps[step] !== stepParam) {
@@ -34,19 +37,20 @@ export function useSteps<T extends string>({
 
   const onBack = useCallback(async () => {
     if (step > 0) {
-      setStep(step - 1)
+      router.back()
     } else {
       await onFirstStepBack()
     }
-  }, [onFirstStepBack, step])
+  }, [onFirstStepBack, router, step])
 
   const onNext = useCallback(async () => {
     if (step < steps.length - 1) {
-      setStep(step + 1)
+      lastStep.current = step + 1
+      await router.push(steps[step + 1])
     } else {
       await onLastStepNext()
     }
-  }, [onLastStepNext, step, steps])
+  }, [onLastStepNext, router, step, steps])
 
   return {
     onBack,

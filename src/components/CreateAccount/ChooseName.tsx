@@ -1,29 +1,39 @@
-import { useCallback, useState } from "react"
-
-import { AsyncButton } from "components/AsyncButton"
+import { Form } from "components/Form/Primitives/Form"
+import { FormSubmit } from "components/Form/Primitives/FormSubmit"
+import { InputLabel } from "components/Form/Primitives/InputLabel"
+import { InputText } from "components/Form/Primitives/InputText"
+import { InputTextArea } from "components/Form/Primitives/InputTextArea"
+import { useForm } from "components/Form/Primitives/useForm"
 import { useContact } from "hooks/storage/useContact"
+
+const NAME_MAX_LENGTH = 20
+const NOTE_MAX_LENGTH = 400
 
 export interface ChooseNameProps {
   address: string
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
 }
 
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
   const { data: contactData, updateContact } = useContact(address)
 
-  const [name, setName] = useState(contactData?.name ?? "")
-  const [note, setNote] = useState(contactData?.note ?? "")
-
-  const onConfirm = useCallback(async () => {
-    if (name.trim()) {
+  const { onSubmit, isSubmitting, isValid, values, setValue } = useForm({
+    initialValues: {
+      name: contactData.name ?? "",
+      note: contactData.note ?? "",
+    },
+    onSubmit: async ({ name, note }) => {
       await updateContact({
         name: name.trim(),
         note: note.trim() || undefined,
       })
       await onNext()
-    }
-  }, [name, note, onNext, updateContact])
+    },
+    validators: {
+      name: name => !!name.trim(),
+    },
+  })
 
   return (
     <div>
@@ -32,27 +42,35 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         Choose a name for your account. This information will be stored on your
         device only.
       </p>
-      <input
-        autoFocus
-        id="input-name"
-        onChange={e => setName(e.target.value)}
-        placeholder="Name"
-        type="text"
-        value={name}
-      />
-      <input
-        id="input-note"
-        onChange={e => setNote(e.target.value)}
-        placeholder="Note (optional)"
-        type="text"
-        value={note}
-      />
-      <AsyncButton
-        disabled={!name.trim()}
-        label="Confirm"
-        id="submit"
-        onClick={onConfirm}
-      />
+      <Form onSubmit={onSubmit}>
+        <div>
+          <InputLabel name="name">Name</InputLabel>
+        </div>
+        <div>
+          <InputText
+            autoFocus
+            maxLength={NAME_MAX_LENGTH}
+            name="name"
+            onChange={value => setValue("name", value)}
+            placeholder="Name"
+            required
+            value={values.name}
+          />
+        </div>
+        <div>
+          <InputLabel name="note">Note</InputLabel>
+        </div>
+        <div>
+          <InputTextArea
+            maxLength={NOTE_MAX_LENGTH}
+            name="note"
+            onChange={value => setValue("note", value)}
+            placeholder="Note (optional)"
+            value={values.note}
+          />
+        </div>
+        <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
+      </Form>
     </div>
   )
 }

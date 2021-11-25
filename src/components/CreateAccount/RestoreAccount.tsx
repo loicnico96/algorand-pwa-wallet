@@ -1,8 +1,8 @@
 import { AsyncButton } from "components/AsyncButton"
 
 export interface RestoreAccountProps {
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
 }
 
 export function RestoreAccount({ onBack, onNext }: RestoreAccountProps) {

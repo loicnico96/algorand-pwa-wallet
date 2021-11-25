@@ -1,12 +1,10 @@
 import { useCallback, useState } from "react"
 
-import { AsyncButton } from "components/AsyncButton"
-
-import { Passphrase, PASSPHRASE_LENGTH, PASSPHRASE_REGEX } from "./Passphrase"
+import { Passphrase, PASSPHRASE_LENGTH } from "./Passphrase"
 
 export interface ConfirmPassphraseProps {
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
   passphrase: string[]
 }
 
@@ -29,18 +27,19 @@ export function ConfirmPassphrase({
   passphrase,
 }: ConfirmPassphraseProps) {
   const [indexes] = useState(selectRandomIndexes)
-  const [words, setWords] = useState(
-    passphrase.map((w, i) => (indexes.includes(i) ? "" : w))
+
+  const onSubmit = useCallback(
+    async (words: string[]) => {
+      for (const index of indexes) {
+        if (words[index] !== passphrase[index]) {
+          //throw Error("Passphrase does not match.")
+        }
+      }
+
+      await onNext()
+    },
+    [onNext, indexes, passphrase]
   )
-
-  const onConfirm = useCallback(() => {
-    if (words.some((w, i) => w !== passphrase[i])) {
-      setWords(words.map((w, i) => (w !== passphrase[i] ? "" : w)))
-      throw Error("Passphrase does not match.")
-    }
-
-    onNext()
-  }, [onNext, words, passphrase])
 
   return (
     <div>
@@ -52,14 +51,8 @@ export function ConfirmPassphrase({
       <Passphrase
         autoFocus
         editable={indexes}
-        words={words}
-        setWords={setWords}
-      />
-      <AsyncButton
-        id="submit"
-        disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
-        label="Confirm"
-        onClick={onConfirm}
+        initialValues={passphrase.map((w, i) => (indexes.includes(i) ? "" : w))}
+        onSubmit={onSubmit}
       />
     </div>
   )

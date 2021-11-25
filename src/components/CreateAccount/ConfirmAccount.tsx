@@ -3,8 +3,8 @@ import { toClipboard } from "lib/utils/clipboard"
 
 export interface ConfirmAccountProps {
   address: string
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
 }
 
 export function ConfirmAccount({

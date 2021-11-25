@@ -1,27 +1,25 @@
-import { useState } from "react"
-
-import { AsyncButton } from "components/AsyncButton"
-
-import { Passphrase, PASSPHRASE_LENGTH, PASSPHRASE_REGEX } from "./Passphrase"
+import { Passphrase, PASSPHRASE_LENGTH } from "./Passphrase"
 
 export interface RestorePassphraseProps {
-  onBack: () => unknown
-  onNext: (passphrase: string[]) => unknown
+  onBack: () => Promise<void>
+  onNext: (passphrase: string[]) => Promise<void>
 }
 
-export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
-  const [words, setWords] = useState(Array(PASSPHRASE_LENGTH).fill(""))
+const EMPTY_PASSPHRASE = Array(PASSPHRASE_LENGTH).fill("")
 
+export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
   return (
     <div>
       <a onClick={onBack}>Back</a>
-      <p>Fill your passphrase (order matters).</p>
-      <Passphrase autoFocus editable words={words} setWords={setWords} />
-      <AsyncButton
-        id="submit"
-        disabled={!words.every(word => word.match(PASSPHRASE_REGEX))}
-        label="Confirm"
-        onClick={() => onNext(words)}
+      <p>
+        Fill the {PASSPHRASE_LENGTH} words from your passphase in order. Use
+        only lower case latin (a-z) characters.
+      </p>
+      <Passphrase
+        autoFocus
+        editable
+        onSubmit={onNext}
+        initialValues={EMPTY_PASSPHRASE}
       />
     </div>
   )

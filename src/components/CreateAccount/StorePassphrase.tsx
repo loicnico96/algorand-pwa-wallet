@@ -1,10 +1,8 @@
-import { AsyncButton } from "components/AsyncButton"
-
-import { Passphrase } from "./Passphrase"
+import { Passphrase, PASSPHRASE_LENGTH } from "./Passphrase"
 
 export interface StorePassphraseProps {
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
   passphrase: string[]
 }
 
@@ -17,12 +15,12 @@ export function StorePassphrase({
     <div>
       <a onClick={onBack}>Back</a>
       <p>
-        This is your secret passphrase of 25 words. Write it down carefully
-        (order matters), store it somewhere safe, and never share it with
-        anyone. It will be required to restore your account from another device.
+        This is your secret passphrase. Write the {PASSPHRASE_LENGTH} words
+        carefully, in order, and store them somewhere extremely safe. Never
+        share your passphrase with anyone. It will be required to restore your
+        account from another device.
       </p>
-      <Passphrase words={passphrase} />
-      <AsyncButton autoFocus label="Confirm" onClick={onNext} id="submit" />
+      <Passphrase autoFocus onSubmit={onNext} initialValues={passphrase} />
     </div>
   )
 }

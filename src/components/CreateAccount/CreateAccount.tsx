@@ -1,8 +1,8 @@
 import { AsyncButton } from "components/AsyncButton"
 
 export interface CreateAccountProps {
-  onBack: () => unknown
-  onNext: () => unknown
+  onBack: () => Promise<void>
+  onNext: () => Promise<void>
 }
 
 export function CreateAccount({ onBack, onNext }: CreateAccountProps) {
