@@ -2,22 +2,26 @@ import { useEffect, useState } from "react"
 
 import { printDecimals, readDecimals } from "lib/utils/int"
 
+import { InputBase } from "./Primitives/InputBase"
+
 export interface AmountSelectProps {
   decimals: number
   disabled?: boolean
   min?: number
   max?: number
-  onChange: (amount: number) => unknown
+  name: string
+  onChange: (amount: number) => void
   unit?: string
   value: number
 }
 
 export function AmountSelect({
   decimals,
-  disabled = false,
+  disabled,
   unit,
   max,
   min,
+  name,
   onChange,
   value,
   ...inputProps
@@ -30,19 +34,15 @@ export function AmountSelect({
 
   return (
     <div>
-      <input
+      <InputBase
+        autoFocus
         disabled={disabled}
         min={0}
-        onBlur={e => {
-          onChange(readDecimals(e.target.value, decimals))
-        }}
-        onFocus={e => {
-          e.target.select()
-        }}
-        onChange={e => {
-          setInputValue(e.target.value)
-        }}
-        step={1}
+        max={max !== undefined ? max / 10 ** decimals : undefined}
+        name={name}
+        onBlur={e => onChange(readDecimals(e.target.value, decimals))}
+        onChange={setInputValue}
+        step={1 / 10 ** decimals}
         type="number"
         value={inputValue}
         {...inputProps}
@@ -50,12 +50,12 @@ export function AmountSelect({
       {!!unit && <span>{unit}</span>}
       {max !== undefined && (
         <button
+          aria-label="Max"
           disabled={disabled}
-          onClick={() => {
-            if (value !== max) {
-              onChange(max)
-            }
-          }}
+          name={`${name}-max`}
+          id={`input-${name}-max`}
+          onClick={() => onChange(max)}
+          title="Set maximum amount"
         >
           Max
         </button>

@@ -7,7 +7,7 @@ type OmitProps = "id" | "onChange" | "pattern"
 export interface InputBaseProps extends Omit<InputProps, OmitProps> {
   allowKeys?: string | RegExp
   autoSelect?: boolean
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   pattern?: string | RegExp
   name: string
 }
@@ -15,6 +15,7 @@ export interface InputBaseProps extends Omit<InputProps, OmitProps> {
 export function InputBase({
   allowKeys,
   autoSelect,
+  disabled,
   name,
   onBlur,
   onChange,
@@ -27,17 +28,22 @@ export function InputBase({
   return (
     <input
       aria-required={required ? "true" : undefined}
+      disabled={disabled ?? !onChange}
       id={`input-${name}`}
       name={name}
       onBlur={e => {
-        onChange(e.currentTarget.value.trim())
+        if (onChange) {
+          onChange(e.currentTarget.value.trim())
+        }
 
         if (onBlur) {
           onBlur(e)
         }
       }}
       onChange={e => {
-        onChange(e.currentTarget.value)
+        if (onChange) {
+          onChange(e.currentTarget.value)
+        }
       }}
       onFocus={e => {
         if (autoSelect) {

@@ -6,6 +6,7 @@ export interface AccountSelectProps {
   accounts: Record<string, ContactData>
   allowManual?: boolean
   disabled?: boolean
+  name: string
   onChange: (address: string) => unknown
   onlyOwnAccounts?: boolean
   value: string
@@ -17,6 +18,7 @@ export function AccountSelect({
   disabled = false,
   accounts,
   allowManual = false,
+  name,
   onChange,
   onlyOwnAccounts = false,
   value,
@@ -43,6 +45,8 @@ export function AccountSelect({
     <>
       <select
         disabled={disabled}
+        id={`input-${name}`}
+        name={name}
         onChange={e => {
           if (e.target.value !== OPTION_VALUE_MANUAL) {
             onChange(e.target.value)

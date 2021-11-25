@@ -2,7 +2,6 @@ import algosdk from "algosdk"
 import { useCallback } from "react"
 import { toast } from "react-toastify"
 
-import { AsyncButton } from "components/AsyncButton"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -14,7 +13,10 @@ import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useIntParamState } from "hooks/navigation/useIntParamState"
 import { useParamState } from "hooks/navigation/useParamState"
 import { useContacts } from "hooks/storage/useContacts"
+import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { createTransferTransaction } from "lib/algo/transactions/Transfer"
+import { handleGenericError } from "lib/utils/error"
+import { printDecimals } from "lib/utils/int"
 import { createLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
@@ -22,6 +24,11 @@ import { AccountSelect } from "./AccountSelect"
 import { AmountSelect } from "./AmountSelect"
 import { AssetDisplay } from "./AssetDisplay"
 import { AssetSelect } from "./AssetSelect"
+import { Form } from "./Primitives/Form"
+import { FormSubmit } from "./Primitives/FormSubmit"
+import { InputLabel } from "./Primitives/InputLabel"
+import { InputText } from "./Primitives/InputText"
+import { InputTextArea } from "./Primitives/InputTextArea"
 
 export function SendForm() {
   const { data: contacts } = useContacts()
@@ -167,12 +174,18 @@ export function SendForm() {
     note,
   ])
 
+  const [onSubmitAsync, isSubmitting] = useAsyncHandler(
+    onSubmit,
+    handleGenericError
+  )
+
   return (
-    <div>
+    <Form onSubmit={onSubmitAsync}>
       <div>
-        <p>From:</p>
+        <InputLabel name="from">Sender:</InputLabel>
         <AccountSelect
           accounts={contacts}
+          name="from"
           onChange={value =>
             Promise.all([setFromParam(value), setAssetId(algoId), setAmount(0)])
           }
@@ -193,10 +206,11 @@ export function SendForm() {
         )}
       </div>
       <div>
-        <p>To:</p>
+        <InputLabel name="to">Recipient:</InputLabel>
         <AccountSelect
           accounts={contacts}
           allowManual
+          name="to"
           onChange={setToParam}
           value={toParam}
         />
@@ -216,10 +230,11 @@ export function SendForm() {
         )}
       </div>
       <div>
-        <p>Asset:</p>
+        <InputLabel name="asset">Asset:</InputLabel>
         <AssetSelect
           assetIds={senderAssetIds}
           disabled={sender === null || !isSenderFunded}
+          name="asset"
           onChange={value => Promise.all([setAssetId(value), setAmount(0)])}
           value={assetId}
         />
@@ -235,22 +250,18 @@ export function SendForm() {
       <div>
         <p>Amount:</p>
         <div>
-          Available: <AssetDisplay amount={maxAmount} assetId={assetId} />
+          <InputLabel name="amount">Amount:</InputLabel>
+          <AmountSelect
+            decimals={assetDecimals}
+            disabled={sender === null || !isSenderFunded}
+            min={minAmount}
+            max={maxAmount}
+            name="amount"
+            onChange={setAmount}
+            unit={assetUnitName}
+            value={amount}
+          />
         </div>
-        {assetId === algoId && (
-          <div>
-            Locked: <AssetDisplay amount={senderMinBalance} assetId={algoId} />
-          </div>
-        )}
-        <AmountSelect
-          decimals={assetDecimals}
-          disabled={sender === null || !isSenderFunded}
-          min={minAmount}
-          max={maxAmount}
-          onChange={setAmount}
-          unit={assetUnitName}
-          value={amount}
-        />
         {receiver !== null && amount < minAmount && (
           <div style={{ color: "red" }}>
             The recipient address does not currently hold any{" "}
@@ -275,30 +286,68 @@ export function SendForm() {
             This transaction will not transfer any assets.
           </div>
         )}
+        {asset !== null && (
+          <div>
+            <InputLabel name="available">Available:</InputLabel>
+            <InputText
+              disabled
+              name="available"
+              value={`${printDecimals(maxAmount, asset.params.decimals)} ${
+                asset.params["unit-name"]
+              }`}
+            />
+          </div>
+        )}
+        {assetId === algoId && (
+          <div>
+            <InputLabel name="locked">Locked:</InputLabel>
+            <InputText
+              disabled
+              name="locked"
+              value={`${printDecimals(senderMinBalance, algoDecimals)} ${
+                config.native_asset.params["unit-name"]
+              }`}
+            />
+          </div>
+        )}
       </div>
-      <div>
-        <p>Fee:</p>
+      <div role="group">
+        <p>Fees:</p>
         <div>
-          Balance: <AssetDisplay amount={senderBalance} assetId={algoId} />
+          <InputLabel name="fee">Transaction fee:</InputLabel>
+          <InputText
+            disabled
+            name="fee"
+            value={`${printDecimals(minFee, algoDecimals)} ${
+              config.native_asset.params["unit-name"]
+            }`}
+          />
         </div>
         <div>
-          Fee: <AssetDisplay amount={minFee} assetId={algoId} />
+          <InputLabel name="balance">Balance:</InputLabel>
+          <InputText
+            disabled
+            name="balance"
+            value={`${printDecimals(senderBalance, algoDecimals)} ${
+              config.native_asset.params["unit-name"]
+            }`}
+          />
         </div>
       </div>
-      <div>
-        <p>Note:</p>
-        <input
-          onChange={e => setNote(e.target.value)}
-          placeholder="Note (optional)"
-          type="text"
-          value={note}
-        />
+      <div role="group">
+        <div>
+          <InputLabel name="note">Note:</InputLabel>
+        </div>
+        <div>
+          <InputTextArea
+            name="note"
+            onChange={setNote}
+            placeholder="Note (optional)"
+            value={note}
+          />
+        </div>
       </div>
-      <AsyncButton
-        disabled={!isAbleToSubmit}
-        label="Confirm"
-        onClick={onSubmit}
-      />
-    </div>
+      <FormSubmit disabled={!isAbleToSubmit || isSubmitting} label="Confirm" />
+    </Form>
   )
 }
