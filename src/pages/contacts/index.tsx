@@ -1,7 +1,7 @@
 import { AsyncButton } from "components/AsyncButton"
-import { ContactList } from "components/ContactList"
 import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
+import { ContactList } from "components/Widgets/ContactList"
 import { useContacts } from "hooks/storage/useContacts"
 import { Route } from "lib/utils/navigation"
 

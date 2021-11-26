@@ -1,16 +1,10 @@
-import styled from "@emotion/styled"
 import { useMemo } from "react"
 
+import { CardList } from "components/Primitives/CardList"
 import { useContacts } from "hooks/storage/useContacts"
 import { getContactName } from "lib/storage/contacts"
 
 import { ContactListItem } from "./ContactListItem"
-
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`
 
 export function ContactList() {
   const { data: accounts, loading, error } = useContacts()
@@ -34,7 +28,7 @@ export function ContactList() {
   }
 
   return (
-    <Container>
+    <CardList>
       {sortedAccounts.map(address => (
         <ContactListItem
           address={address}
@@ -42,6 +36,6 @@ export function ContactList() {
           key={address}
         />
       ))}
-    </Container>
+    </CardList>
   )
 }

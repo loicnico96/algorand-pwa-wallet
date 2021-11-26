@@ -1,6 +1,7 @@
 import { useCallback } from "react"
 
 import { Link } from "components/Link"
+import { AssetList } from "components/Widgets/AssetList"
 import { useNetworkContext } from "context/NetworkContext"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
@@ -37,7 +38,7 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
 
   return (
     <div>
-      <p>
+      <p style={{ overflow: "hidden" }}>
         <a onClick={() => toClipboard(address)} title="Copy to clipboard">
           {address}
         </a>
@@ -73,18 +74,13 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
           See in explorer
         </Link>
       </p>
-      <StandardAsset
-        assetId={config.native_asset.index}
-        amount={account.amount}
-      />
-      {account.assets?.map(asset => (
+      <div>
         <StandardAsset
-          key={asset["asset-id"]}
-          assetId={asset["asset-id"]}
-          amount={asset.amount}
-          frozen={asset["is-frozen"]}
+          assetId={config.native_asset.index}
+          amount={account.amount}
         />
-      ))}
+      </div>
+      <AssetList assets={account.assets ?? []} />
     </div>
   )
 }

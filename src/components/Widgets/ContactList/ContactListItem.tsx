@@ -1,29 +1,17 @@
 import styled from "@emotion/styled"
 import { useCallback } from "react"
 
-import { Link } from "components/Link"
+import { AsyncButton } from "components/AsyncButton"
+import { Card } from "components/Primitives/Card"
 import { useContact } from "hooks/storage/useContact"
 import { ContactData } from "lib/storage/contacts"
 import { toClipboard } from "lib/utils/clipboard"
 import { replaceParams, Route, RouteParam } from "lib/utils/navigation"
 
-import { AsyncButton } from "./AsyncButton"
-
 export interface ContactListItemProps {
   address: string
   data: ContactData
 }
-
-const Container = styled.div`
-  background-color: #ccc;
-  border: 2px solid #444;
-  border-radius: 16px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 8px 16px;
-`
 
 const ContainerRow = styled.div`
   display: flex;
@@ -60,48 +48,46 @@ export function ContactListItem({ address, data }: ContactListItemProps) {
   })
 
   return (
-    <Link href={accountUrl} title={data.name ?? address}>
-      <Container>
-        <ContainerRow>
-          <Title>
-            <span
-              title="Edit name"
-              onClick={e => {
-                e.preventDefault()
-                return onEditName()
-              }}
-            >
-              {data.name} (Edit name)
-            </span>
-          </Title>
-          {!data.auth && (
-            <AsyncButton
-              label="Delete"
-              onClick={removeContact}
-              title="Delete this contact"
-            />
-          )}
-        </ContainerRow>
-        <ContainerRow>
+    <Card href={accountUrl} title={data.name ?? address}>
+      <ContainerRow>
+        <Title>
           <span
-            title="Edit note"
+            title="Edit name"
             onClick={e => {
               e.preventDefault()
-              return onEditNote()
+              return onEditName()
             }}
           >
-            {data.note} (Edit note)
+            {data.name} (Edit name)
           </span>
-        </ContainerRow>
-        <ContainerRow>
-          <Title>{address}</Title>
+        </Title>
+        {!data.auth && (
           <AsyncButton
-            label="Copy"
-            onClick={() => toClipboard(address)}
-            title="Copy address to clipboard"
+            label="Delete"
+            onClick={removeContact}
+            title="Delete this contact"
           />
-        </ContainerRow>
-      </Container>
-    </Link>
+        )}
+      </ContainerRow>
+      <ContainerRow>
+        <span
+          title="Edit note"
+          onClick={e => {
+            e.preventDefault()
+            return onEditNote()
+          }}
+        >
+          {data.note} (Edit note)
+        </span>
+      </ContainerRow>
+      <ContainerRow>
+        <Title>{address}</Title>
+        <AsyncButton
+          label="Copy"
+          onClick={() => toClipboard(address)}
+          title="Copy address to clipboard"
+        />
+      </ContainerRow>
+    </Card>
   )
 }

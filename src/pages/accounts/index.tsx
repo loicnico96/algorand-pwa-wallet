@@ -1,6 +1,6 @@
-import { AccountList } from "components/AccountList"
 import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
+import { AccountList } from "components/Widgets/AccountList"
 import { Route } from "lib/utils/navigation"
 
 export default function HomePage() {
