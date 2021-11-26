@@ -7,7 +7,7 @@ export interface LinkProps extends AnchorProps {
   href: string
 }
 
-export function Link({ children, href, ...props }: LinkProps) {
+export function Link({ children, onClick, href, ...props }: LinkProps) {
   if (href.match(/^https?:/)) {
     return (
       <a {...props} href={href} rel="noopener noreferrer" target="_blank">

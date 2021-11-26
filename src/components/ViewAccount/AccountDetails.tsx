@@ -6,6 +6,7 @@ import { useNetworkContext } from "context/NetworkContext"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
 import { toClipboard } from "lib/utils/clipboard"
+import { handleGenericError } from "lib/utils/error"
 
 import { StandardAsset } from "./StandardAsset"
 
@@ -80,7 +81,10 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
           amount={account.amount}
         />
       </div>
-      <AssetList assets={account.assets ?? []} />
+      <AssetList
+        assets={account.assets ?? []}
+        onOptIn={() => handleGenericError("Not implemented")}
+      />
     </div>
   )
 }

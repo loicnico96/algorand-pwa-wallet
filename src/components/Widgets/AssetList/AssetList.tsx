@@ -1,15 +1,17 @@
 import { useMemo } from "react"
 
+import { Card } from "components/Primitives/Card"
 import { CardList } from "components/Primitives/CardList"
 import { AccountAsset } from "lib/algo/Account"
 
 import { AssetListItem } from "./AssetListItem"
 
 export interface AssetListProps {
+  onOptIn?: () => void
   assets: AccountAsset[]
 }
 
-export function AssetList({ assets }: AssetListProps) {
+export function AssetList({ assets, onOptIn }: AssetListProps) {
   const sortedAssets = useMemo(
     () =>
       assets
@@ -23,6 +25,11 @@ export function AssetList({ assets }: AssetListProps) {
       {sortedAssets.map(asset => (
         <AssetListItem asset={asset} key={asset["asset-id"]} />
       ))}
+      {onOptIn && (
+        <Card title="Add a new Standard Asset" onClick={onOptIn}>
+          Add
+        </Card>
+      )}
     </CardList>
   )
 }
