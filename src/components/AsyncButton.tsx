@@ -1,3 +1,4 @@
+import styled from "@emotion/styled"
 import { ButtonHTMLAttributes } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
@@ -14,6 +15,10 @@ export interface AsyncButtonProps extends Omit<ButtonProps, OmitProps> {
   onError?: (error: Error) => void
 }
 
+const Button = styled.button`
+  cursor: ${props => (props.disabled ? "not-allowed" : "pointer")};
+`
+
 export function AsyncButton({
   disabled = false,
   label,
@@ -25,7 +30,7 @@ export function AsyncButton({
   const [onClickAsync, loading] = useAsyncHandler(onClick, onError)
 
   return (
-    <button
+    <Button
       disabled={disabled || loading}
       onClick={e => {
         e.preventDefault()
@@ -35,6 +40,6 @@ export function AsyncButton({
       {...props}
     >
       {loading ? labelLoading : label}
-    </button>
+    </Button>
   )
 }

@@ -6,18 +6,12 @@ import { Link } from "components/Link"
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
 
-const CardContainer = styled.div<{ disabled?: boolean; loading?: boolean }>`
+const CardContainer = styled.div<{ disabled?: boolean }>`
   background-color: #ccc;
   border: 2px solid #444;
   border-radius: 1em;
   cursor: ${props =>
-    props.onClick
-      ? props.disabled
-        ? "not-allowed"
-        : props.loading
-        ? "progress"
-        : "pointer"
-      : "default"};
+    props.onClick ? (props.disabled ? "not-allowed" : "pointer") : "default"};
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -33,7 +27,7 @@ export interface CardProps extends Omit<DivProps, "onClick" | "onError"> {
 
 export function Card({
   href,
-  disabled,
+  disabled = false,
   onClick,
   onError = handleGenericError,
   ...props
@@ -57,8 +51,7 @@ export function Card({
 
   return (
     <CardContainer
-      disabled={disabled}
-      loading={loading}
+      disabled={disabled || loading}
       onClick={onClick ? onClickAsync : undefined}
       {...props}
     />
