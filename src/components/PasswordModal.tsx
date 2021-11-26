@@ -2,7 +2,7 @@ import { useCallback, useState } from "react"
 import Modal from "react-modal"
 
 import { PASSWORD_REGEX } from "lib/utils/auth"
-import { handleGenericError, toError } from "lib/utils/error"
+import { handleGenericError } from "lib/utils/error"
 
 import { AsyncButton } from "./AsyncButton"
 
@@ -29,7 +29,7 @@ export function PasswordModal({
     try {
       await onConfirm(password)
     } catch (error) {
-      handleGenericError(toError(error))
+      handleGenericError(error)
       setPassword("")
     }
   }, [onConfirm, password])

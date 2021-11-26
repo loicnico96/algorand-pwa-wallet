@@ -57,4 +57,4 @@ export function createLogger(
   }
 }
 
-export const DefaultLogger = createLogger()
+export const defaultLogger = createLogger()

@@ -1,6 +1,6 @@
 import { toast } from "react-toastify"
 
-import { DefaultLogger } from "./logger"
+import { defaultLogger } from "./logger"
 
 export function isError(value: unknown): value is Error {
   return value instanceof Error
@@ -28,7 +28,7 @@ export function toError(value: unknown): Error {
   return Object.assign(Error("Unknown error"), { originalError: value })
 }
 
-export function handleGenericError(error: Error) {
-  DefaultLogger.error(error)
-  toast.error(error.message)
+export function handleGenericError(error: unknown): void {
+  defaultLogger.error(error)
+  toast.error(toError(error).message)
 }
