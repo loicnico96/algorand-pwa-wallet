@@ -10,6 +10,8 @@ export interface UseTransactionResult {
   waitForConfirmation(transactionId: string): Promise<PendingTransaction>
 }
 
+const TXN_ADDRESS_FIELDS = ["arcv", "asnd", "rcv", "snd"] as const
+
 export function useTransaction(): UseTransactionResult {
   const { api, network } = useNetworkContext()
   const { getPrivateKey } = useSecurityContext()
@@ -18,12 +20,14 @@ export function useTransaction(): UseTransactionResult {
     async (transactionId: string) => {
       const status = await api.status().do()
       const startRound = status["last-round"] + 1
-      const endRound = startRound + 1000
+      let endRound = startRound + 1000
 
       for (let round = startRound; round < endRound; round++) {
         await api.statusAfterBlock(round).do()
 
-        const txn = await api.pendingTransactionInformation(transactionId).do()
+        const txn = (await api
+          .pendingTransactionInformation(transactionId)
+          .do()) as PendingTransaction
 
         if (txn["confirmed-round"]) {
           if (txn["confirmed-round"] > round) {
@@ -31,10 +35,13 @@ export function useTransaction(): UseTransactionResult {
           }
 
           // Refetch account balances
-          const sender = algosdk.encodeAddress(txn.txn.txn.snd)
-          mutate(`${network}:api/accounts/${sender}`)
-          const receiver = algosdk.encodeAddress(txn.txn.txn.rcv)
-          mutate(`${network}:api/accounts/${receiver}`)
+          for (const addressField of TXN_ADDRESS_FIELDS) {
+            const address = txn.txn.txn[addressField]
+            if (address) {
+              const encodedAddress = algosdk.encodeAddress(address)
+              mutate(`${network}:api/accounts/${encodedAddress}`)
+            }
+          }
 
           return txn as PendingTransaction
         }
@@ -42,9 +49,13 @@ export function useTransaction(): UseTransactionResult {
         if (txn["pool-error"]) {
           throw Error(txn["pool-error"])
         }
+
+        if (round >= txn.txn.txn.lv) {
+          break
+        }
       }
 
-      throw Error("Transaction not confirmed.")
+      throw Error("Transaction expired.")
     },
     [api]
   )

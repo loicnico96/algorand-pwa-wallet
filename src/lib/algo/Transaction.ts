@@ -1,16 +1,19 @@
 export enum TransactionType {
-  PAY = "pay",
+  ASSET_TRANSFER = "axfer",
+  TRANSFER = "pay",
 }
 
 export interface Transaction {
   amt: number
+  arcv?: Uint8Array
+  asnd?: Uint8Array
   fee: number
   fv: number
   gen: string
   gh: Uint8Array
   lv: number
-  rcv: Uint8Array
-  snd: Uint8Array
+  rcv?: Uint8Array
+  snd?: Uint8Array
   type: TransactionType
 }
 

@@ -1,10 +1,13 @@
-import { useCallback, useState } from "react"
 import Modal from "react-modal"
 
-import { PASSWORD_REGEX } from "lib/utils/auth"
-import { handleGenericError } from "lib/utils/error"
+import { PASSWORD_LENGTH, PASSWORD_REGEX } from "lib/utils/auth"
 
 import { AsyncButton } from "./AsyncButton"
+import { Form } from "./Form/Primitives/Form"
+import { FormSubmit } from "./Form/Primitives/FormSubmit"
+import { InputLabel } from "./Form/Primitives/InputLabel"
+import { InputPassword } from "./Form/Primitives/InputPassword"
+import { useForm } from "./Form/Primitives/useForm"
 
 export interface PasswordModalProps {
   isOpen: boolean
@@ -19,35 +22,34 @@ export function PasswordModal({
   isOpen,
   reason,
 }: PasswordModalProps) {
-  const [password, setPassword] = useState("")
-
-  const onAfterOpen = useCallback(() => {
-    setPassword("")
-  }, [])
-
-  const onSubmit = useCallback(async () => {
-    try {
+  const { formProps, isSubmitting, isValid, fieldProps, resetForm } = useForm({
+    fields: {
+      password: {
+        minLength: PASSWORD_LENGTH,
+        maxLength: PASSWORD_LENGTH,
+        pattern: PASSWORD_REGEX,
+        required: true,
+      },
+    },
+    initialValues: {
+      password: "",
+    },
+    onSubmit: async ({ password }) => {
+      resetForm()
       await onConfirm(password)
-    } catch (error) {
-      handleGenericError(error)
-      setPassword("")
-    }
-  }, [onConfirm, password])
+    },
+  })
 
   return (
-    <Modal isOpen={isOpen} onAfterOpen={onAfterOpen} onRequestClose={onClose}>
-      <p>{reason ?? "Enter your password"} (6 digits):</p>
-      <input
-        onChange={e => setPassword(e.target.value)}
-        type="password"
-        value={password}
-      />
-      <AsyncButton onClick={onClose} label="Cancel" />
-      <AsyncButton
-        disabled={!password.match(PASSWORD_REGEX)}
-        onClick={onSubmit}
-        label="Confirm"
-      />
+    <Modal isOpen={isOpen} onAfterOpen={resetForm} onRequestClose={onClose}>
+      <Form {...formProps}>
+        <InputLabel name="password">
+          {reason ?? "Enter your password"} (6 digits):
+        </InputLabel>
+        <InputPassword {...fieldProps.password} allowKeys="[0-9]" autoFocus />
+        <AsyncButton onClick={onClose} label="Cancel" />
+        <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
+      </Form>
     </Modal>
   )
 }

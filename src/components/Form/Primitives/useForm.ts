@@ -31,6 +31,7 @@ export interface UseFormResult<K extends string> {
   formProps: Omit<FormProps, "children">
   isSubmitting: boolean
   isValid: boolean
+  resetForm: () => void
 }
 
 export function useForm<K extends string>({
@@ -91,6 +92,8 @@ export function useForm<K extends string>({
     onError
   )
 
+  const resetForm = useCallback(() => setValues(initialValues), [initialValues])
+
   return {
     fieldProps,
     formProps: {
@@ -98,5 +101,6 @@ export function useForm<K extends string>({
     },
     isSubmitting,
     isValid,
+    resetForm,
   }
 }
