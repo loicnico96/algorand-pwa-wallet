@@ -1,5 +1,5 @@
 import styled from "@emotion/styled"
-import { HTMLAttributes, SyntheticEvent, useEffect, useRef } from "react"
+import { HTMLAttributes, MouseEvent, useEffect, useRef } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
@@ -13,7 +13,7 @@ export interface InteractiveProps extends BaseInteractiveProps {
   disabled?: boolean
   href?: string
   label?: string
-  onClick?: (event: SyntheticEvent<HTMLElement>) => unknown
+  onClick?: (event: MouseEvent<HTMLElement>) => unknown
   onError?: (error: Error) => void
   type?: "button" | "reset" | "submit"
 }
@@ -38,7 +38,7 @@ export function Interactive({
   const ref = useRef<HTMLDivElement | null>(null)
 
   const [onClickAsync, isRunning] = useAsyncHandler(
-    async (event: SyntheticEvent<HTMLElement>) => {
+    async (event: MouseEvent<HTMLElement>) => {
       if (onClick && !disabled) {
         await onClick(event)
       }
@@ -117,14 +117,18 @@ export function Interactive({
       aria-label={label}
       disabled={disabled || isRunning}
       onClick={onClickAsync}
-      // Handle keyboard events for elements that don't support it natively
       onKeyUp={event => {
-        if (event.key === "Enter" || event.key === " ") {
-          onClickAsync(event)
-        }
-
         if (onKeyUp) {
           onKeyUp(event)
+        }
+
+        if (event.isDefaultPrevented()) {
+          return
+        }
+
+        // Handle keyboard events for elements that don't support it natively
+        if (event.key === "Enter" || event.key === " ") {
+          event.currentTarget.click()
         }
       }}
       ref={ref}
