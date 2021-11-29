@@ -1,4 +1,4 @@
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 
 export interface RestoreAccountProps {
   onBack: () => Promise<void>
@@ -13,7 +13,7 @@ export function RestoreAccount({ onBack, onNext }: RestoreAccountProps) {
         This wizard will help you restore an existing account via your
         passphrase.
       </p>
-      <AsyncButton autoFocus id="submit" label="Start" onClick={onNext} />
+      <Button autoFocus id="submit" label="Start" onClick={onNext} />
     </div>
   )
 }

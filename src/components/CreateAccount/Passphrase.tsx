@@ -39,7 +39,7 @@ export function Passphrase({
 }: PassphaseProps) {
   const firstEditable = Array.isArray(editable) ? Math.min(...editable) : 0
 
-  const { fieldProps, formProps, isSubmitting, isValid } = useForm({
+  const { fieldProps, submitForm, isSubmitting, isValid } = useForm({
     fields: FIELD_NAMES.reduce((result, name) => {
       result[name] = {
         pattern: PASSPHRASE_REGEX,
@@ -68,7 +68,7 @@ export function Passphrase({
   })
 
   return (
-    <Form {...formProps}>
+    <Form onSubmit={submitForm}>
       <InputGroup group="words">
         {FIELD_NAMES.map((name, index) => {
           const props = fieldProps[name]

@@ -1,7 +1,8 @@
-import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
+import { Button } from "components/Primitives/Button"
+import { Link } from "components/Primitives/Link"
 import { Network, useNetworkContext } from "context/NetworkContext"
 import { useAccountInfo } from "hooks/api/useAccountInfo"
 import { useContact } from "hooks/storage/useContact"
@@ -46,13 +47,16 @@ export function ViewAccount({ address }: ViewAccountProps) {
               <>
                 {" "}
                 or by using the faucet at{" "}
-                <Link href="https://bank.testnet.algorand.network" />
+                <Link href="https://bank.testnet.algorand.network">
+                  https://bank.testnet.algorand.network
+                </Link>
               </>
             )}
             .
-            <button onClick={() => toClipboard(address)}>
-              Copy to clipboard
-            </button>
+            <Button
+              label="Copy to clipboard"
+              onClick={() => toClipboard(address)}
+            />
           </p>
         )}
       </PageError>

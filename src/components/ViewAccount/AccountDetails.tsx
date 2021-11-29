@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { toast } from "react-toastify"
 
-import { Link } from "components/Link"
+import { Link } from "components/Primitives/Link"
 import { AssetList } from "components/Widgets/AssetList"
 import { useNetworkContext } from "context/NetworkContext"
 import { useTransaction } from "hooks/api/useTransaction"

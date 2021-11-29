@@ -1,5 +1,5 @@
-import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
+import { Link } from "components/Primitives/Link"
 import { AccountList } from "components/Widgets/AccountList"
 import { Route } from "lib/utils/navigation"
 

@@ -1,7 +1,7 @@
 import styled from "@emotion/styled"
 import { useCallback } from "react"
 
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 import { Card } from "components/Primitives/Card"
 import { useContact } from "hooks/storage/useContact"
 import { ContactData } from "lib/storage/contacts"
@@ -62,7 +62,7 @@ export function ContactListItem({ address, data }: ContactListItemProps) {
           </span>
         </Title>
         {!data.auth && (
-          <AsyncButton
+          <Button
             label="Delete"
             onClick={removeContact}
             title="Delete this contact"
@@ -82,7 +82,7 @@ export function ContactListItem({ address, data }: ContactListItemProps) {
       </ContainerRow>
       <ContainerRow>
         <Title>{address}</Title>
-        <AsyncButton
+        <Button
           label="Copy"
           onClick={() => toClipboard(address)}
           title="Copy address to clipboard"

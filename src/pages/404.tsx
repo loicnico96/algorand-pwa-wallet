@@ -1,5 +1,5 @@
-import { Link } from "components/Link"
 import { PageError } from "components/PageError"
+import { Link } from "components/Primitives/Link"
 import { Route } from "lib/utils/navigation"
 
 export default function NotFoundPage() {

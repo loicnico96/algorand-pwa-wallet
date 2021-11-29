@@ -2,7 +2,7 @@ import styled from "@emotion/styled"
 import { ReactNode } from "react"
 
 import { PageContent } from "./PageContent"
-import { Spinner } from "./Spinner"
+import { Spinner } from "./Primitives/Spinner"
 
 export interface PageLoaderProps {
   children?: ReactNode

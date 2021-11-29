@@ -1,4 +1,4 @@
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 import { toClipboard } from "lib/utils/clipboard"
 
 export interface ConfirmAccountProps {
@@ -21,11 +21,8 @@ export function ConfirmAccount({
         to this address:
       </p>
       <p>{address}</p>
-      <AsyncButton
-        label="Copy to clipboard"
-        onClick={() => toClipboard(address)}
-      />
-      <AsyncButton autoFocus id="submit" label="Confirm" onClick={onNext} />
+      <Button label="Copy to clipboard" onClick={() => toClipboard(address)} />
+      <Button autoFocus id="submit" label="Confirm" onClick={onNext} />
     </div>
   )
 }

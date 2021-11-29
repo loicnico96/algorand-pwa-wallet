@@ -1,6 +1,6 @@
 import { SendForm } from "components/Form/SendForm"
-import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
+import { Link } from "components/Primitives/Link"
 import { Route } from "lib/utils/navigation"
 
 export default function SendPage() {

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled"
 
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 import { Card } from "components/Primitives/Card"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -56,7 +56,7 @@ export function AccountListItem({ address, data }: AccountListItemProps) {
     <Card href={accountUrl} title={data.name ?? address}>
       <ContainerRow>
         <Title>{data.name ? `${data.name} (${address})` : address}</Title>
-        <AsyncButton
+        <Button
           label="Copy"
           onClick={() => toClipboard(address)}
           title="Copy address to clipboard"

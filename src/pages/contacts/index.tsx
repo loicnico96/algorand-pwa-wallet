@@ -1,6 +1,6 @@
-import { AsyncButton } from "components/AsyncButton"
-import { Link } from "components/Link"
 import { PageContent } from "components/PageContent"
+import { Button } from "components/Primitives/Button"
+import { Link } from "components/Primitives/Link"
 import { ContactList } from "components/Widgets/ContactList"
 import { useContacts } from "hooks/storage/useContacts"
 import { Route } from "lib/utils/navigation"
@@ -25,7 +25,7 @@ export default function ContactsPage() {
       <h3>Contacts:</h3>
       <ContactList />
       <div>
-        <AsyncButton label="Add contact" onClick={onAddContact} />
+        <Button label="Add contact" onClick={onAddContact} />
       </div>
     </PageContent>
   )

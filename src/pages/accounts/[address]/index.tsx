@@ -1,9 +1,9 @@
 import algosdk from "algosdk"
 import { useRouter } from "next/router"
 
-import { Link } from "components/Link"
 import { PageError } from "components/PageError"
 import { PageLoader } from "components/PageLoader"
+import { Link } from "components/Primitives/Link"
 import { ViewAccount } from "components/ViewAccount/ViewAccount"
 import { useRouteParam } from "hooks/navigation/useRouteParam"
 import { Route, RouteParam } from "lib/utils/navigation"

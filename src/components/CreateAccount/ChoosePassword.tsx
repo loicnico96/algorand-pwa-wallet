@@ -24,7 +24,7 @@ export function ChoosePassword({
   const { updateContact } = useContact(account.addr)
   const { addPrivateKey } = useSecurityContext()
 
-  const { formProps, isSubmitting, isValid, fieldProps } = useForm({
+  const { submitForm, isSubmitting, isValid, fieldProps } = useForm({
     fields: {
       password: {
         minLength: PASSWORD_LENGTH,
@@ -50,7 +50,7 @@ export function ChoosePassword({
         Choose your secret pasword (6 digits). It will be required to confirm
         transactions.
       </p>
-      <Form {...formProps}>
+      <Form onSubmit={submitForm}>
         <div>
           <InputLabel name="password">Password</InputLabel>
         </div>

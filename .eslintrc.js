@@ -162,6 +162,7 @@ module.exports = {
     "symbol-description": ["error"],
 
     // React hooks
+    "react/prop-types": ["off"],
     "react-hooks/exhaustive-deps": ["error"],
     "react-hooks/rules-of-hooks": ["error"],
   },

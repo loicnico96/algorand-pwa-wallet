@@ -4,8 +4,6 @@ import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
 import { keys } from "lib/utils/objects"
 
-import { FormProps } from "./Form"
-
 export interface FieldOptions {
   maxLength?: number
   minLength?: number
@@ -28,10 +26,10 @@ export interface UseFormOptions<K extends string> {
 
 export interface UseFormResult<K extends string> {
   fieldProps: Record<K, FieldProps>
-  formProps: Omit<FormProps, "children">
   isSubmitting: boolean
   isValid: boolean
   resetForm: () => void
+  submitForm: () => void
 }
 
 export function useForm<K extends string>({
@@ -83,24 +81,19 @@ export function useForm<K extends string>({
     return true
   })
 
-  const [onSubmitAsync, isSubmitting] = useAsyncHandler(
-    useCallback(async () => {
-      if (isValid) {
-        await onSubmit(values)
-      }
-    }, [isValid, onSubmit, values]),
-    onError
-  )
+  const [submitForm, isSubmitting] = useAsyncHandler(async () => {
+    if (isValid) {
+      await onSubmit(values)
+    }
+  }, onError)
 
   const resetForm = useCallback(() => setValues(initialValues), [initialValues])
 
   return {
     fieldProps,
-    formProps: {
-      onSubmit: onSubmitAsync,
-    },
     isSubmitting,
     isValid,
     resetForm,
+    submitForm,
   }
 }

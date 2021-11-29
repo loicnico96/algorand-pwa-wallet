@@ -18,7 +18,7 @@ export interface ChooseNameProps {
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
   const { data: contactData, updateContact } = useContact(address)
 
-  const { formProps, isSubmitting, isValid, fieldProps } = useForm({
+  const { isSubmitting, isValid, fieldProps, submitForm } = useForm({
     fields: {
       name: {
         maxLength: NAME_MAX_LENGTH,
@@ -48,7 +48,7 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         Choose a name for your account. This information will be stored on your
         device only.
       </p>
-      <Form {...formProps}>
+      <Form onSubmit={submitForm}>
         <div>
           <InputLabel name="name">Name</InputLabel>
         </div>

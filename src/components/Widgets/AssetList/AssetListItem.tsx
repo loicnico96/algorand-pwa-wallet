@@ -1,6 +1,7 @@
 import styled from "@emotion/styled"
+import { useState } from "react"
 
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 import { Card } from "components/Primitives/Card"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrice } from "hooks/api/useAssetPrice"
@@ -29,12 +30,19 @@ export function AssetListItem({ asset, onOptOut }: AssetListItemProps) {
   const { data: assetInfo } = useAssetInfo(assetId)
   const assetPrice = useAssetPrice(assetId)
 
+  const [expanded, setExpanded] = useState(false)
+
   return (
-    <Card title={assetInfo?.params.name}>
+    <Card
+      aria-expanded={expanded}
+      onBlur={() => setExpanded(false)}
+      onFocus={() => setExpanded(true)}
+      title={expanded ? undefined : "Click to expand"}
+    >
       <ContainerRow>
         <Title>{`${assetInfo?.params.name ?? "..."} (${assetId})`}</Title>
         {onOptOut && assetInfo && (
-          <AsyncButton
+          <Button
             disabled={asset.amount !== 0 || asset["is-frozen"]}
             label="Remove"
             onClick={() => onOptOut(assetId, assetInfo)}
@@ -65,6 +73,7 @@ export function AssetListItem({ asset, onOptOut }: AssetListItemProps) {
             : "..."
         } $`}
       </ContainerRow>
+      {expanded && <>Expanded</>}
     </Card>
   )
 }

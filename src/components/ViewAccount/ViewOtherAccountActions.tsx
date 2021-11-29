@@ -1,6 +1,6 @@
 import { useCallback } from "react"
 
-import { AsyncButton } from "components/AsyncButton"
+import { Button } from "components/Primitives/Button"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo } from "lib/algo/Account"
 
@@ -39,15 +39,15 @@ export function ViewOtherAccountActions({
   if (contactData.name) {
     return (
       <div>
-        <AsyncButton onClick={onRenameContact} label="Rename contact" />
-        <AsyncButton onClick={removeContact} label="Remove contact" />
+        <Button onClick={onRenameContact} label="Rename contact" />
+        <Button onClick={removeContact} label="Remove contact" />
       </div>
     )
   }
 
   return (
     <div>
-      <AsyncButton onClick={onAddContact} label="Add contact" />
+      <Button onClick={onAddContact} label="Add contact" />
     </div>
   )
 }

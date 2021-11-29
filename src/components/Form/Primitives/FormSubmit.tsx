@@ -1,17 +1,7 @@
-import { ButtonHTMLAttributes } from "react"
+import { Button, ButtonProps } from "components/Primitives/Button"
 
-export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
+export type FormSubmitProps = Omit<ButtonProps, "type">
 
-type OmitProps = "children" | "type"
-
-export interface FormSubmitProps extends Omit<ButtonProps, OmitProps> {
-  label: string
-}
-
-export function FormSubmit({ label, ...props }: FormSubmitProps) {
-  return (
-    <button id="submit" title={label} type="submit" {...props}>
-      {label}
-    </button>
-  )
+export function FormSubmit({ id = "submit", ...props }: FormSubmitProps) {
+  return <Button {...props} id={id} type="submit" />
 }
