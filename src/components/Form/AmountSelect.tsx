@@ -10,7 +10,7 @@ export interface AmountSelectProps {
   min?: number
   max?: number
   name: string
-  onChange: (amount: number) => void
+  onChange?: (amount: number) => void
   unit?: string
   value: number
 }
@@ -40,7 +40,11 @@ export function AmountSelect({
         min={0}
         max={max !== undefined ? max / 10 ** decimals : undefined}
         name={name}
-        onBlur={e => onChange(readDecimals(e.target.value, decimals))}
+        onBlur={event => {
+          if (onChange) {
+            onChange(readDecimals(event.target.value, decimals))
+          }
+        }}
         onChange={setInputValue}
         step={1 / 10 ** decimals}
         type="number"
@@ -54,7 +58,11 @@ export function AmountSelect({
           disabled={disabled}
           name={`${name}-max`}
           id={`input-${name}-max`}
-          onClick={() => onChange(max)}
+          onClick={() => {
+            if (onChange) {
+              onChange(max)
+            }
+          }}
           title="Set maximum amount"
         >
           Max

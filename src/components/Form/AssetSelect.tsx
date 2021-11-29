@@ -12,6 +12,7 @@ export interface AssetSelectProps {
 
 export function AssetSelect({
   assetIds,
+  name,
   onChange,
   value,
   ...selectProps
@@ -20,6 +21,8 @@ export function AssetSelect({
 
   return (
     <InputSelect
+      id={`input-${name}`}
+      name={name}
       onChange={newValue => onChange(Number(newValue))}
       value={String(value)}
       {...selectProps}

@@ -2,7 +2,12 @@ import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo } from "lib/algo/Account"
 import { useMemo } from "react"
 
-export function useAccountAssetIds(account: AccountInfo | null): number[] {
+export function useAccountAssetIds(
+  account: AccountInfo | null,
+  options: {
+    nonZeroOnly?: boolean
+  } = {}
+): number[] {
   const { config } = useNetworkContext()
 
   return useMemo(() => {
@@ -10,7 +15,9 @@ export function useAccountAssetIds(account: AccountInfo | null): number[] {
 
     if (account?.assets) {
       for (const asset of account.assets) {
-        assetIds.push(asset["asset-id"])
+        if (asset.amount > 0 || !options.nonZeroOnly) {
+          assetIds.push(asset["asset-id"])
+        }
       }
     }
 
