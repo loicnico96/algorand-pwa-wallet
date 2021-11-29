@@ -11,9 +11,13 @@ export enum RouteParam {
   ADDRESS = "address",
   ADDRESS_FROM = "from",
   ADDRESS_TO = "to",
-  AMOUNT = "amt",
-  ASSET_ID = "aid",
+  AMOUNT = "amount",
+  ASSET_ID = "asset",
+  ASSET_ID_IN = "in",
+  ASSET_ID_OUT = "out",
+  MODE = "mode",
   NOTE = "note",
+  SLIPPAGE = "slippage",
   STEP = "step",
 }
 

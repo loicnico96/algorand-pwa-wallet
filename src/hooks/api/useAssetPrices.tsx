@@ -33,7 +33,7 @@ export interface TinymanAssetPrices {
 }
 
 export interface AssetData {
-  decimals?: number
+  decimals: number
   price: number
 }
 
@@ -51,24 +51,24 @@ export function useAssetPrices(): UseQueryResult<AssetPrices> {
       for (const assetId in assets) {
         const { pools, price } = assets[assetId]
 
-        let assetData: AssetData = { price }
-        for (const pool of pools) {
-          if (pool.asset_1.id === assetId) {
-            assetData = { decimals: pool.asset_1.decimals, price }
-            break
-          }
-
-          if (pool.asset_2.id === assetId) {
-            assetData = { decimals: pool.asset_2.decimals, price }
-            break
-          }
+        prices[Number(assetId)] = {
+          decimals: 0,
+          ...prices[Number(assetId)],
+          price,
         }
 
-        // Tinyman prices API uses 0 for Algo
-        if (Number(assetId) === 0) {
-          prices[config.native_asset.index] = assetData
-        } else {
-          prices[Number(assetId)] = assetData
+        for (const pool of pools) {
+          prices[Number(pool.asset_1.id)] = {
+            price: 0,
+            ...prices[Number(pool.asset_1.id)],
+            decimals: pool.asset_1.decimals,
+          }
+
+          prices[Number(pool.asset_2.id)] = {
+            price: 0,
+            ...prices[Number(pool.asset_2.id)],
+            decimals: pool.asset_2.decimals,
+          }
         }
       }
 

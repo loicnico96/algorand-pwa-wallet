@@ -16,7 +16,7 @@
     "native_asset": {
       "created-at-round": 0,
       "deleted": false,
-      "index": -1,
+      "index": 0,
       "params": {
         "creator": "",
         "decimals": 6,
@@ -75,7 +75,7 @@
     "native_asset": {
       "created-at-round": 0,
       "deleted": false,
-      "index": -1,
+      "index": 0,
       "params": {
         "creator": "",
         "decimals": 6,

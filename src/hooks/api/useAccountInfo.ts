@@ -1,3 +1,4 @@
+import algosdk from "algosdk"
 import { useNetworkContext } from "context/NetworkContext"
 import { AccountInfo, AccountStatus, SignatureType } from "lib/algo/Account"
 import { toError } from "lib/utils/error"
@@ -8,9 +9,11 @@ export function useAccountInfo(
 ): UseQueryResult<AccountInfo> {
   const { indexer } = useNetworkContext()
 
+  const isValidAddress = address !== null && algosdk.isValidAddress(address)
+
   return useQuery(
-    address ? `api/accounts/${address}` : null,
-    address
+    isValidAddress ? `api/accounts/${address}` : null,
+    isValidAddress
       ? async () => {
           try {
             const { account } = await indexer.lookupAccountByID(address).do()

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import { Button } from "components/Primitives/Button"
 import { printDecimals, readDecimals } from "lib/utils/int"
 
 import { InputBase } from "./Primitives/InputBase"
@@ -35,38 +36,30 @@ export function AmountSelect({
   return (
     <div>
       <InputBase
+        {...inputProps}
         autoSelect
         disabled={disabled}
         min={0}
         max={max !== undefined ? max / 10 ** decimals : undefined}
         name={name}
-        onBlur={event => {
-          if (onChange) {
-            onChange(readDecimals(event.target.value, decimals))
-          }
-        }}
+        onBlur={
+          onChange
+            ? event => onChange(readDecimals(event.target.value, decimals))
+            : undefined
+        }
         onChange={setInputValue}
         step={1 / 10 ** decimals}
         type="number"
         value={inputValue}
-        {...inputProps}
       />
       {!!unit && <span>{unit}</span>}
-      {max !== undefined && (
-        <button
-          aria-label="Max"
+      {onChange !== undefined && max !== undefined && (
+        <Button
+          label="Max"
           disabled={disabled}
-          name={`${name}-max`}
-          id={`input-${name}-max`}
-          onClick={() => {
-            if (onChange) {
-              onChange(max)
-            }
-          }}
+          onClick={() => onChange(max)}
           title="Set maximum amount"
-        >
-          Max
-        </button>
+        />
       )}
     </div>
   )

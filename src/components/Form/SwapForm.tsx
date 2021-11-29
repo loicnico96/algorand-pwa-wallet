@@ -142,6 +142,7 @@ export function SwapForm() {
     isValid &&
     isValidAddress &&
     isAbleToPayFee &&
+    amount > 0 &&
     inAssetId !== outAssetId &&
     inAsset !== null &&
     outAsset !== null &&
@@ -360,48 +361,48 @@ export function SwapForm() {
               </>
             )}
           </InputGroup>
-          <InputGroup group="advanced">
-            <GroupLabel group="advanced">Advanced</GroupLabel>
-            <div>
-              <InputLabel name="mode">Swap Mode</InputLabel>
-              <InputText {...fieldProps.mode} disabled />
-            </div>
-            <div>
-              <InputLabel name="slippage">Slippage Tolerance</InputLabel>
-              <AmountSelect
-                {...fieldProps.slippage}
-                decimals={1}
-                disabled={!isValidAddress}
-                max={10}
-                onChange={value => fieldProps.slippage.onChange(String(value))}
-                unit="%"
-                value={parseInt(fieldProps.slippage.value, 10)}
-              />
-            </div>
-            <div>
-              <InputLabel name="feeAlgo">Transaction Fee</InputLabel>
-              <AmountSelect
-                decimals={algoDecimals}
-                disabled
-                name="feeTxn"
-                unit={config.native_asset.params["unit-name"]}
-                value={algoFee}
-              />
-            </div>
-            <div>
-              <InputLabel name="feeSwap">
-                Swap Fee ({SWAP_FEE * 100}%)
-              </InputLabel>
-              <AmountSelect
-                decimals={inAsset?.params.decimals ?? algoDecimals}
-                disabled
-                name="feeSwap"
-                unit={inAsset?.params["unit-name"]}
-                value={inAmount * SWAP_FEE}
-              />
-            </div>
-          </InputGroup>
         </>
+      )}
+      {isAbleToSubmit && (
+        <InputGroup group="advanced">
+          <GroupLabel group="advanced">Advanced</GroupLabel>
+          <div>
+            <InputLabel name="mode">Swap Mode</InputLabel>
+            <InputText {...fieldProps.mode} disabled />
+          </div>
+          <div>
+            <InputLabel name="slippage">Slippage Tolerance</InputLabel>
+            <AmountSelect
+              {...fieldProps.slippage}
+              decimals={1}
+              disabled={!isValidAddress}
+              max={10}
+              onChange={value => fieldProps.slippage.onChange(String(value))}
+              unit="%"
+              value={parseInt(fieldProps.slippage.value, 10)}
+            />
+          </div>
+          <div>
+            <InputLabel name="feeAlgo">Transaction Fee</InputLabel>
+            <AmountSelect
+              decimals={algoDecimals}
+              disabled
+              name="feeTxn"
+              unit={config.native_asset.params["unit-name"]}
+              value={algoFee}
+            />
+          </div>
+          <div>
+            <InputLabel name="feeSwap">Swap Fee ({SWAP_FEE * 100}%)</InputLabel>
+            <AmountSelect
+              decimals={inAsset?.params.decimals ?? algoDecimals}
+              disabled
+              name="feeSwap"
+              unit={inAsset?.params["unit-name"]}
+              value={inAmount * SWAP_FEE}
+            />
+          </div>
+        </InputGroup>
       )}
       <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
     </Form>
