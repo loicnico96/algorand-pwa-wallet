@@ -1,5 +1,6 @@
 import algosdk from "algosdk"
 
+import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -29,6 +30,7 @@ export enum SwapMode {
 export const ADDRESS_LENGTH = 58
 export const ADDRESS_REGEX = new RegExp(`^[A-Z2-7]{${ADDRESS_LENGTH}}$`)
 export const UINT_REGEX = /[0-9]+/
+export const SWAP_FEE = 0.003
 
 export function SwapForm() {
   const { config } = useNetworkContext()
@@ -44,7 +46,7 @@ export function SwapForm() {
         pattern: ADDRESS_REGEX,
         required: true,
       },
-      inAmount: {
+      amount: {
         pattern: UINT_REGEX,
         required: true,
       },
@@ -54,10 +56,6 @@ export function SwapForm() {
       },
       mode: {
         pattern: /^fi|fo$/,
-        required: true,
-      },
-      outAmount: {
-        pattern: UINT_REGEX,
         required: true,
       },
       outAsset: {
@@ -71,10 +69,9 @@ export function SwapForm() {
     },
     initialValues: {
       address: "",
-      inAmount: String(0),
+      amount: String(0),
       inAsset: String(algoId),
       mode: SwapMode.FIXED_INPUT,
-      outAmount: String(0),
       outAsset: String(algoId),
       slippage: String(3),
     },
@@ -99,19 +96,56 @@ export function SwapForm() {
   const inBalance = useAccountBalance(accountInfo, inAssetId)
   const outBalance = useAccountBalance(accountInfo, outAssetId)
 
+  const algoBalance = useAccountBalance(accountInfo, algoId)
   const algoMinBalance = useAccountMinBalance(accountInfo)
   const algoFee = config.params.MinTxnFee * 4
 
   const inPrice = prices?.[inAssetId]
   const outPrice = prices?.[outAssetId]
 
-  const inAvailable =
-    inAssetId === algoId
-      ? Math.max(inBalance - algoMinBalance - algoFee, 0)
-      : inBalance
+  const algoAvailable = Math.max(algoBalance - algoMinBalance - algoFee, 0)
 
-  const outAvailable =
-    inPrice && outPrice ? inAvailable / (outPrice.price / inPrice.price) : 0
+  const swapMode = fieldProps.mode.value as SwapMode
+
+  const amount = parseInt(fieldProps.amount.value, 10)
+
+  const inAmount =
+    swapMode === SwapMode.FIXED_OUTPUT
+      ? outPrice?.decimals !== undefined && inPrice?.decimals !== undefined
+        ? amount *
+          (outPrice.price / inPrice.price) *
+          (10 ** (outPrice.decimals - inPrice.decimals) / (1 - SWAP_FEE))
+        : 0
+      : amount
+
+  const outAmount =
+    swapMode === SwapMode.FIXED_OUTPUT
+      ? amount
+      : outPrice?.decimals !== undefined && inPrice?.decimals !== undefined
+      ? amount *
+        (inPrice.price / outPrice.price) *
+        (10 ** (inPrice.decimals - outPrice.decimals) * (1 - SWAP_FEE))
+      : 0
+
+  const inAmountMax = inAssetId === algoId ? algoAvailable : inBalance
+
+  const outAmountMax =
+    outPrice?.decimals !== undefined && inPrice?.decimals !== undefined
+      ? inAmountMax *
+        (inPrice.price / outPrice.price) *
+        (10 ** (inPrice.decimals - outPrice.decimals) * (1 - SWAP_FEE))
+      : 0
+
+  const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
+
+  const isAbleToSubmit =
+    isValid &&
+    isValidAddress &&
+    isAbleToPayFee &&
+    inAssetId !== outAssetId &&
+    inAsset !== null &&
+    outAsset !== null &&
+    accountInfo !== null
 
   return (
     <Form onSubmit={submitForm}>
@@ -125,8 +159,20 @@ export function SwapForm() {
           name="address"
           onlyOwnAccounts
         />
+        {!fieldProps.address.value && (
+          <div style={{ color: "red" }}>Please select an account.</div>
+        )}
+        {!!fieldProps.address.value && !isValidAddress && (
+          <div style={{ color: "red" }}>Invalid address.</div>
+        )}
+        {!!accountInfo && !isAbleToPayFee && (
+          <div style={{ color: "red" }}>
+            Not enough {config.native_asset.params.name}s to cover transaction
+            fee.
+          </div>
+        )}
       </InputGroup>
-      {isValidAddress && (
+      {isValidAddress && isAbleToPayFee && (
         <>
           <InputGroup group="in">
             <GroupLabel group="in">Exchange</GroupLabel>
@@ -136,7 +182,12 @@ export function SwapForm() {
                 {...fieldProps.inAsset}
                 assetIds={assetIds}
                 disabled={!isValidAddress}
-                onChange={value => fieldProps.inAsset.onChange(String(value))}
+                onChange={value => {
+                  fieldProps.inAsset.onChange(String(value))
+                  if (fieldProps.mode.value === SwapMode.FIXED_INPUT) {
+                    fieldProps.amount.onChange(String(0))
+                  }
+                }}
                 value={parseInt(fieldProps.inAsset.value, 10)}
               />
             </div>
@@ -145,15 +196,16 @@ export function SwapForm() {
                 <div>
                   <InputLabel name="inAmount">Amount</InputLabel>
                   <AmountSelect
-                    {...fieldProps.inAmount}
+                    {...fieldProps.amount}
                     decimals={inAsset.params.decimals}
                     disabled={!isValidAddress || !inAsset}
-                    max={inAvailable}
-                    onChange={value =>
-                      fieldProps.inAmount.onChange(String(value))
-                    }
+                    max={inAmountMax}
+                    onChange={value => {
+                      fieldProps.amount.onChange(String(value))
+                      fieldProps.mode.onChange(SwapMode.FIXED_INPUT)
+                    }}
                     unit={inAsset.params["unit-name"]}
-                    value={parseInt(fieldProps.inAmount.value, 10)}
+                    value={inAmount}
                   />
                 </div>
                 <div>
@@ -163,7 +215,7 @@ export function SwapForm() {
                     disabled
                     name="inPrice"
                     unit="$"
-                    value={inPrice?.price ?? 0}
+                    value={(inPrice?.price ?? 0) * 10 ** 2}
                   />
                 </div>
                 <div>
@@ -175,8 +227,7 @@ export function SwapForm() {
                     unit="$"
                     value={
                       inPrice?.decimals
-                        ? (parseInt(fieldProps.inAmount.value, 10) /
-                            10 ** inPrice.decimals) *
+                        ? (inAmount / 10 ** (inPrice.decimals - 2)) *
                           inPrice.price
                         : 0
                     }
@@ -196,17 +247,30 @@ export function SwapForm() {
                   <div>
                     <InputLabel name="inAvailable">Available</InputLabel>
                     <AmountSelect
-                      decimals={inAsset.params.decimals}
+                      decimals={algoDecimals}
                       disabled
                       name="inAvailable"
-                      unit={inAsset.params["unit-name"]}
-                      value={inAvailable}
+                      unit={config.native_asset.params["unit-name"]}
+                      value={algoAvailable}
                     />
                   </div>
                 )}
               </>
             )}
           </InputGroup>
+          <Button
+            disabled={inAssetId === outAssetId}
+            label="Swap assets"
+            onClick={() => {
+              fieldProps.inAsset.onChange(String(outAssetId))
+              fieldProps.outAsset.onChange(String(inAssetId))
+              fieldProps.mode.onChange(
+                swapMode === SwapMode.FIXED_INPUT
+                  ? SwapMode.FIXED_OUTPUT
+                  : SwapMode.FIXED_INPUT
+              )
+            }}
+          />
           <InputGroup group="out">
             <GroupLabel group="out">For</GroupLabel>
             <div>
@@ -215,24 +279,35 @@ export function SwapForm() {
                 {...fieldProps.outAsset}
                 assetIds={assetIds}
                 disabled={!isValidAddress}
-                onChange={value => fieldProps.outAsset.onChange(String(value))}
+                onChange={value => {
+                  fieldProps.outAsset.onChange(String(value))
+                  if (fieldProps.mode.value === SwapMode.FIXED_OUTPUT) {
+                    fieldProps.amount.onChange(String(0))
+                  }
+                }}
                 value={parseInt(fieldProps.outAsset.value, 10)}
               />
             </div>
-            {!!outAsset && (
+            {outAssetId === inAssetId && (
+              <div style={{ color: "red" }}>
+                Please select a different asset.
+              </div>
+            )}
+            {!!outAsset && outAssetId !== inAssetId && (
               <>
                 <div>
                   <InputLabel name="outAmount">Amount</InputLabel>
                   <AmountSelect
-                    {...fieldProps.outAmount}
+                    {...fieldProps.amount}
                     disabled={!isValidAddress || !outAsset}
                     decimals={outAsset.params.decimals}
-                    max={outAvailable}
-                    onChange={value =>
-                      fieldProps.outAmount.onChange(String(value))
-                    }
+                    max={outAmountMax}
+                    onChange={value => {
+                      fieldProps.amount.onChange(String(value))
+                      fieldProps.mode.onChange(SwapMode.FIXED_OUTPUT)
+                    }}
                     unit={outAsset.params["unit-name"]}
-                    value={parseInt(fieldProps.outAmount.value, 10)}
+                    value={outAmount}
                   />
                 </div>
                 <div>
@@ -242,7 +317,7 @@ export function SwapForm() {
                     disabled
                     name="outPrice"
                     unit="$"
-                    value={outPrice?.price ?? 0}
+                    value={(outPrice?.price ?? 0) * 10 ** 2}
                   />
                 </div>
                 <div>
@@ -254,8 +329,7 @@ export function SwapForm() {
                     unit="$"
                     value={
                       outPrice?.decimals
-                        ? (parseInt(fieldProps.outAmount.value, 10) /
-                            10 ** outPrice.decimals) *
+                        ? (outAmount / 10 ** (outPrice.decimals - 2)) *
                           outPrice.price
                         : 0
                     }
@@ -271,6 +345,18 @@ export function SwapForm() {
                     value={outBalance}
                   />
                 </div>
+                {outAssetId === algoId && (
+                  <div>
+                    <InputLabel name="outAvailable">Available</InputLabel>
+                    <AmountSelect
+                      decimals={algoDecimals}
+                      disabled
+                      name="outAvailable"
+                      unit={config.native_asset.params["unit-name"]}
+                      value={algoAvailable}
+                    />
+                  </div>
+                )}
               </>
             )}
           </InputGroup>
@@ -303,19 +389,21 @@ export function SwapForm() {
               />
             </div>
             <div>
-              <InputLabel name="feeSwap">Swap Fee (0.3%)</InputLabel>
+              <InputLabel name="feeSwap">
+                Swap Fee ({SWAP_FEE * 100}%)
+              </InputLabel>
               <AmountSelect
                 decimals={inAsset?.params.decimals ?? algoDecimals}
                 disabled
                 name="feeSwap"
                 unit={inAsset?.params["unit-name"]}
-                value={parseInt(fieldProps.inAmount.value, 10) * 0.003}
+                value={inAmount * SWAP_FEE}
               />
             </div>
           </InputGroup>
         </>
       )}
-      <FormSubmit disabled={isSubmitting || !isValid} label="Swap" />
+      <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
     </Form>
   )
 }
