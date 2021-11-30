@@ -53,7 +53,12 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
           <InputLabel name="name">Name</InputLabel>
         </div>
         <div>
-          <InputText {...fieldProps.name} autoFocus placeholder="Name" />
+          <InputText
+            {...fieldProps.name}
+            autoComplete="username"
+            autoFocus
+            placeholder="Name"
+          />
         </div>
         <div>
           <InputLabel name="note">Note</InputLabel>

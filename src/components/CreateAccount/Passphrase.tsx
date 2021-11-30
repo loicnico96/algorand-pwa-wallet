@@ -68,7 +68,7 @@ export function Passphrase({
   })
 
   return (
-    <Form onSubmit={submitForm}>
+    <Form autoComplete="off" onSubmit={submitForm}>
       <InputGroup group="words">
         {FIELD_NAMES.map((name, index) => {
           const props = fieldProps[name]
@@ -83,14 +83,11 @@ export function Passphrase({
                 {...props}
                 allowKeys="[^ ]"
                 autoCapitalize="off"
+                autoComplete="off"
                 autoFocus={autoFocus && !disabled && index === firstEditable}
                 autoSelect={!disabled}
                 disabled={disabled}
-                onKeyPress={e => {
-                  if (e.key === " ") {
-                    e.preventDefault()
-                  }
-
+                onKeyDown={e => {
                   if (e.key === "Enter") {
                     e.preventDefault()
 

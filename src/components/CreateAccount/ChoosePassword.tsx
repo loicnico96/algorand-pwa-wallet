@@ -55,7 +55,12 @@ export function ChoosePassword({
           <InputLabel name="password">Password</InputLabel>
         </div>
         <div>
-          <InputPassword {...fieldProps.password} allowKeys="[0-9]" autoFocus />
+          <InputPassword
+            {...fieldProps.password}
+            allowKeys="[0-9]"
+            autoComplete="new-password"
+            autoFocus
+          />
         </div>
         <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
       </Form>

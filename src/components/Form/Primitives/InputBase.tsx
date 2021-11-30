@@ -2,7 +2,7 @@ import { InputHTMLAttributes } from "react"
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement>
 
-type OmitProps = "id" | "onChange" | "pattern"
+type OmitProps = "id" | "onChange" | "onKeyPress" | "pattern"
 
 export interface InputBaseProps extends Omit<InputProps, OmitProps> {
   allowKeys?: string | RegExp
@@ -22,7 +22,7 @@ export function InputBase({
   onBlur,
   onChange,
   onFocus,
-  onKeyPress,
+  onKeyDown,
   pattern,
   required,
   ...props
@@ -57,13 +57,13 @@ export function InputBase({
           onFocus(e)
         }
       }}
-      onKeyPress={e => {
+      onKeyDown={e => {
         if (allowKeys && e.key !== "Enter" && !e.key.match(allowKeys)) {
           e.preventDefault()
         }
 
-        if (onKeyPress) {
-          onKeyPress(e)
+        if (onKeyDown) {
+          onKeyDown(e)
         }
       }}
       pattern={pattern instanceof RegExp ? pattern.source : pattern}

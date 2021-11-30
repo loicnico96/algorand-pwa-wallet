@@ -1,19 +1,17 @@
-import { ReactNode } from "react"
+import { FormHTMLAttributes } from "react"
 
-export interface FormProps {
-  children: ReactNode
+export interface FormProps extends FormHTMLAttributes<HTMLFormElement> {
   onSubmit: () => void
 }
 
-export function Form({ children, onSubmit }: FormProps) {
+export function Form({ onSubmit, ...props }: FormProps) {
   return (
     <form
-      onSubmit={e => {
-        e.preventDefault()
+      {...props}
+      onSubmit={event => {
+        event.preventDefault()
         onSubmit()
       }}
-    >
-      {children}
-    </form>
+    />
   )
 }
