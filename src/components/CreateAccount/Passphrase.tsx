@@ -2,10 +2,10 @@ import styled from "@emotion/styled"
 
 import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
-import { InputBase } from "components/Form/Primitives/InputBase"
 import { InputGroup } from "components/Form/Primitives/InputGroup"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
-import { FieldOptions, useForm } from "components/Form/Primitives/useForm"
+import { InputText } from "components/Form/Primitives/InputText"
+import { FieldOptionsText, useForm } from "components/Form/Primitives/useForm"
 import { fill } from "lib/utils/arrays"
 import { handleGenericError } from "lib/utils/error"
 
@@ -48,7 +48,7 @@ export function Passphrase({
       }
 
       return result
-    }, {} as Record<string, FieldOptions>),
+    }, {} as Record<string, FieldOptionsText>),
     initialValues: FIELD_NAMES.reduce((result, name, index) => {
       result[name] = initialValues[index]
 
@@ -80,15 +80,18 @@ export function Passphrase({
           return (
             <div key={name} title={`Word ${index + 1}`}>
               <WordInputLabel name={name}>{index + 1}</WordInputLabel>
-              <InputBase
+              <InputText
                 {...props}
-                allowKeys="[^ ]"
                 autoCapitalize="off"
                 autoComplete="off"
                 autoFocus={autoFocus && !disabled && index === firstEditable}
                 autoSelect={!disabled}
                 disabled={disabled}
                 onKeyDown={e => {
+                  if (e.key === " ") {
+                    e.preventDefault()
+                  }
+
                   if (e.key === "Enter") {
                     e.preventDefault()
 

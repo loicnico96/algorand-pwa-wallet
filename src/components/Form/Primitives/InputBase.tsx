@@ -1,54 +1,38 @@
-import { InputHTMLAttributes } from "react"
+import { FocusEvent, InputHTMLAttributes, KeyboardEvent } from "react"
+
+import { Overwrite } from "lib/utils/objects"
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement>
 
-type OmitProps = "id" | "onChange" | "onKeyPress" | "pattern"
-
-export interface InputBaseProps extends Omit<InputProps, OmitProps> {
-  allowKeys?: string | RegExp
+export interface InputBaseProps {
+  autoFocus?: boolean
   autoSelect?: boolean
-  onChange?: (value: string) => void
+  disabled?: boolean
   label?: string
-  pattern?: string | RegExp
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void
+  onKeyUp?: (event: KeyboardEvent<HTMLInputElement>) => void
   name: string
+  required?: boolean
 }
 
 export function InputBase({
-  allowKeys,
-  autoSelect,
-  disabled,
+  autoSelect = false,
+  disabled = false,
   label,
-  name,
-  onBlur,
-  onChange,
   onFocus,
-  onKeyDown,
-  pattern,
-  required,
-  type = "text",
-  ...props
-}: InputBaseProps) {
+  ...inputProps
+}: Overwrite<InputProps, InputBaseProps>) {
+  const { name, onChange, required } = inputProps
+
   return (
     <input
+      {...inputProps}
       aria-label={label}
       aria-required={required ? "true" : undefined}
-      disabled={disabled ?? !onChange}
+      disabled={disabled || !onChange}
       id={`input-${name}`}
-      name={name}
-      onBlur={e => {
-        if (onChange) {
-          onChange(e.currentTarget.value.trim())
-        }
-
-        if (onBlur) {
-          onBlur(e)
-        }
-      }}
-      onChange={e => {
-        if (onChange) {
-          onChange(e.currentTarget.value)
-        }
-      }}
       onFocus={e => {
         if (autoSelect) {
           e.currentTarget.select()
@@ -58,19 +42,6 @@ export function InputBase({
           onFocus(e)
         }
       }}
-      onKeyDown={e => {
-        if (allowKeys && e.key !== "Enter" && !e.key.match(allowKeys)) {
-          e.preventDefault()
-        }
-
-        if (onKeyDown) {
-          onKeyDown(e)
-        }
-      }}
-      pattern={pattern instanceof RegExp ? pattern.source : pattern}
-      required={required}
-      type={type}
-      {...props}
     />
   )
 }

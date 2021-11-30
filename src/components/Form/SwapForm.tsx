@@ -17,9 +17,9 @@ import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
 import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
-import { InputBase } from "./Primitives/InputBase"
 import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
+import { InputText } from "./Primitives/InputText"
 import { useForm } from "./Primitives/useForm"
 
 export enum SwapMode {
@@ -77,11 +77,11 @@ export function SwapForm() {
       },
       initialValues: {
         address: "",
-        amount: String(0),
-        inAsset: String(algoId),
+        amount: 0,
+        inAsset: algoId,
         mode: SwapMode.FIXED_INPUT,
-        outAsset: String(algoId),
-        slippage: String(3),
+        outAsset: algoId,
+        slippage: 3,
       },
       onSubmit: async () => {
         defaultLogger.warn("Not implemented", values)
@@ -90,8 +90,8 @@ export function SwapForm() {
 
   const isValidAddress = algosdk.isValidAddress(values.address)
 
-  const inAssetId = parseInt(values.inAsset, 10)
-  const outAssetId = parseInt(values.outAsset, 10)
+  const inAssetId = values.inAsset
+  const outAssetId = values.outAsset
 
   const { data: contacts } = useContacts()
   const { data: accountInfo } = useAccountInfo(values.address)
@@ -116,7 +116,7 @@ export function SwapForm() {
 
   const swapMode = values.mode as SwapMode
 
-  const amount = Number.parseInt(values.amount, 10)
+  const { amount } = values
 
   const pools = inPrice?.pools ?? {}
   const poolInfo = pools[outAssetId]
@@ -149,13 +149,16 @@ export function SwapForm() {
 
   const inAmountMax = inAssetId === algoId ? algoAvailable : inBalance
 
-  const maxSlippage = Number.parseInt(values.slippage, 10) / 1000
+  const maxSlippage = values.slippage / 1000
 
   const outAmountMax =
     inReserves && outReserves
-      ? ((outReserves * inAmountMax) / (inReserves + inAmountMax)) *
-        (1 - SWAP_FEE) *
-        (1 - maxSlippage)
+      ? Math.min(
+          outReserves,
+          ((outReserves * inAmountMax) / (inReserves + inAmountMax)) *
+            (1 - SWAP_FEE) *
+            (1 - maxSlippage)
+        )
       : 0
 
   const currentRate =
@@ -178,6 +181,9 @@ export function SwapForm() {
     isAbleToPayFee &&
     isAbleToSend &&
     amount > 0 &&
+    inReserves !== undefined &&
+    outReserves !== undefined &&
+    outAmount <= outReserves &&
     inAssetId !== outAssetId &&
     inAsset !== null &&
     outAsset !== null &&
@@ -222,12 +228,12 @@ export function SwapForm() {
                 }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("inAsset", String(value))
+                  setValue("inAsset", value)
                   if (values.mode === SwapMode.FIXED_INPUT) {
-                    setValue("amount", String(0))
+                    setValue("amount", 0)
                   }
                 }}
-                value={parseInt(values.inAsset, 10)}
+                value={values.inAsset}
               />
             </div>
             {inAmountMax === 0 && (
@@ -245,7 +251,7 @@ export function SwapForm() {
                     disabled={!isValidAddress || !inAsset}
                     max={inAmountMax}
                     onChange={value => {
-                      setValue("amount", String(value))
+                      setValue("amount", value)
                       setValue("mode", SwapMode.FIXED_INPUT)
                     }}
                     unit={inAsset.params["unit-name"]}
@@ -308,8 +314,8 @@ export function SwapForm() {
             disabled={inAssetId === outAssetId}
             label="Swap assets"
             onClick={() => {
-              setValue("inAsset", String(outAssetId))
-              setValue("outAsset", String(inAssetId))
+              setValue("inAsset", outAssetId)
+              setValue("outAsset", inAssetId)
               setValue(
                 "mode",
                 swapMode === SwapMode.FIXED_INPUT
@@ -337,12 +343,12 @@ export function SwapForm() {
                   }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("outAsset", String(value))
+                  setValue("outAsset", value)
                   if (values.mode === SwapMode.FIXED_OUTPUT) {
-                    setValue("amount", String(0))
+                    setValue("amount", 0)
                   }
                 }}
-                value={parseInt(values.outAsset, 10)}
+                value={values.outAsset}
               />
             </div>
             {outAssetId === inAssetId && (
@@ -360,7 +366,7 @@ export function SwapForm() {
                     decimals={outAsset.params.decimals}
                     max={outAmountMax}
                     onChange={value => {
-                      setValue("amount", String(value))
+                      setValue("amount", value)
                       setValue("mode", SwapMode.FIXED_OUTPUT)
                     }}
                     unit={outAsset.params["unit-name"]}
@@ -430,7 +436,7 @@ export function SwapForm() {
             <GroupLabel group="advanced">Advanced</GroupLabel>
             <div>
               <InputLabel name="mode">Swap Mode</InputLabel>
-              <InputBase {...fieldProps.mode} disabled />
+              <InputText {...fieldProps.mode} disabled />
             </div>
             <div>
               <InputLabel name="slippage">Slippage Tolerance</InputLabel>
@@ -438,9 +444,7 @@ export function SwapForm() {
                 {...fieldProps.slippage}
                 decimals={1}
                 disabled={!isValidAddress}
-                onChange={value => setValue("slippage", String(value))}
                 unit="%"
-                value={parseInt(values.slippage, 10)}
               />
             </div>
             <div>

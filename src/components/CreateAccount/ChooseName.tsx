@@ -1,7 +1,7 @@
 import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
-import { InputBase } from "components/Form/Primitives/InputBase"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
+import { InputText } from "components/Form/Primitives/InputText"
 import { InputTextArea } from "components/Form/Primitives/InputTextArea"
 import { useForm } from "components/Form/Primitives/useForm"
 import { useContact } from "hooks/storage/useContact"
@@ -55,7 +55,7 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
           <InputLabel name="name">Name</InputLabel>
         </div>
         <div>
-          <InputBase
+          <InputText
             {...fieldProps.name}
             autoComplete="username"
             autoFocus

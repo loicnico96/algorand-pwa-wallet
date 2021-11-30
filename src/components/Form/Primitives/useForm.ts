@@ -23,28 +23,40 @@ export interface FieldOptionsText extends FieldOptionsBase {
 
 export type FieldOptions = FieldOptionsNumber | FieldOptionsText
 
-export type FieldProps = FieldOptions & {
-  onChange: (value: string) => void
+export type FieldValue<T extends FieldOptions> = {
+  number: number
+  password: string
+  text: string
+}[T["type"]]
+
+export type FieldValues<T extends Record<string, FieldOptions>> = {
+  [K in Key<T>]: FieldValue<T[K]>
+}
+
+export type FieldProps<T extends FieldOptions> = T & {
+  onChange: (value: FieldValue<T>) => void
   name: string
-  value: string
+  value: FieldValue<T>
 }
 
 export interface UseFormOptions<T extends Record<string, FieldOptions>> {
   fields: T
-  initialValues: Record<Key<T>, string>
+  initialValues: FieldValues<T>
   onError?: (error: Error) => void
-  onSubmit: (values: Record<Key<T>, string>) => Promise<void>
+  onSubmit: (values: FieldValues<T>) => Promise<void>
 }
 
 export interface UseFormResult<T extends Record<string, FieldOptions>> {
-  fieldProps: Record<Key<T>, FieldProps>
+  fieldProps: {
+    [K in Key<T>]: FieldProps<T[K]>
+  }
   isSubmitting: boolean
   isValid: boolean
   resetForm: () => void
-  setValue: (name: Key<T>, value: string) => void
-  setValues: (values: Record<Key<T>, string>) => void
+  setValue: <K extends Key<T>>(name: K, value: FieldValue<T[K]>) => void
+  setValues: (values: FieldValues<T>) => void
   submitForm: () => void
-  values: Record<Key<T>, string>
+  values: FieldValues<T>
 }
 
 export function useForm<T extends Record<string, FieldOptions>>({
@@ -55,52 +67,61 @@ export function useForm<T extends Record<string, FieldOptions>>({
 }: UseFormOptions<T>): UseFormResult<T> {
   const [values, setValues] = useState(initialValues)
 
-  const setValue = useCallback((name: Key<T>, value: string) => {
-    setValues(currentValues => ({
-      ...currentValues,
-      [name]: value,
-    }))
-  }, [])
+  const setValue = useCallback(
+    <K extends Key<T>>(name: K, value: FieldValue<T[K]>) => {
+      setValues(currentValues => ({
+        ...currentValues,
+        [name]: value,
+      }))
+    },
+    []
+  )
 
   const fieldProps = keys(fields).reduce((result, name) => {
     result[name] = {
-      ...(fields[name] as FieldOptions),
+      ...fields[name],
       onChange: value => setValue(name, value),
       value: values[name],
       name,
     }
 
     return result
-  }, {} as Record<Key<T>, FieldProps>)
+  }, {} as UseFormResult<T>["fieldProps"])
 
   const isValid = keys(fields).every(name => {
     const field = fields[name]
     const value = values[name]
 
-    if (value.length === 0) {
+    if (value === "") {
       return !field.required
     }
 
     if (field.type === "number") {
-      const numberValue = Number.parseInt(value, 10)
+      if (typeof value !== "number") {
+        return false
+      }
 
-      if (!Number.isInteger(numberValue)) {
+      if (!Number.isInteger(value)) {
         return false
       }
 
       if (field.max !== undefined) {
-        if (numberValue > field.max) {
+        if (value > field.max) {
           return false
         }
       }
 
       if (field.min !== undefined) {
-        if (numberValue < field.min) {
+        if (value < field.min) {
           return false
         }
       }
 
       return true
+    }
+
+    if (typeof value !== "string") {
+      return false
     }
 
     if (field.maxLength !== undefined) {
