@@ -50,11 +50,11 @@ export function InputNumber({
           onBlur(e)
         }
       }}
-      onChange={e => {
-        setInputValue(e.currentTarget.value)
+      onChange={newInputValue => {
+        setInputValue(newInputValue)
 
         if (onChange) {
-          const newValue = readDecimals(e.currentTarget.value, decimals)
+          const newValue = readDecimals(newInputValue, decimals)
           if (value !== newValue) {
             onChange(newValue)
           }

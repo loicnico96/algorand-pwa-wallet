@@ -18,15 +18,14 @@ export interface FieldOptionsText extends FieldOptionsBase {
   maxLength?: number
   minLength?: number
   pattern?: RegExp
-  type: "password" | "text"
+  type: "string"
 }
 
 export type FieldOptions = FieldOptionsNumber | FieldOptionsText
 
 export type FieldValue<T extends FieldOptions> = {
   number: number
-  password: string
-  text: string
+  string: string
 }[T["type"]]
 
 export type FieldValues<T extends Record<string, FieldOptions>> = {

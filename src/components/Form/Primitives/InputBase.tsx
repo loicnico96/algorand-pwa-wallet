@@ -8,23 +8,28 @@ export interface InputBaseProps {
   autoFocus?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  id?: string
   label?: string
   onBlur?: (event: FocusEvent<HTMLInputElement>) => void
+  onChange?: (value: string) => void
   onFocus?: (event: FocusEvent<HTMLInputElement>) => void
   onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void
   onKeyUp?: (event: KeyboardEvent<HTMLInputElement>) => void
   name: string
   required?: boolean
+  value: string
 }
 
 export function InputBase({
   autoSelect = false,
   disabled = false,
+  id,
   label,
+  onChange,
   onFocus,
   ...inputProps
 }: Overwrite<InputProps, InputBaseProps>) {
-  const { name, onChange, required } = inputProps
+  const { name, required } = inputProps
 
   return (
     <input
@@ -32,7 +37,12 @@ export function InputBase({
       aria-label={label}
       aria-required={required ? "true" : undefined}
       disabled={disabled || !onChange}
-      id={`input-${name}`}
+      id={id ?? `input-${name}`}
+      onChange={e => {
+        if (onChange) {
+          onChange(e.currentTarget.value)
+        }
+      }}
       onFocus={e => {
         if (autoSelect) {
           e.currentTarget.select()

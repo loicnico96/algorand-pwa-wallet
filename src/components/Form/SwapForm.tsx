@@ -46,7 +46,7 @@ export function SwapForm() {
           minLength: ADDRESS_LENGTH,
           pattern: ADDRESS_REGEX,
           required: true,
-          type: "text",
+          type: "string",
         },
         amount: {
           min: 0,
@@ -61,7 +61,7 @@ export function SwapForm() {
         mode: {
           pattern: /^fi|fo$/,
           required: true,
-          type: "text",
+          type: "string",
         },
         outAsset: {
           min: 0,

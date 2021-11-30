@@ -1,43 +1,40 @@
 import { TextareaHTMLAttributes } from "react"
 
+import { Overwrite } from "lib/utils/objects"
+
 export type TextAreaProps = TextareaHTMLAttributes<HTMLTextAreaElement>
 
-type OmitProps = "children" | "id" | "onChange" | "value"
-
-export interface InputTextAreaProps extends Omit<TextAreaProps, OmitProps> {
-  onChange: (value: string) => void
-  label?: string
-  name: string
-  value: string
-}
+export type InputTextAreaProps = Overwrite<
+  TextAreaProps,
+  {
+    label?: string
+    name: string
+    onChange?: (value: string) => void
+    value: string
+  }
+>
 
 export function InputTextArea({
+  disabled = false,
+  id,
   label,
-  name,
-  onBlur,
   onChange,
-  required,
-  value,
-  ...props
+  ...inputProps
 }: InputTextAreaProps) {
+  const { name, required } = inputProps
+
   return (
     <textarea
+      {...inputProps}
       aria-label={label}
       aria-required={required ? "true" : undefined}
-      id={`input-${name}`}
-      name={name}
-      onBlur={e => {
-        onChange(e.currentTarget.value.trim())
-
-        if (onBlur) {
-          onBlur(e)
+      disabled={disabled || !onChange}
+      id={id ?? `input-${name}`}
+      onChange={e => {
+        if (onChange) {
+          onChange(e.currentTarget.value)
         }
       }}
-      onChange={e => {
-        onChange(e.currentTarget.value)
-      }}
-      required={required}
-      {...props}
     />
   )
 }

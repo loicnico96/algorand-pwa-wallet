@@ -1,39 +1,41 @@
 import { ReactNode, SelectHTMLAttributes } from "react"
 
+import { Overwrite } from "lib/utils/objects"
+
 export type SelectProps = SelectHTMLAttributes<HTMLSelectElement>
 
-type OmitProps = "defaultValue" | "onChange"
-
-export interface InputSelectProps extends Omit<SelectProps, OmitProps> {
-  children: ReactNode
-  label?: string
-  name: string
-  onChange?: (value: string) => void
-  value: string
-}
+export type InputSelectProps = Overwrite<
+  SelectProps,
+  {
+    children: ReactNode
+    label?: string
+    name: string
+    onChange?: (value: string) => void
+    value: string
+  }
+>
 
 export function InputSelect({
-  disabled,
+  disabled = false,
+  id,
   label,
-  name,
   onChange,
-  required,
-  ...props
+  ...selectProps
 }: InputSelectProps) {
+  const { name, required } = selectProps
+
   return (
     <select
+      {...selectProps}
       aria-label={label}
       aria-required={required ? "true" : undefined}
-      disabled={disabled ?? !onChange}
-      id={`input-${name}`}
-      name={name}
+      disabled={disabled || !onChange}
+      id={id ?? `input-${name}`}
       onChange={e => {
         if (onChange) {
           onChange(e.currentTarget.value)
         }
       }}
-      required={required}
-      {...props}
     />
   )
 }
