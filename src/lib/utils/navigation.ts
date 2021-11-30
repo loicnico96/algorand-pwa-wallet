@@ -5,6 +5,7 @@ export enum Route {
   ACCOUNTS_VIEW = `/accounts/[address]`,
   CONTACTS = "/contacts",
   SEND = "/send",
+  SWAP = "/swap",
 }
 
 export enum RouteParam {

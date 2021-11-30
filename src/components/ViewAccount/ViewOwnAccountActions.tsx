@@ -46,12 +46,17 @@ export function ViewOwnAccountActions({ account }: ViewOwnAccountActionsProps) {
     [RouteParam.ADDRESS_FROM]: address,
   })
 
+  const swapUrl = withSearchParams(Route.SWAP, {
+    [RouteParam.ADDRESS]: address,
+  })
+
   return (
     <div>
       <Button onClick={onChangePassword} label="Change password" />
       <Button onClick={onShowPassphrase} label="Show passphrase" />
       <Button onClick={onRemoveAccount} label="Remove account" />
       <Button href={sendUrl} label="Send" />
+      <Button href={swapUrl} label="Swap" />
     </div>
   )
 }

@@ -1,15 +1,12 @@
-import { useAssetInfo } from "hooks/api/useAssetInfo"
-
 export interface AssetSelectOptionProps {
   assetId: number
+  name?: string
 }
 
-export function AssetSelectOption({ assetId }: AssetSelectOptionProps) {
-  const { data: asset } = useAssetInfo(assetId)
-
+export function AssetSelectOption({ assetId, name }: AssetSelectOptionProps) {
   return (
     <option
-      label={asset?.params.name ?? String(assetId)}
+      label={name ? `${name} (${assetId})` : String(assetId)}
       value={String(assetId)}
     />
   )

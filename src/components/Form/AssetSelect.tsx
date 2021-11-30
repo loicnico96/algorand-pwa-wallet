@@ -1,8 +1,13 @@
+import { useEffect } from "react"
+
 import { AssetSelectOption } from "./AssetSelectOption"
 import { InputSelect } from "./Primitives/InputSelect"
 
 export interface AssetSelectProps {
-  assetIds: number[]
+  assets: {
+    assetId: number
+    name?: string
+  }[]
   disabled?: boolean
   label?: string
   name: string
@@ -11,13 +16,19 @@ export interface AssetSelectProps {
 }
 
 export function AssetSelect({
-  assetIds,
+  assets,
   name,
   onChange,
   value,
   ...selectProps
 }: AssetSelectProps) {
-  assetIds.sort((a, b) => a - b)
+  assets.sort((a, b) => a.assetId - b.assetId)
+
+  useEffect(() => {
+    if (!assets.some(asset => asset.assetId === value)) {
+      onChange(assets[0].assetId)
+    }
+  }, [assets, value, onChange])
 
   return (
     <InputSelect
@@ -27,8 +38,12 @@ export function AssetSelect({
       value={String(value)}
       {...selectProps}
     >
-      {assetIds.map(assetId => (
-        <AssetSelectOption assetId={assetId} key={assetId} />
+      {assets.map(asset => (
+        <AssetSelectOption
+          assetId={asset.assetId}
+          key={asset.assetId}
+          name={asset.name}
+        />
       ))}
     </InputSelect>
   )

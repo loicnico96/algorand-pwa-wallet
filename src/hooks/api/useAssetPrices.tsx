@@ -32,8 +32,22 @@ export interface TinymanAssetPrices {
   }
 }
 
-export interface AssetData {
-  decimals: number
+export interface PoolInfo {
+  address: string
+  asset1: {
+    id: number
+    reserves: number
+  }
+  asset2: {
+    id: number
+    reserves: number
+  }
+}
+
+export interface AssetData extends TinymanAssetData {
+  pools: {
+    [otherAssetId in number]?: PoolInfo
+  }
   price: number
 }
 
@@ -51,23 +65,41 @@ export function useAssetPrices(): UseQueryResult<AssetPrices> {
       for (const assetId in assets) {
         const { pools, price } = assets[assetId]
 
-        prices[Number(assetId)] = {
-          decimals: 0,
-          ...prices[Number(assetId)],
-          price,
-        }
-
         for (const pool of pools) {
+          const poolInfo: PoolInfo = {
+            address: pool.address,
+            asset1: {
+              id: Number(pool.asset_1.id),
+              reserves: Number(pool.current_asset_1_reserves),
+            },
+            asset2: {
+              id: Number(pool.asset_2.id),
+              reserves: Number(pool.current_asset_2_reserves),
+            },
+          }
+
           prices[Number(pool.asset_1.id)] = {
-            price: 0,
-            ...prices[Number(pool.asset_1.id)],
-            decimals: pool.asset_1.decimals,
+            ...pool.asset_1,
+            pools: {
+              ...prices[Number(pool.asset_1.id)]?.pools,
+              [Number(pool.asset_2.id)]: poolInfo,
+            },
+            price:
+              pool.asset_1.id === assetId && price > 0
+                ? price
+                : prices[Number(pool.asset_1.id)]?.price ?? 0,
           }
 
           prices[Number(pool.asset_2.id)] = {
-            price: 0,
-            ...prices[Number(pool.asset_2.id)],
-            decimals: pool.asset_2.decimals,
+            ...pool.asset_2,
+            pools: {
+              ...prices[Number(pool.asset_2.id)]?.pools,
+              [Number(pool.asset_1.id)]: poolInfo,
+            },
+            price:
+              pool.asset_2.id === assetId && price > 0
+                ? price
+                : prices[Number(pool.asset_2.id)]?.price ?? 0,
           }
         }
       }

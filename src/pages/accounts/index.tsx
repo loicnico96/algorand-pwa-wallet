@@ -18,6 +18,12 @@ export default function HomePage() {
       <div>
         <Link href={Route.CONTACTS}>Contacts</Link>
       </div>
+      <div>
+        <Link href={Route.SEND}>Send</Link>
+      </div>
+      <div>
+        <Link href={Route.SWAP}>Swap</Link>
+      </div>
     </PageContent>
   )
 }

@@ -8,6 +8,7 @@ import { useAccountBalance } from "hooks/api/useAccountBalance"
 import { useAccountInfo } from "hooks/api/useAccountInfo"
 import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
+import { useAssetPrices } from "hooks/api/useAssetPrices"
 import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useIntParamState } from "hooks/navigation/useIntParamState"
@@ -52,6 +53,7 @@ export function SendForm() {
   const isValidReceiver = algosdk.isValidAddress(toParam)
   const receiverAddress = isValidReceiver ? toParam : null
 
+  const { data: prices } = useAssetPrices()
   const { data: sender, error: senderError } = useAccountInfo(senderAddress)
 
   const { data: receiver, error: receiverError } =
@@ -237,7 +239,10 @@ export function SendForm() {
         <GroupLabel group="asset">Asset</GroupLabel>
         <InputLabel name="asset">Asset</InputLabel>
         <AssetSelect
-          assetIds={senderAssetIds}
+          assets={senderAssetIds.map(senderAssetId => ({
+            assetId: senderAssetId,
+            name: prices?.[senderAssetId]?.name,
+          }))}
           disabled={sender === null || !isSenderFunded}
           name="asset"
           onChange={value => Promise.all([setAssetId(value), setAmount(0)])}
