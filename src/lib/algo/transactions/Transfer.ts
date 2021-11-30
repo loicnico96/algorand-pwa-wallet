@@ -29,7 +29,7 @@ export function createTransferTransaction(
       amount,
       closeRemainderTo: close ? receiver : undefined,
       from: sender,
-      note: note?.trim() ? new TextEncoder().encode(note.trim()) : undefined,
+      note: note ? new TextEncoder().encode(note) : undefined,
       suggestedParams: params,
       to: receiver,
     })
@@ -40,7 +40,7 @@ export function createTransferTransaction(
     assetIndex: assetId,
     closeRemainderTo: close ? receiver : undefined,
     from: sender,
-    note: note?.trim() ? new TextEncoder().encode(note.trim()) : undefined,
+    note: note ? new TextEncoder().encode(note) : undefined,
     suggestedParams: params,
     to: receiver,
   })
