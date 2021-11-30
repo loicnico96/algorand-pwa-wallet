@@ -38,60 +38,63 @@ export function SwapForm() {
   const algoId = config.native_asset.index
   const algoDecimals = config.native_asset.params.decimals
 
-  const { fieldProps, isSubmitting, isValid, submitForm } = useForm({
-    fields: {
-      address: {
-        maxLength: ADDRESS_LENGTH,
-        minLength: ADDRESS_LENGTH,
-        pattern: ADDRESS_REGEX,
-        required: true,
+  const { fieldProps, isSubmitting, isValid, setValue, submitForm, values } =
+    useForm({
+      fields: {
+        address: {
+          maxLength: ADDRESS_LENGTH,
+          minLength: ADDRESS_LENGTH,
+          pattern: ADDRESS_REGEX,
+          required: true,
+          type: "text",
+        },
+        amount: {
+          min: 0,
+          required: true,
+          type: "number",
+        },
+        inAsset: {
+          min: 0,
+          required: true,
+          type: "number",
+        },
+        mode: {
+          pattern: /^fi|fo$/,
+          required: true,
+          type: "text",
+        },
+        outAsset: {
+          min: 0,
+          required: true,
+          type: "number",
+        },
+        slippage: {
+          max: 10,
+          min: 0,
+          required: true,
+          type: "number",
+        },
       },
-      amount: {
-        min: 0,
-        required: true,
-        type: "number",
+      initialValues: {
+        address: "",
+        amount: String(0),
+        inAsset: String(algoId),
+        mode: SwapMode.FIXED_INPUT,
+        outAsset: String(algoId),
+        slippage: String(3),
       },
-      inAsset: {
-        min: 0,
-        required: true,
-        type: "number",
+      onSubmit: async () => {
+        defaultLogger.warn("Not implemented", values)
       },
-      mode: {
-        pattern: /^fi|fo$/,
-        required: true,
-      },
-      outAsset: {
-        min: 0,
-        required: true,
-        type: "number",
-      },
-      slippage: {
-        max: 10,
-        min: 0,
-        required: true,
-        type: "number",
-      },
-    },
-    initialValues: {
-      address: "",
-      amount: String(0),
-      inAsset: String(algoId),
-      mode: SwapMode.FIXED_INPUT,
-      outAsset: String(algoId),
-      slippage: String(3),
-    },
-    onSubmit: async values => {
-      defaultLogger.warn("Not implemented", values)
-    },
-  })
+    })
 
-  const isValidAddress = algosdk.isValidAddress(fieldProps.address.value)
+  const isValidAddress = algosdk.isValidAddress(values.address)
 
-  const inAssetId = parseInt(fieldProps.inAsset.value, 10)
-  const outAssetId = parseInt(fieldProps.outAsset.value, 10)
+  const inAssetId = parseInt(values.inAsset, 10)
+  const outAssetId = parseInt(values.outAsset, 10)
 
   const { data: contacts } = useContacts()
-  const { data: accountInfo } = useAccountInfo(fieldProps.address.value)
+  const { data: accountInfo } = useAccountInfo(values.address)
   const { data: inAsset } = useAssetInfo(inAssetId)
   const { data: outAsset } = useAssetInfo(outAssetId)
 
@@ -111,9 +114,9 @@ export function SwapForm() {
 
   const algoAvailable = Math.max(algoBalance - algoMinBalance - algoFee, 0)
 
-  const swapMode = fieldProps.mode.value as SwapMode
+  const swapMode = values.mode as SwapMode
 
-  const amount = Number.parseInt(fieldProps.amount.value, 10)
+  const amount = Number.parseInt(values.amount, 10)
 
   const pools = inPrice?.pools ?? {}
   const poolInfo = pools[outAssetId]
@@ -146,7 +149,7 @@ export function SwapForm() {
 
   const inAmountMax = inAssetId === algoId ? algoAvailable : inBalance
 
-  const maxSlippage = Number.parseInt(fieldProps.slippage.value, 10) / 1000
+  const maxSlippage = Number.parseInt(values.slippage, 10) / 1000
 
   const outAmountMax =
     inReserves && outReserves
@@ -192,10 +195,10 @@ export function SwapForm() {
           name="address"
           onlyOwnAccounts
         />
-        {!fieldProps.address.value && (
+        {!values.address && (
           <div style={{ color: "red" }}>Please select an account.</div>
         )}
-        {!!fieldProps.address.value && !isValidAddress && (
+        {!!values.address && !isValidAddress && (
           <div style={{ color: "red" }}>Invalid address.</div>
         )}
         {!!accountInfo && !isAbleToPayFee && (
@@ -219,12 +222,12 @@ export function SwapForm() {
                 }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  fieldProps.inAsset.onChange(String(value))
-                  if (fieldProps.mode.value === SwapMode.FIXED_INPUT) {
-                    fieldProps.amount.onChange(String(0))
+                  setValue("inAsset", String(value))
+                  if (values.mode === SwapMode.FIXED_INPUT) {
+                    setValue("amount", String(0))
                   }
                 }}
-                value={parseInt(fieldProps.inAsset.value, 10)}
+                value={parseInt(values.inAsset, 10)}
               />
             </div>
             {inAmountMax === 0 && (
@@ -242,8 +245,8 @@ export function SwapForm() {
                     disabled={!isValidAddress || !inAsset}
                     max={inAmountMax}
                     onChange={value => {
-                      fieldProps.amount.onChange(String(value))
-                      fieldProps.mode.onChange(SwapMode.FIXED_INPUT)
+                      setValue("amount", String(value))
+                      setValue("mode", SwapMode.FIXED_INPUT)
                     }}
                     unit={inAsset.params["unit-name"]}
                     value={inAmount}
@@ -305,9 +308,10 @@ export function SwapForm() {
             disabled={inAssetId === outAssetId}
             label="Swap assets"
             onClick={() => {
-              fieldProps.inAsset.onChange(String(outAssetId))
-              fieldProps.outAsset.onChange(String(inAssetId))
-              fieldProps.mode.onChange(
+              setValue("inAsset", String(outAssetId))
+              setValue("outAsset", String(inAssetId))
+              setValue(
+                "mode",
                 swapMode === SwapMode.FIXED_INPUT
                   ? SwapMode.FIXED_OUTPUT
                   : SwapMode.FIXED_INPUT
@@ -333,12 +337,12 @@ export function SwapForm() {
                   }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  fieldProps.outAsset.onChange(String(value))
-                  if (fieldProps.mode.value === SwapMode.FIXED_OUTPUT) {
-                    fieldProps.amount.onChange(String(0))
+                  setValue("outAsset", String(value))
+                  if (values.mode === SwapMode.FIXED_OUTPUT) {
+                    setValue("amount", String(0))
                   }
                 }}
-                value={parseInt(fieldProps.outAsset.value, 10)}
+                value={parseInt(values.outAsset, 10)}
               />
             </div>
             {outAssetId === inAssetId && (
@@ -356,8 +360,8 @@ export function SwapForm() {
                     decimals={outAsset.params.decimals}
                     max={outAmountMax}
                     onChange={value => {
-                      fieldProps.amount.onChange(String(value))
-                      fieldProps.mode.onChange(SwapMode.FIXED_OUTPUT)
+                      setValue("amount", String(value))
+                      setValue("mode", SwapMode.FIXED_OUTPUT)
                     }}
                     unit={outAsset.params["unit-name"]}
                     value={outAmount}
@@ -434,9 +438,9 @@ export function SwapForm() {
                 {...fieldProps.slippage}
                 decimals={1}
                 disabled={!isValidAddress}
-                onChange={value => fieldProps.slippage.onChange(String(value))}
+                onChange={value => setValue("slippage", String(value))}
                 unit="%"
-                value={parseInt(fieldProps.slippage.value, 10)}
+                value={parseInt(values.slippage, 10)}
               />
             </div>
             <div>

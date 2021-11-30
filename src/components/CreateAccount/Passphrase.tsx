@@ -44,6 +44,7 @@ export function Passphrase({
       result[name] = {
         pattern: PASSPHRASE_REGEX,
         required: true,
+        type: "text",
       }
 
       return result

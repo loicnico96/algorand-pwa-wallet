@@ -2,7 +2,7 @@ import { useCallback, useState } from "react"
 
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
-import { keys } from "lib/utils/objects"
+import { Key, keys } from "lib/utils/objects"
 
 export interface FieldOptionsBase {
   required?: boolean
@@ -18,7 +18,7 @@ export interface FieldOptionsText extends FieldOptionsBase {
   maxLength?: number
   minLength?: number
   pattern?: RegExp
-  type?: "password" | "text"
+  type: "password" | "text"
 }
 
 export type FieldOptions = FieldOptionsNumber | FieldOptionsText
@@ -26,52 +26,59 @@ export type FieldOptions = FieldOptionsNumber | FieldOptionsText
 export type FieldProps = FieldOptions & {
   onChange: (value: string) => void
   name: string
-  step?: number
   value: string
 }
 
-export interface UseFormOptions<K extends string> {
-  fields: Record<K, FieldOptions>
-  initialValues: Record<K, string>
+export interface UseFormOptions<T extends Record<string, FieldOptions>> {
+  fields: T
+  initialValues: Record<Key<T>, string>
   onError?: (error: Error) => void
-  onSubmit: (values: Record<K, string>) => Promise<void>
+  onSubmit: (values: Record<Key<T>, string>) => Promise<void>
 }
 
-export interface UseFormResult<K extends string> {
-  fieldProps: Record<K, FieldProps>
+export interface UseFormResult<T extends Record<string, FieldOptions>> {
+  fieldProps: Record<Key<T>, FieldProps>
   isSubmitting: boolean
   isValid: boolean
   resetForm: () => void
+  setValue: (name: Key<T>, value: string) => void
+  setValues: (values: Record<Key<T>, string>) => void
   submitForm: () => void
+  values: Record<Key<T>, string>
 }
 
-export function useForm<K extends string>({
+export function useForm<T extends Record<string, FieldOptions>>({
   fields,
   initialValues,
   onError = handleGenericError,
   onSubmit,
-}: UseFormOptions<K>): UseFormResult<K> {
+}: UseFormOptions<T>): UseFormResult<T> {
   const [values, setValues] = useState(initialValues)
+
+  const setValue = useCallback((name: Key<T>, value: string) => {
+    setValues(currentValues => ({
+      ...currentValues,
+      [name]: value,
+    }))
+  }, [])
 
   const fieldProps = keys(fields).reduce((result, name) => {
     result[name] = {
       ...(fields[name] as FieldOptions),
-      onChange: value => setValues(current => ({ ...current, [name]: value })),
+      onChange: value => setValue(name, value),
       value: values[name],
       name,
     }
 
     return result
-  }, {} as Record<K, FieldProps>)
+  }, {} as Record<Key<T>, FieldProps>)
 
   const isValid = keys(fields).every(name => {
     const field = fields[name]
     const value = values[name]
 
-    if (field.required) {
-      if (value.length === 0) {
-        return false
-      }
+    if (value.length === 0) {
+      return !field.required
     }
 
     if (field.type === "number") {
@@ -130,6 +137,9 @@ export function useForm<K extends string>({
     isSubmitting,
     isValid,
     resetForm,
+    setValue,
+    setValues,
     submitForm,
+    values,
   }
 }

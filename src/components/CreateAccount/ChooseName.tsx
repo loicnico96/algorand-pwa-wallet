@@ -23,9 +23,11 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
       name: {
         maxLength: NAME_MAX_LENGTH,
         required: true,
+        type: "text",
       },
       note: {
         maxLength: NOTE_MAX_LENGTH,
+        type: "text",
       },
     },
     initialValues: {
