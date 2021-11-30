@@ -2,8 +2,8 @@ import { useMemo } from "react"
 
 import { ContactData, getContactName } from "lib/storage/contacts"
 
+import { InputBase } from "./Primitives/InputBase"
 import { InputSelect } from "./Primitives/InputSelect"
-import { InputText } from "./Primitives/InputText"
 
 export interface AccountSelectProps {
   accounts: Record<string, ContactData>
@@ -71,7 +71,7 @@ export function AccountSelect({
         {allowManual && <option label="Other..." value={OPTION_VALUE_MANUAL} />}
       </InputSelect>
       {allowManual && selectedOption === OPTION_VALUE_MANUAL && (
-        <InputText
+        <InputBase
           label={label}
           name={`${name}-manual`}
           onChange={onChange}

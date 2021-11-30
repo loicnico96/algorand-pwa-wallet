@@ -4,16 +4,29 @@ import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { handleGenericError } from "lib/utils/error"
 import { keys } from "lib/utils/objects"
 
-export interface FieldOptions {
-  maxLength?: number
-  minLength?: number
-  pattern?: RegExp
+export interface FieldOptionsBase {
   required?: boolean
 }
 
-export interface FieldProps extends FieldOptions {
+export interface FieldOptionsNumber extends FieldOptionsBase {
+  max?: number
+  min?: number
+  type: "number"
+}
+
+export interface FieldOptionsText extends FieldOptionsBase {
+  maxLength?: number
+  minLength?: number
+  pattern?: RegExp
+  type?: "password" | "text"
+}
+
+export type FieldOptions = FieldOptionsNumber | FieldOptionsText
+
+export type FieldProps = FieldOptions & {
   onChange: (value: string) => void
   name: string
+  step?: number
   value: string
 }
 
@@ -42,11 +55,12 @@ export function useForm<K extends string>({
 
   const fieldProps = keys(fields).reduce((result, name) => {
     result[name] = {
-      ...fields[name],
+      ...(fields[name] as FieldOptions),
       onChange: value => setValues(current => ({ ...current, [name]: value })),
       value: values[name],
       name,
     }
+
     return result
   }, {} as Record<K, FieldProps>)
 
@@ -58,6 +72,28 @@ export function useForm<K extends string>({
       if (value.length === 0) {
         return false
       }
+    }
+
+    if (field.type === "number") {
+      const numberValue = Number.parseInt(value, 10)
+
+      if (!Number.isInteger(numberValue)) {
+        return false
+      }
+
+      if (field.max !== undefined) {
+        if (numberValue > field.max) {
+          return false
+        }
+      }
+
+      if (field.min !== undefined) {
+        if (numberValue < field.min) {
+          return false
+        }
+      }
+
+      return true
     }
 
     if (field.maxLength !== undefined) {

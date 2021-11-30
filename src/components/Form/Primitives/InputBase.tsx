@@ -25,6 +25,7 @@ export function InputBase({
   onKeyDown,
   pattern,
   required,
+  type = "text",
   ...props
 }: InputBaseProps) {
   return (
@@ -68,6 +69,7 @@ export function InputBase({
       }}
       pattern={pattern instanceof RegExp ? pattern.source : pattern}
       required={required}
+      type={type}
       {...props}
     />
   )

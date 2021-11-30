@@ -2,8 +2,8 @@ import algosdk from "algosdk"
 
 import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
+import { InputBase } from "components/Form/Primitives/InputBase"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
-import { InputPassword } from "components/Form/Primitives/InputPassword"
 import { useForm } from "components/Form/Primitives/useForm"
 import { useSecurityContext } from "context/SecurityContext"
 import { useContact } from "hooks/storage/useContact"
@@ -31,6 +31,7 @@ export function ChoosePassword({
         maxLength: PASSWORD_LENGTH,
         pattern: PASSWORD_REGEX,
         required: true,
+        type: "password",
       },
     },
     initialValues: {
@@ -55,10 +56,10 @@ export function ChoosePassword({
           <InputLabel name="password">Password</InputLabel>
         </div>
         <div>
-          <InputPassword
+          <InputBase
             {...fieldProps.password}
             allowKeys="[0-9]"
-            autoComplete="new-password"
+            autoComplete="off"
             autoFocus
           />
         </div>

@@ -4,8 +4,8 @@ import { PASSWORD_LENGTH, PASSWORD_REGEX } from "lib/utils/auth"
 
 import { Form } from "./Form/Primitives/Form"
 import { FormSubmit } from "./Form/Primitives/FormSubmit"
+import { InputBase } from "./Form/Primitives/InputBase"
 import { InputLabel } from "./Form/Primitives/InputLabel"
-import { InputPassword } from "./Form/Primitives/InputPassword"
 import { useForm } from "./Form/Primitives/useForm"
 import { Button } from "./Primitives/Button"
 
@@ -29,6 +29,7 @@ export function PasswordModal({
         maxLength: PASSWORD_LENGTH,
         pattern: PASSWORD_REGEX,
         required: true,
+        type: "password",
       },
     },
     initialValues: {
@@ -46,7 +47,12 @@ export function PasswordModal({
         <InputLabel name="password">
           {reason ?? "Enter your password"} (6 digits):
         </InputLabel>
-        <InputPassword {...fieldProps.password} allowKeys="[0-9]" autoFocus />
+        <InputBase
+          {...fieldProps.password}
+          allowKeys="[0-9]"
+          autoComplete="off"
+          autoFocus
+        />
         <Button onClick={onClose} label="Cancel" />
         <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
       </Form>

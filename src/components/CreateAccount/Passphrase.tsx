@@ -2,9 +2,9 @@ import styled from "@emotion/styled"
 
 import { Form } from "components/Form/Primitives/Form"
 import { FormSubmit } from "components/Form/Primitives/FormSubmit"
+import { InputBase } from "components/Form/Primitives/InputBase"
 import { InputGroup } from "components/Form/Primitives/InputGroup"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
-import { InputText } from "components/Form/Primitives/InputText"
 import { FieldOptions, useForm } from "components/Form/Primitives/useForm"
 import { fill } from "lib/utils/arrays"
 import { handleGenericError } from "lib/utils/error"
@@ -79,7 +79,7 @@ export function Passphrase({
           return (
             <div key={name} title={`Word ${index + 1}`}>
               <WordInputLabel name={name}>{index + 1}</WordInputLabel>
-              <InputText
+              <InputBase
                 {...props}
                 allowKeys="[^ ]"
                 autoCapitalize="off"

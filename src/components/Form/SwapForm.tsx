@@ -17,9 +17,9 @@ import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
 import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
+import { InputBase } from "./Primitives/InputBase"
 import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
-import { InputText } from "./Primitives/InputText"
 import { useForm } from "./Primitives/useForm"
 
 export enum SwapMode {
@@ -29,7 +29,7 @@ export enum SwapMode {
 
 export const ADDRESS_LENGTH = 58
 export const ADDRESS_REGEX = new RegExp(`^[A-Z2-7]{${ADDRESS_LENGTH}}$`)
-export const UINT_REGEX = /[0-9]+/
+export const UINT_REGEX = /^[0-9]+$/
 export const SWAP_FEE = 0.003
 
 export function SwapForm() {
@@ -47,24 +47,29 @@ export function SwapForm() {
         required: true,
       },
       amount: {
-        pattern: UINT_REGEX,
+        min: 0,
         required: true,
+        type: "number",
       },
       inAsset: {
-        pattern: UINT_REGEX,
+        min: 0,
         required: true,
+        type: "number",
       },
       mode: {
         pattern: /^fi|fo$/,
         required: true,
       },
       outAsset: {
-        pattern: UINT_REGEX,
+        min: 0,
         required: true,
+        type: "number",
       },
       slippage: {
-        pattern: UINT_REGEX,
+        max: 10,
+        min: 0,
         required: true,
+        type: "number",
       },
     },
     initialValues: {
@@ -421,7 +426,7 @@ export function SwapForm() {
             <GroupLabel group="advanced">Advanced</GroupLabel>
             <div>
               <InputLabel name="mode">Swap Mode</InputLabel>
-              <InputText {...fieldProps.mode} disabled />
+              <InputBase {...fieldProps.mode} disabled />
             </div>
             <div>
               <InputLabel name="slippage">Slippage Tolerance</InputLabel>
@@ -429,7 +434,6 @@ export function SwapForm() {
                 {...fieldProps.slippage}
                 decimals={1}
                 disabled={!isValidAddress}
-                max={10}
                 onChange={value => fieldProps.slippage.onChange(String(value))}
                 unit="%"
                 value={parseInt(fieldProps.slippage.value, 10)}

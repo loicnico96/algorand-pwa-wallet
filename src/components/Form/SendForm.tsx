@@ -28,9 +28,9 @@ import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
 import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
+import { InputBase } from "./Primitives/InputBase"
 import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
-import { InputText } from "./Primitives/InputText"
 import { InputTextArea } from "./Primitives/InputTextArea"
 
 export function SendForm() {
@@ -299,7 +299,7 @@ export function SendForm() {
         {asset !== null && (
           <div>
             <InputLabel name="balance">Balance</InputLabel>
-            <InputText
+            <InputBase
               disabled
               name="balance"
               value={`${printDecimals(assetBalance, asset.params.decimals)} ${
@@ -311,7 +311,7 @@ export function SendForm() {
         {asset !== null && (
           <div>
             <InputLabel name="available">Available</InputLabel>
-            <InputText
+            <InputBase
               disabled
               name="available"
               value={`${printDecimals(maxAmount, asset.params.decimals)} ${
@@ -323,7 +323,7 @@ export function SendForm() {
         {assetId === algoId && (
           <div>
             <InputLabel name="locked">Locked</InputLabel>
-            <InputText
+            <InputBase
               disabled
               name="locked"
               value={`${printDecimals(senderMinBalance, algoDecimals)} ${
@@ -335,7 +335,7 @@ export function SendForm() {
         {asset !== null && (
           <div>
             <InputLabel name="remaining">Remaining</InputLabel>
-            <InputText
+            <InputBase
               disabled
               name="remaining"
               value={`${printDecimals(
@@ -352,7 +352,7 @@ export function SendForm() {
         <GroupLabel group="fees">Fees</GroupLabel>
         <div>
           <InputLabel name="algo-balance">Balance</InputLabel>
-          <InputText
+          <InputBase
             disabled
             name="algo-balance"
             value={`${printDecimals(senderBalance, algoDecimals)} ${
@@ -362,7 +362,7 @@ export function SendForm() {
         </div>
         <div>
           <InputLabel name="algo-fee">Transaction fee</InputLabel>
-          <InputText
+          <InputBase
             disabled
             name="algo-fee"
             value={`${printDecimals(minFee, algoDecimals)} ${
@@ -372,7 +372,7 @@ export function SendForm() {
         </div>
         <div>
           <InputLabel name="algo-remaining">Remaining</InputLabel>
-          <InputText
+          <InputBase
             disabled
             name="algo-remaining"
             value={`${printDecimals(
