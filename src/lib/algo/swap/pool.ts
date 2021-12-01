@@ -22,7 +22,7 @@ export function getPoolInfo(
   config: NetworkConfig
 ): PoolInfo {
   const appState = getLocalAppState(account, config.tinyman.validator_app_id)
-  const liquidityAsset = account["created-assets"]?.at(0)
+  const liquidityAsset = account["created-assets"]?.[0]
 
   if (!appState || !liquidityAsset) {
     throw Error("Not a valid pool")
