@@ -9,11 +9,13 @@ import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrices } from "hooks/api/useAssetPrices"
 import { usePoolInfo } from "hooks/api/usePoolInfo"
+import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
 import {
   createTinymanSwapTransaction,
   getPoolInfo,
+  getPoolLogicSig,
   getSwapQuote,
   SwapMode,
 } from "lib/algo/transactions/TinymanSwap"
@@ -37,6 +39,7 @@ export const SWAP_FEE = 0.003
 export function SwapForm() {
   const { config, indexer } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
+  const { signTransactionGroup, waitForConfirmation } = useTransaction()
   const { data: prices } = useAssetPrices()
 
   const algoId = config.native_asset.index
@@ -107,9 +110,10 @@ export function SwapForm() {
           slippage: values.slippage / 1000,
         })
 
-        const transaction = createTinymanSwapTransaction(config, {
+        const transactionGroup = createTinymanSwapTransaction(config, {
           inAmount: quote.sellAmountMax,
           inAssetId: quote.sellAssetId,
+          liquidityAssetId: poolInfo.liquidity.id,
           mode: quote.swapMode,
           outAmount: quote.buyAmountMin,
           outAssetId: quote.buyAssetId,
@@ -118,8 +122,26 @@ export function SwapForm() {
           sender: values.address,
         })
 
-        // eslint-disable-next-line no-console
-        console.log(transaction)
+        const logicSig = getPoolLogicSig(
+          config,
+          quote.sellAssetId,
+          quote.buyAssetId
+        )
+
+        const logicSigAddress = logicSig.address()
+
+        const logicSigGroup = transactionGroup.map(tx => {
+          if (algosdk.encodeAddress(tx.from.publicKey) === logicSigAddress) {
+            const { blob } = algosdk.signLogicSigTransactionObject(tx, logicSig)
+            return blob
+          } else {
+            return tx
+          }
+        })
+
+        const txId = await signTransactionGroup(logicSigGroup)
+
+        await waitForConfirmation(txId)
       },
     })
 
