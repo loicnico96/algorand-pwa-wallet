@@ -2,7 +2,7 @@ import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
 
-export interface TransferTransactionParams {
+export interface AssetOptInTransactionParams {
   assetId: number
   params: SuggestedParams
   sender: string
@@ -10,7 +10,7 @@ export interface TransferTransactionParams {
 
 export function createAssetOptInTransaction(
   config: NetworkConfig,
-  { assetId, params, sender }: TransferTransactionParams
+  { assetId, params, sender }: AssetOptInTransactionParams
 ): algosdk.Transaction {
   if (assetId === config.native_asset.index) {
     throw Error(`Cannot opt in to ${config.native_asset.params.name}`)

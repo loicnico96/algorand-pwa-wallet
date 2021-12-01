@@ -1,6 +1,6 @@
 import algosdk, { SuggestedParams } from "algosdk"
 
-export interface TransferTransactionParams {
+export interface ApplicationCallTransactionParams {
   applicationId: number
   args?: string[]
   foreignAccounts?: string[]
@@ -18,7 +18,7 @@ export function createApplicationCallTransaction({
   foreignAssets,
   params,
   sender,
-}: TransferTransactionParams): algosdk.Transaction {
+}: ApplicationCallTransactionParams): algosdk.Transaction {
   return algosdk.makeApplicationNoOpTxnFromObject({
     accounts: foreignAccounts,
     appArgs: args?.map(arg => new TextEncoder().encode(arg)),

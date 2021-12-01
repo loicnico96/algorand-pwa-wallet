@@ -2,7 +2,7 @@ import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
 
-export interface TransferTransactionParams {
+export interface AssetOptOutTransactionParams {
   assetId: number
   params: SuggestedParams
   receiver: string
@@ -11,7 +11,7 @@ export interface TransferTransactionParams {
 
 export function createAssetOptOutTransaction(
   config: NetworkConfig,
-  { assetId, params, receiver, sender }: TransferTransactionParams
+  { assetId, params, receiver, sender }: AssetOptOutTransactionParams
 ): algosdk.Transaction {
   if (assetId === config.native_asset.index) {
     throw Error(`Cannot opt out of ${config.native_asset.params.name}`)

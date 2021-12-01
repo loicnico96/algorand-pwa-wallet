@@ -15,6 +15,8 @@ import { useContacts } from "hooks/storage/useContacts"
 import { getPoolInfo } from "lib/algo/swap/pool"
 import { getSwapQuote, SwapMode } from "lib/algo/swap/quote"
 import { createSwapTransaction } from "lib/algo/swap/transaction"
+import { createApplicationOptInTransaction } from "lib/algo/transactions/ApplicationOptIn"
+import { createApplicationOptOutTransaction } from "lib/algo/transactions/ApplicationOptOut"
 import { createLogger } from "lib/utils/logger"
 
 import { AccountSelect } from "./AccountSelect"
@@ -207,6 +209,71 @@ export function SwapForm() {
     sellAsset !== null &&
     buyAsset !== null &&
     accountInfo !== null
+
+  const onOptIn = async () => {
+    const params = await refetchParams()
+    const transaction = createApplicationOptInTransaction({
+      applicationId: config.tinyman.validator_app_id,
+      params,
+      sender: values.sender,
+    })
+
+    const logger = createLogger("Opt-in")
+
+    try {
+      logger.log("Sign", transaction)
+      const transactionId = await signTransaction(transaction)
+      logger.log(`Sent ${transactionId}`, transaction)
+      toast.info("Transaction sent.")
+
+      waitForConfirmation(transactionId).then(
+        confirmed => {
+          logger.log(`Confirmed ${transactionId}`, confirmed)
+          toast.success("Transaction confirmed.")
+        },
+        error => {
+          logger.error(error)
+          toast.error("Transaction rejected.")
+        }
+      )
+    } catch (error) {
+      logger.error(error)
+      toast.warn("Transaction aborted.")
+    }
+  }
+
+  const onOptOut = async (force?: boolean) => {
+    const params = await refetchParams()
+    const transaction = createApplicationOptOutTransaction({
+      applicationId: config.tinyman.validator_app_id,
+      force,
+      params,
+      sender: values.sender,
+    })
+
+    const logger = createLogger("Opt-out")
+
+    try {
+      logger.log("Sign", transaction)
+      const transactionId = await signTransaction(transaction)
+      logger.log(`Sent ${transactionId}`, transaction)
+      toast.info("Transaction sent.")
+
+      waitForConfirmation(transactionId).then(
+        confirmed => {
+          logger.log(`Confirmed ${transactionId}`, confirmed)
+          toast.success("Transaction confirmed.")
+        },
+        error => {
+          logger.error(error)
+          toast.error("Transaction rejected.")
+        }
+      )
+    } catch (error) {
+      logger.error(error)
+      toast.warn("Transaction aborted.")
+    }
+  }
 
   return (
     <Form onSubmit={submitForm}>
@@ -537,6 +604,25 @@ export function SwapForm() {
           </InputGroup>
         )}
       <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
+      {isValidAddress && (
+        <div>
+          <Button
+            label="Opt in"
+            onClick={onOptIn}
+            title="Opt in to Tinyman application"
+          />
+          <Button
+            label="Opt out"
+            onClick={() => onOptOut()}
+            title="Opt out of Tinyman application"
+          />
+          <Button
+            label="Opt out (force)"
+            onClick={() => onOptOut(true)}
+            title="Forcefully opt out of Tinyman application. Unredeemed assets will be lost."
+          />
+        </div>
+      )}
     </Form>
   )
 }
