@@ -4,15 +4,18 @@ import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
-import { useAccountInfo } from "hooks/api/useAccountInfo"
+import { getAccountInfo, useAccountInfo } from "hooks/api/useAccountInfo"
 import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrices } from "hooks/api/useAssetPrices"
+import { usePoolInfo } from "hooks/api/usePoolInfo"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
 import {
   createTinymanSwapTransaction,
-  TinymanSwapMode,
+  getPoolInfo,
+  getSwapQuote,
+  SwapMode,
 } from "lib/algo/transactions/TinymanSwap"
 
 import { AccountSelect } from "./AccountSelect"
@@ -32,7 +35,7 @@ export const UINT_REGEX = /^[0-9]+$/
 export const SWAP_FEE = 0.003
 
 export function SwapForm() {
-  const { config } = useNetworkContext()
+  const { config, indexer } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
   const { data: prices } = useAssetPrices()
 
@@ -80,7 +83,7 @@ export function SwapForm() {
         address: "",
         amount: 0,
         inAsset: algoId,
-        mode: TinymanSwapMode.FIXED_INPUT,
+        mode: SwapMode.FIXED_INPUT,
         outAsset: algoId,
         slippage: 3,
       },
@@ -92,38 +95,24 @@ export function SwapForm() {
           throw Error("Invalid state")
         }
 
-        const inReserves =
-          pool.asset1.id === values.inAsset
-            ? pool.asset1.reserves
-            : pool.asset2.reserves
-        const outReserves =
-          pool.asset1.id === values.outAsset
-            ? pool.asset1.reserves
-            : pool.asset2.reserves
-        const maxSlippage = values.slippage / 1000
+        const account = await getAccountInfo(indexer, pool.address)
+        const poolInfo = getPoolInfo(account, config)
+
+        const quote = getSwapQuote({
+          amount: values.amount,
+          buyAssetId: values.outAsset,
+          pool: poolInfo,
+          sellAssetId: values.inAsset,
+          swapMode: values.mode as SwapMode,
+          slippage: values.slippage / 1000,
+        })
 
         const transaction = createTinymanSwapTransaction(config, {
-          inAmount:
-            values.mode === TinymanSwapMode.FIXED_OUTPUT
-              ? Math.floor(
-                  (inReserves * values.amount) /
-                    (outReserves - values.amount) /
-                    (1 - SWAP_FEE) /
-                    (1 - maxSlippage)
-                )
-              : values.amount,
-          inAssetId: values.inAsset,
-          mode: values.mode as TinymanSwapMode,
-          outAmount:
-            values.mode === TinymanSwapMode.FIXED_OUTPUT
-              ? values.amount
-              : Math.floor(
-                  ((outReserves * values.amount) /
-                    (inReserves + values.amount)) *
-                    (1 - SWAP_FEE) *
-                    (1 - maxSlippage)
-                ),
-          outAssetId: values.outAsset,
+          inAmount: quote.sellAmountMax,
+          inAssetId: quote.sellAssetId,
+          mode: quote.swapMode,
+          outAmount: quote.buyAmountMin,
+          outAssetId: quote.buyAssetId,
           params,
           pool: pool.address,
           sender: values.address,
@@ -158,83 +147,52 @@ export function SwapForm() {
 
   const algoAvailable = Math.max(algoBalance - algoMinBalance - algoFee, 0)
 
-  const swapMode = values.mode as TinymanSwapMode
+  const swapMode = values.mode as SwapMode
 
   const { amount } = values
 
   const pools = inPrice?.pools ?? {}
-  const poolInfo = pools[outAssetId]
 
-  const inReserves = poolInfo
-    ? poolInfo.asset1.id === inAssetId
-      ? poolInfo.asset1.reserves
-      : poolInfo.asset2.reserves
-    : undefined
-
-  const outReserves = poolInfo
-    ? poolInfo.asset1.id === inAssetId
-      ? poolInfo.asset2.reserves
-      : poolInfo.asset1.reserves
-    : undefined
-
-  const inAmount =
-    swapMode === TinymanSwapMode.FIXED_OUTPUT
-      ? inReserves && outReserves
-        ? Math.floor(
-            (inReserves * amount) / (outReserves - amount) / (1 - SWAP_FEE)
-          )
-        : 0
-      : amount
-
-  const outAmount =
-    swapMode === TinymanSwapMode.FIXED_OUTPUT
-      ? amount
-      : inReserves && outReserves
-      ? Math.floor(
-          ((outReserves * amount) / (inReserves + amount)) * (1 - SWAP_FEE)
-        )
-      : 0
-
-  const inAmountMax = inAssetId === algoId ? algoAvailable : inBalance
+  const { data: poolInfo } = usePoolInfo(pools[outAssetId]?.address ?? null)
 
   const maxSlippage = values.slippage / 1000
 
-  const outAmountMax =
-    inReserves && outReserves
-      ? Math.floor(
-          Math.min(
-            outReserves,
-            ((outReserves * inAmountMax) / (inReserves + inAmountMax)) *
-              (1 - SWAP_FEE) *
-              (1 - maxSlippage)
-          )
-        )
-      : 0
+  const quote =
+    poolInfo &&
+    getSwapQuote({
+      pool: poolInfo,
+      sellAssetId: inAssetId,
+      buyAssetId: outAssetId,
+      amount,
+      slippage: maxSlippage,
+      swapMode,
+    })
 
-  const currentRate =
-    inReserves && outReserves ? inReserves / outReserves : undefined
+  const sellAmountAvailable = inAssetId === algoId ? algoAvailable : inBalance
 
-  const actualRate = (inAmount / outAmount) * (1 - SWAP_FEE)
-
-  const priceImpact = currentRate ? actualRate / currentRate - 1 : undefined
+  const maxQuote =
+    poolInfo &&
+    getSwapQuote({
+      pool: poolInfo,
+      sellAssetId: inAssetId,
+      buyAssetId: outAssetId,
+      amount: sellAmountAvailable,
+      slippage: maxSlippage,
+      swapMode: SwapMode.FIXED_INPUT,
+    })
 
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
-
-  const isAbleToSend =
-    swapMode === TinymanSwapMode.FIXED_OUTPUT
-      ? inAmount / (1 - maxSlippage) <= inAmountMax
-      : inAmount <= inAmountMax
 
   const isAbleToSubmit =
     isValid &&
     isValidAddress &&
     isAbleToPayFee &&
-    isAbleToSend &&
-    amount > 0 &&
-    inReserves !== undefined &&
-    outReserves !== undefined &&
-    outAmount <= outReserves &&
-    inAssetId !== outAssetId &&
+    quote !== null &&
+    quote.sellAmountMax > 0 &&
+    quote.sellAmountMax <= sellAmountAvailable &&
+    quote.sellAssetId !== quote.buyAssetId &&
+    quote.buyAmountMin > 0 &&
+    quote.buyAmountMin <= quote.buyReserves &&
     inAsset !== null &&
     outAsset !== null &&
     accountInfo !== null
@@ -279,39 +237,47 @@ export function SwapForm() {
                 disabled={!isValidAddress}
                 onChange={value => {
                   setValue("inAsset", value)
-                  if (values.mode === TinymanSwapMode.FIXED_INPUT) {
+                  if (values.mode === SwapMode.FIXED_INPUT) {
                     setValue("amount", 0)
                   }
                 }}
                 value={values.inAsset}
               />
             </div>
-            {inAmountMax === 0 && (
+            {sellAmountAvailable === 0 && (
               <div style={{ color: "red" }}>
                 Please select a different asset.
               </div>
             )}
-            {!!inAsset && inAmountMax > 0 && (
+            {inAsset && quote && sellAmountAvailable > 0 && (
               <>
                 <div>
                   <InputLabel name="inAmount">Amount</InputLabel>
                   <AmountSelect
                     {...fieldProps.amount}
                     decimals={inAsset.params.decimals}
-                    disabled={!isValidAddress || !inAsset}
-                    max={
-                      swapMode === TinymanSwapMode.FIXED_INPUT
-                        ? inAmountMax
-                        : undefined
-                    }
+                    max={sellAmountAvailable}
                     onChange={value => {
                       setValue("amount", value)
-                      setValue("mode", TinymanSwapMode.FIXED_INPUT)
+                      setValue("mode", SwapMode.FIXED_INPUT)
                     }}
                     unit={inAsset.params["unit-name"]}
-                    value={inAmount}
+                    value={quote.sellAmount}
+                  />
+                  <Button
+                    label="Max"
+                    onClick={() => {
+                      setValue("amount", sellAmountAvailable)
+                      setValue("mode", SwapMode.FIXED_INPUT)
+                    }}
+                    title="Set maximum amount"
                   />
                 </div>
+                {quote.sellAmountMax > sellAmountAvailable && (
+                  <div style={{ color: "red" }}>
+                    Not enough {inAsset.params["unit-name"]}.
+                  </div>
+                )}
                 {inPrice && (
                   <>
                     <div>
@@ -332,7 +298,7 @@ export function SwapForm() {
                         name="inValue"
                         unit="$"
                         value={
-                          (inAmount / 10 ** (inPrice.decimals - 2)) *
+                          (quote.sellAmount / 10 ** (inPrice.decimals - 2)) *
                           inPrice.price
                         }
                       />
@@ -372,9 +338,9 @@ export function SwapForm() {
               setValue("outAsset", inAssetId)
               setValue(
                 "mode",
-                swapMode === TinymanSwapMode.FIXED_INPUT
-                  ? TinymanSwapMode.FIXED_OUTPUT
-                  : TinymanSwapMode.FIXED_INPUT
+                swapMode === SwapMode.FIXED_INPUT
+                  ? SwapMode.FIXED_OUTPUT
+                  : SwapMode.FIXED_INPUT
               )
             }}
           />
@@ -398,7 +364,7 @@ export function SwapForm() {
                 disabled={!isValidAddress}
                 onChange={value => {
                   setValue("outAsset", value)
-                  if (values.mode === TinymanSwapMode.FIXED_OUTPUT) {
+                  if (values.mode === SwapMode.FIXED_OUTPUT) {
                     setValue("amount", 0)
                   }
                 }}
@@ -410,78 +376,76 @@ export function SwapForm() {
                 Please select a different asset.
               </div>
             )}
-            {!!outAsset && outAssetId !== inAssetId && inBalance > 0 && (
-              <>
-                <div>
-                  <InputLabel name="outAmount">Amount</InputLabel>
-                  <AmountSelect
-                    {...fieldProps.amount}
-                    disabled={!isValidAddress || !outAsset}
-                    decimals={outAsset.params.decimals}
-                    max={
-                      swapMode === TinymanSwapMode.FIXED_OUTPUT
-                        ? outAmountMax
-                        : undefined
-                    }
-                    onChange={value => {
-                      setValue("amount", value)
-                      setValue("mode", TinymanSwapMode.FIXED_OUTPUT)
-                    }}
-                    unit={outAsset.params["unit-name"]}
-                    value={outAmount}
-                  />
-                </div>
-                {outPrice && (
-                  <>
-                    <div>
-                      <InputLabel name="outPrice">Price</InputLabel>
-                      <AmountSelect
-                        decimals={2}
-                        disabled
-                        name="outPrice"
-                        unit="$"
-                        value={outPrice.price * 10 ** 2}
-                      />
-                    </div>
-                    <div>
-                      <InputLabel name="outValue">Value</InputLabel>
-                      <AmountSelect
-                        decimals={2}
-                        disabled
-                        name="outValue"
-                        unit="$"
-                        value={
-                          (outAmount / 10 ** (outPrice.decimals - 2)) *
-                          outPrice.price
-                        }
-                      />
-                    </div>
-                  </>
-                )}
-                <div>
-                  <InputLabel name="outBalance">Balance</InputLabel>
-                  <AmountSelect
-                    decimals={outAsset.params.decimals}
-                    disabled
-                    name="outBalance"
-                    unit={outAsset.params["unit-name"]}
-                    value={outBalance}
-                  />
-                </div>
-                {outAssetId === algoId && (
+            {outAsset &&
+              outAssetId !== inAssetId &&
+              quote &&
+              sellAmountAvailable > 0 && (
+                <>
                   <div>
-                    <InputLabel name="outAvailable">Available</InputLabel>
+                    <InputLabel name="outAmount">Amount</InputLabel>
                     <AmountSelect
-                      decimals={algoDecimals}
-                      disabled
-                      name="outAvailable"
-                      unit={config.native_asset.params["unit-name"]}
-                      value={algoAvailable}
+                      {...fieldProps.amount}
+                      decimals={outAsset.params.decimals}
+                      max={maxQuote?.buyAmount}
+                      onChange={value => {
+                        setValue("amount", value)
+                        setValue("mode", SwapMode.FIXED_OUTPUT)
+                      }}
+                      unit={outAsset.params["unit-name"]}
+                      value={quote.buyAmount}
                     />
                   </div>
-                )}
-              </>
-            )}
+                  {outPrice && (
+                    <>
+                      <div>
+                        <InputLabel name="outPrice">Price</InputLabel>
+                        <AmountSelect
+                          decimals={2}
+                          disabled
+                          name="outPrice"
+                          unit="$"
+                          value={outPrice.price * 10 ** 2}
+                        />
+                      </div>
+                      <div>
+                        <InputLabel name="outValue">Value</InputLabel>
+                        <AmountSelect
+                          decimals={2}
+                          disabled
+                          name="outValue"
+                          unit="$"
+                          value={
+                            (quote.buyAmount / 10 ** (outPrice.decimals - 2)) *
+                            outPrice.price
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <InputLabel name="outBalance">Balance</InputLabel>
+                    <AmountSelect
+                      decimals={outAsset.params.decimals}
+                      disabled
+                      name="outBalance"
+                      unit={outAsset.params["unit-name"]}
+                      value={outBalance}
+                    />
+                  </div>
+                  {outAssetId === algoId && (
+                    <div>
+                      <InputLabel name="outAvailable">Available</InputLabel>
+                      <AmountSelect
+                        decimals={algoDecimals}
+                        disabled
+                        name="outAvailable"
+                        unit={config.native_asset.params["unit-name"]}
+                        value={algoAvailable}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
           </InputGroup>
         </>
       )}
@@ -489,7 +453,8 @@ export function SwapForm() {
         inAsset &&
         outAsset &&
         inAssetId !== outAssetId &&
-        inAmount > 0 && (
+        quote !== null &&
+        quote.sellAmount > 0 && (
           <InputGroup group="advanced">
             <GroupLabel group="advanced">Advanced</GroupLabel>
             <div>
@@ -517,17 +482,17 @@ export function SwapForm() {
             </div>
             <div>
               <InputLabel name="feeSwap">
-                Swap Fee ({SWAP_FEE * 100}%)
+                Swap Fee ({quote.feeRate * 100}%)
               </InputLabel>
               <AmountSelect
                 decimals={inAsset.params.decimals}
                 disabled
                 name="feeSwap"
                 unit={inAsset.params["unit-name"]}
-                value={inAmount * SWAP_FEE}
+                value={quote.feeAmount}
               />
             </div>
-            {swapMode === TinymanSwapMode.FIXED_INPUT && (
+            {swapMode === SwapMode.FIXED_INPUT && (
               <div>
                 <InputLabel name="outAmountFinal">Minimum received</InputLabel>
                 <AmountSelect
@@ -535,11 +500,11 @@ export function SwapForm() {
                   disabled
                   name="outAmountFinal"
                   unit={outAsset.params["unit-name"]}
-                  value={outAmount * (1 - maxSlippage)}
+                  value={quote.buyAmountMin}
                 />
               </div>
             )}
-            {swapMode === TinymanSwapMode.FIXED_OUTPUT && (
+            {swapMode === SwapMode.FIXED_OUTPUT && (
               <div>
                 <InputLabel name="inAmountFinal">Maximum sent</InputLabel>
                 <AmountSelect
@@ -547,27 +512,20 @@ export function SwapForm() {
                   disabled
                   name="inAmountFinal"
                   unit={inAsset.params["unit-name"]}
-                  value={inAmount / (1 - maxSlippage)}
+                  value={quote.sellAmountMax}
                 />
               </div>
             )}
-            {!isAbleToSend && (
-              <div style={{ color: "red" }}>
-                Not enough {inAsset.params["unit-name"]}.
-              </div>
-            )}
-            {priceImpact !== undefined && (
-              <div>
-                <InputLabel name="impact">Price Impact</InputLabel>
-                <AmountSelect
-                  decimals={2}
-                  disabled
-                  name="impact"
-                  unit="%"
-                  value={priceImpact * 10000}
-                />
-              </div>
-            )}
+            <div>
+              <InputLabel name="impact">Price Impact</InputLabel>
+              <AmountSelect
+                decimals={2}
+                disabled
+                name="impact"
+                unit="%"
+                value={quote.priceImpact * 10000}
+              />
+            </div>
           </InputGroup>
         )}
       <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
