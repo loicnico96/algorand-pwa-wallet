@@ -6,9 +6,8 @@ import { useCallback } from "react"
 import { mutate } from "swr"
 
 export interface UseTransactionResult {
-  signTransaction(transaction: algosdk.Transaction): Promise<string>
-  signTransactionGroup(
-    transactions: (algosdk.Transaction | Uint8Array)[]
+  signTransaction(
+    ...transactions: (algosdk.Transaction | Uint8Array)[]
   ): Promise<string>
   waitForConfirmation(transactionId: string): Promise<PendingTransaction>
 }
@@ -64,18 +63,7 @@ export function useTransaction(): UseTransactionResult {
   )
 
   const signTransaction = useCallback(
-    async (transaction: algosdk.Transaction) => {
-      const address = algosdk.encodeAddress(transaction.from.publicKey)
-      const key = await getPrivateKey(address)
-      const signed = transaction.signTxn(key)
-      const sent = await api.sendRawTransaction(signed).do()
-      return sent.txId
-    },
-    [api, getPrivateKey]
-  )
-
-  const signTransactionGroup = useCallback(
-    async (transactions: (algosdk.Transaction | Uint8Array)[]) => {
+    async (...transactions: (algosdk.Transaction | Uint8Array)[]) => {
       const signedTransactions: Uint8Array[] = []
       const keys: Record<string, Uint8Array> = {}
 
@@ -104,7 +92,6 @@ export function useTransaction(): UseTransactionResult {
 
   return {
     signTransaction,
-    signTransactionGroup,
     waitForConfirmation,
   }
 }

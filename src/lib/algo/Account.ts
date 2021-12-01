@@ -91,3 +91,18 @@ export interface AccountInfo {
   "sig-type": SignatureType
   status: AccountStatus
 }
+
+export function getLocalAppState(
+  account: AccountInfo,
+  appId: number
+): AccountAppState | null {
+  return account["apps-local-state"]?.find(state => state.id === appId) ?? null
+}
+
+export function getStateBytes(state: AccountAppState, key: string): string {
+  return state["key-value"]?.find(kv => kv.key === key)?.value.bytes ?? ""
+}
+
+export function getStateUint(state: AccountAppState, key: string): number {
+  return state["key-value"]?.find(kv => kv.key === key)?.value.uint ?? 0
+}

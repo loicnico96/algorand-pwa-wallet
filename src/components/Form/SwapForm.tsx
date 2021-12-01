@@ -1,4 +1,5 @@
 import algosdk from "algosdk"
+import { toast } from "react-toastify"
 
 import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
@@ -8,17 +9,13 @@ import { getAccountInfo, useAccountInfo } from "hooks/api/useAccountInfo"
 import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrices } from "hooks/api/useAssetPrices"
-import { usePoolInfo } from "hooks/api/usePoolInfo"
 import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
-import {
-  createTinymanSwapTransaction,
-  getPoolInfo,
-  getPoolLogicSig,
-  getSwapQuote,
-  SwapMode,
-} from "lib/algo/transactions/TinymanSwap"
+import { getPoolInfo } from "lib/algo/swap/pool"
+import { getSwapQuote, SwapMode } from "lib/algo/swap/quote"
+import { createSwapTransaction } from "lib/algo/swap/transaction"
+import { createLogger } from "lib/utils/logger"
 
 import { AccountSelect } from "./AccountSelect"
 import { AmountSelect } from "./AmountSelect"
@@ -32,14 +29,12 @@ import { InputText } from "./Primitives/InputText"
 import { useForm } from "./Primitives/useForm"
 
 export const ADDRESS_LENGTH = 58
-export const ADDRESS_REGEX = new RegExp(`^[A-Z2-7]{${ADDRESS_LENGTH}}$`)
-export const UINT_REGEX = /^[0-9]+$/
-export const SWAP_FEE = 0.003
+export const ADDRESS_REGEX = /^[A-Z2-7]{58}$/
 
 export function SwapForm() {
   const { config, indexer } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
-  const { signTransactionGroup, waitForConfirmation } = useTransaction()
+  const { signTransaction, waitForConfirmation } = useTransaction()
   const { data: prices } = useAssetPrices()
 
   const algoId = config.native_asset.index
@@ -48,32 +43,27 @@ export function SwapForm() {
   const { fieldProps, isSubmitting, isValid, setValue, submitForm, values } =
     useForm({
       fields: {
-        address: {
-          maxLength: ADDRESS_LENGTH,
-          minLength: ADDRESS_LENGTH,
-          pattern: ADDRESS_REGEX,
-          required: true,
-          type: "string",
-        },
         amount: {
           min: 0,
           required: true,
           type: "number",
         },
-        inAsset: {
+        buyAssetId: {
           min: 0,
           required: true,
           type: "number",
         },
-        mode: {
-          pattern: /^fi|fo$/,
+        sellAssetId: {
+          min: 0,
+          required: true,
+          type: "number",
+        },
+        sender: {
+          maxLength: ADDRESS_LENGTH,
+          minLength: ADDRESS_LENGTH,
+          pattern: ADDRESS_REGEX,
           required: true,
           type: "string",
-        },
-        outAsset: {
-          min: 0,
-          required: true,
-          type: "number",
         },
         slippage: {
           max: 10,
@@ -81,126 +71,125 @@ export function SwapForm() {
           required: true,
           type: "number",
         },
+        swapMode: {
+          pattern: /^fi|fo$/,
+          required: true,
+          type: "string",
+        },
       },
       initialValues: {
-        address: "",
         amount: 0,
-        inAsset: algoId,
-        mode: SwapMode.FIXED_INPUT,
-        outAsset: algoId,
+        buyAssetId: algoId,
+        sellAssetId: algoId,
+        sender: "",
+        swapMode: SwapMode.FI,
         slippage: 3,
       },
       onSubmit: async () => {
         const params = await refetchParams()
-        const pool = prices?.[values.inAsset]?.pools[values.outAsset]
+        const poolAddress =
+          prices?.[values.sellAssetId]?.pools[values.buyAssetId]?.address
 
-        if (!pool) {
+        if (!poolAddress) {
           throw Error("Invalid state")
         }
 
-        const account = await getAccountInfo(indexer, pool.address)
-        const poolInfo = getPoolInfo(account, config)
+        const account = await getAccountInfo(indexer, poolAddress)
+
+        const pool = getPoolInfo(account, config)
 
         const quote = getSwapQuote({
-          amount: values.amount,
-          buyAssetId: values.outAsset,
-          pool: poolInfo,
-          sellAssetId: values.inAsset,
-          swapMode: values.mode as SwapMode,
+          ...values,
+          pool,
           slippage: values.slippage / 1000,
+          swapMode: values.swapMode as SwapMode,
         })
 
-        const transactionGroup = createTinymanSwapTransaction(config, {
-          inAmount: quote.sellAmountMax,
-          inAssetId: quote.sellAssetId,
-          liquidityAssetId: poolInfo.liquidity.id,
-          mode: quote.swapMode,
-          outAmount: quote.buyAmountMin,
-          outAssetId: quote.buyAssetId,
+        const transaction = createSwapTransaction(config, {
           params,
-          pool: pool.address,
-          sender: values.address,
+          pool,
+          quote,
+          sender: values.sender,
         })
 
-        const logicSig = getPoolLogicSig(
-          config,
-          quote.sellAssetId,
-          quote.buyAssetId
-        )
+        const logger = createLogger("Swap")
 
-        const logicSigAddress = logicSig.address()
+        try {
+          logger.log("Sign", transaction)
+          const transactionId = await signTransaction(...transaction)
+          logger.log(`Sent ${transactionId}`, transaction)
+          toast.info(
+            "Swap transaction sent. It should be finalized within seconds."
+          )
 
-        const logicSigGroup = transactionGroup.map(tx => {
-          if (algosdk.encodeAddress(tx.from.publicKey) === logicSigAddress) {
-            const { blob } = algosdk.signLogicSigTransactionObject(tx, logicSig)
-            return blob
-          } else {
-            return tx
-          }
-        })
-
-        const txId = await signTransactionGroup(logicSigGroup)
-
-        await waitForConfirmation(txId)
+          waitForConfirmation(transactionId).then(
+            confirmed => {
+              logger.log(`Confirmed ${transactionId}`, confirmed)
+              toast.success("Swap confirmed.")
+            },
+            error => {
+              logger.error(error)
+              toast.error("Swap rejected.")
+            }
+          )
+        } catch (error) {
+          logger.error(error)
+          toast.warn("Swap aborted.")
+        }
       },
     })
 
-  const isValidAddress = algosdk.isValidAddress(values.address)
+  const { sender, amount, buyAssetId, sellAssetId, slippage, swapMode } = values
 
-  const inAssetId = values.inAsset
-  const outAssetId = values.outAsset
+  const isValidAddress = algosdk.isValidAddress(sender)
 
   const { data: contacts } = useContacts()
-  const { data: accountInfo } = useAccountInfo(values.address)
-  const { data: inAsset } = useAssetInfo(inAssetId)
-  const { data: outAsset } = useAssetInfo(outAssetId)
+  const { data: accountInfo } = useAccountInfo(sender)
+  const { data: sellAsset } = useAssetInfo(sellAssetId)
+  const { data: buyAsset } = useAssetInfo(buyAssetId)
 
   const assetIds = useAccountAssetIds(accountInfo)
 
-  const inBalance = useAccountBalance(accountInfo, inAssetId)
-  const outBalance = useAccountBalance(accountInfo, outAssetId)
+  const inBalance = useAccountBalance(accountInfo, sellAssetId)
+  const outBalance = useAccountBalance(accountInfo, buyAssetId)
 
   const algoBalance = useAccountBalance(accountInfo, algoId)
   const algoMinBalance = useAccountMinBalance(accountInfo)
   const algoFee = config.params.MinTxnFee * 4
 
-  const inPrice = prices?.[inAssetId]
-  const outPrice = prices?.[outAssetId]
+  const inPrice = prices?.[sellAssetId]
+  const outPrice = prices?.[buyAssetId]
 
   const algoAvailable = Math.max(algoBalance - algoMinBalance - algoFee, 0)
 
-  const swapMode = values.mode as SwapMode
-
-  const { amount } = values
-
   const pools = inPrice?.pools ?? {}
+  const poolAddress = pools[buyAssetId]?.address ?? null
 
-  const { data: poolInfo } = usePoolInfo(pools[outAssetId]?.address ?? null)
-
-  const maxSlippage = values.slippage / 1000
+  const { data: poolAccount } = useAccountInfo(poolAddress)
+  const pool = poolAccount && getPoolInfo(poolAccount, config)
 
   const quote =
-    poolInfo &&
+    pool &&
     getSwapQuote({
-      pool: poolInfo,
-      sellAssetId: inAssetId,
-      buyAssetId: outAssetId,
+      pool,
+      sellAssetId,
+      buyAssetId,
       amount,
-      slippage: maxSlippage,
-      swapMode,
+      slippage: slippage / 1000,
+      swapMode: swapMode as SwapMode,
     })
 
-  const sellAmountAvailable = inAssetId === algoId ? algoAvailable : inBalance
+  const sellAmountAvailable = sellAssetId === algoId ? algoAvailable : inBalance
 
   const maxQuote =
-    poolInfo &&
+    pool &&
     getSwapQuote({
-      pool: poolInfo,
-      sellAssetId: inAssetId,
-      buyAssetId: outAssetId,
+      pool,
+      sellAssetId,
+      buyAssetId,
       amount: sellAmountAvailable,
-      slippage: maxSlippage,
-      swapMode: SwapMode.FIXED_INPUT,
+      slippage: slippage / 1000,
+      swapMode: SwapMode.FI,
     })
 
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
@@ -215,26 +204,25 @@ export function SwapForm() {
     quote.sellAssetId !== quote.buyAssetId &&
     quote.buyAmountMin > 0 &&
     quote.buyAmountMin <= quote.buyReserves &&
-    inAsset !== null &&
-    outAsset !== null &&
+    sellAsset !== null &&
+    buyAsset !== null &&
     accountInfo !== null
 
   return (
     <Form onSubmit={submitForm}>
-      <InputGroup group="address">
-        <GroupLabel group="address">Address</GroupLabel>
-        <InputLabel name="address">Address</InputLabel>
+      <InputGroup group="sender">
+        <GroupLabel group="sender">Address</GroupLabel>
+        <InputLabel name="sender">Address</InputLabel>
         <AccountSelect
-          {...fieldProps.address}
+          {...fieldProps.sender}
           accounts={contacts}
           allowManual
-          name="address"
           onlyOwnAccounts
         />
-        {!values.address && (
+        {!values.sender && (
           <div style={{ color: "red" }}>Please select an account.</div>
         )}
-        {!!values.address && !isValidAddress && (
+        {!!values.sender && !isValidAddress && (
           <div style={{ color: "red" }}>Invalid address.</div>
         )}
         {!!accountInfo && !isAbleToPayFee && (
@@ -246,24 +234,24 @@ export function SwapForm() {
       </InputGroup>
       {isValidAddress && isAbleToPayFee && (
         <>
-          <InputGroup group="in">
-            <GroupLabel group="in">Exchange</GroupLabel>
+          <InputGroup group="sell">
+            <GroupLabel group="sell">Exchange</GroupLabel>
             <div>
-              <InputLabel name="inAsset">Asset</InputLabel>
+              <InputLabel name="sellAssetId">Asset</InputLabel>
               <AssetSelect
-                {...fieldProps.inAsset}
+                {...fieldProps.sellAssetId}
                 assets={assetIds.map(assetId => ({
                   assetId,
                   name: prices?.[assetId]?.name,
                 }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("inAsset", value)
-                  if (values.mode === SwapMode.FIXED_INPUT) {
+                  setValue("sellAssetId", value)
+                  if (values.swapMode === SwapMode.FI) {
                     setValue("amount", 0)
                   }
                 }}
-                value={values.inAsset}
+                value={values.sellAssetId}
               />
             </div>
             {sellAmountAvailable === 0 && (
@@ -271,33 +259,33 @@ export function SwapForm() {
                 Please select a different asset.
               </div>
             )}
-            {inAsset && quote && sellAmountAvailable > 0 && (
+            {sellAsset && quote && sellAmountAvailable > 0 && (
               <>
                 <div>
                   <InputLabel name="inAmount">Amount</InputLabel>
                   <AmountSelect
                     {...fieldProps.amount}
-                    decimals={inAsset.params.decimals}
+                    decimals={sellAsset.params.decimals}
                     max={sellAmountAvailable}
                     onChange={value => {
                       setValue("amount", value)
-                      setValue("mode", SwapMode.FIXED_INPUT)
+                      setValue("swapMode", SwapMode.FI)
                     }}
-                    unit={inAsset.params["unit-name"]}
+                    unit={sellAsset.params["unit-name"]}
                     value={quote.sellAmount}
                   />
                   <Button
                     label="Max"
                     onClick={() => {
                       setValue("amount", sellAmountAvailable)
-                      setValue("mode", SwapMode.FIXED_INPUT)
+                      setValue("swapMode", SwapMode.FI)
                     }}
                     title="Set maximum amount"
                   />
                 </div>
                 {quote.sellAmountMax > sellAmountAvailable && (
                   <div style={{ color: "red" }}>
-                    Not enough {inAsset.params["unit-name"]}.
+                    Not enough {sellAsset.params["unit-name"]}.
                   </div>
                 )}
                 {inPrice && (
@@ -330,14 +318,14 @@ export function SwapForm() {
                 <div>
                   <InputLabel name="inBalance">Balance</InputLabel>
                   <AmountSelect
-                    decimals={inAsset.params.decimals}
+                    decimals={sellAsset.params.decimals}
                     disabled
                     name="inBalance"
-                    unit={inAsset.params["unit-name"]}
+                    unit={sellAsset.params["unit-name"]}
                     value={inBalance}
                   />
                 </div>
-                {inAssetId === algoId && (
+                {sellAssetId === algoId && (
                   <div>
                     <InputLabel name="inAvailable">Available</InputLabel>
                     <AmountSelect
@@ -353,25 +341,23 @@ export function SwapForm() {
             )}
           </InputGroup>
           <Button
-            disabled={inAssetId === outAssetId}
+            disabled={sellAssetId === buyAssetId}
             label="Swap assets"
             onClick={() => {
-              setValue("inAsset", outAssetId)
-              setValue("outAsset", inAssetId)
+              setValue("sellAssetId", buyAssetId)
+              setValue("buyAssetId", sellAssetId)
               setValue(
-                "mode",
-                swapMode === SwapMode.FIXED_INPUT
-                  ? SwapMode.FIXED_OUTPUT
-                  : SwapMode.FIXED_INPUT
+                "swapMode",
+                swapMode === SwapMode.FI ? SwapMode.FO : SwapMode.FI
               )
             }}
           />
-          <InputGroup group="out">
-            <GroupLabel group="out">For</GroupLabel>
+          <InputGroup group="buy">
+            <GroupLabel group="buy">For</GroupLabel>
             <div>
-              <InputLabel name="outAsset">Asset</InputLabel>
+              <InputLabel name="buyAssetId">Asset</InputLabel>
               <AssetSelect
-                {...fieldProps.outAsset}
+                {...fieldProps.buyAssetId}
                 assets={Object.keys(pools)
                   .map(Number)
                   .filter(
@@ -385,21 +371,21 @@ export function SwapForm() {
                   }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("outAsset", value)
-                  if (values.mode === SwapMode.FIXED_OUTPUT) {
+                  setValue("buyAssetId", value)
+                  if (values.swapMode === SwapMode.FO) {
                     setValue("amount", 0)
                   }
                 }}
-                value={values.outAsset}
+                value={values.buyAssetId}
               />
             </div>
-            {outAssetId === inAssetId && (
+            {buyAssetId === sellAssetId && (
               <div style={{ color: "red" }}>
                 Please select a different asset.
               </div>
             )}
-            {outAsset &&
-              outAssetId !== inAssetId &&
+            {buyAsset &&
+              buyAssetId !== sellAssetId &&
               quote &&
               sellAmountAvailable > 0 && (
                 <>
@@ -407,13 +393,13 @@ export function SwapForm() {
                     <InputLabel name="outAmount">Amount</InputLabel>
                     <AmountSelect
                       {...fieldProps.amount}
-                      decimals={outAsset.params.decimals}
+                      decimals={buyAsset.params.decimals}
                       max={maxQuote?.buyAmount}
                       onChange={value => {
                         setValue("amount", value)
-                        setValue("mode", SwapMode.FIXED_OUTPUT)
+                        setValue("swapMode", SwapMode.FO)
                       }}
-                      unit={outAsset.params["unit-name"]}
+                      unit={buyAsset.params["unit-name"]}
                       value={quote.buyAmount}
                     />
                   </div>
@@ -447,14 +433,14 @@ export function SwapForm() {
                   <div>
                     <InputLabel name="outBalance">Balance</InputLabel>
                     <AmountSelect
-                      decimals={outAsset.params.decimals}
+                      decimals={buyAsset.params.decimals}
                       disabled
                       name="outBalance"
-                      unit={outAsset.params["unit-name"]}
+                      unit={buyAsset.params["unit-name"]}
                       value={outBalance}
                     />
                   </div>
-                  {outAssetId === algoId && (
+                  {buyAssetId === algoId && (
                     <div>
                       <InputLabel name="outAvailable">Available</InputLabel>
                       <AmountSelect
@@ -472,16 +458,16 @@ export function SwapForm() {
         </>
       )}
       {accountInfo &&
-        inAsset &&
-        outAsset &&
-        inAssetId !== outAssetId &&
+        sellAsset &&
+        buyAsset &&
+        sellAssetId !== buyAssetId &&
         quote !== null &&
         quote.sellAmount > 0 && (
           <InputGroup group="advanced">
             <GroupLabel group="advanced">Advanced</GroupLabel>
             <div>
-              <InputLabel name="mode">Swap Mode</InputLabel>
-              <InputText {...fieldProps.mode} disabled />
+              <InputLabel name="swapMode">Swap Mode</InputLabel>
+              <InputText {...fieldProps.swapMode} disabled />
             </div>
             <div>
               <InputLabel name="slippage">Slippage Tolerance</InputLabel>
@@ -507,33 +493,33 @@ export function SwapForm() {
                 Swap Fee ({quote.feeRate * 100}%)
               </InputLabel>
               <AmountSelect
-                decimals={inAsset.params.decimals}
+                decimals={sellAsset.params.decimals}
                 disabled
                 name="feeSwap"
-                unit={inAsset.params["unit-name"]}
+                unit={sellAsset.params["unit-name"]}
                 value={quote.feeAmount}
               />
             </div>
-            {swapMode === SwapMode.FIXED_INPUT && (
+            {swapMode === SwapMode.FI && (
               <div>
                 <InputLabel name="outAmountFinal">Minimum received</InputLabel>
                 <AmountSelect
-                  decimals={outAsset.params.decimals}
+                  decimals={buyAsset.params.decimals}
                   disabled
                   name="outAmountFinal"
-                  unit={outAsset.params["unit-name"]}
+                  unit={buyAsset.params["unit-name"]}
                   value={quote.buyAmountMin}
                 />
               </div>
             )}
-            {swapMode === SwapMode.FIXED_OUTPUT && (
+            {swapMode === SwapMode.FO && (
               <div>
                 <InputLabel name="inAmountFinal">Maximum sent</InputLabel>
                 <AmountSelect
-                  decimals={inAsset.params.decimals}
+                  decimals={sellAsset.params.decimals}
                   disabled
                   name="inAmountFinal"
-                  unit={inAsset.params["unit-name"]}
+                  unit={sellAsset.params["unit-name"]}
                   value={quote.sellAmountMax}
                 />
               </div>
