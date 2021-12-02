@@ -1,12 +1,12 @@
 import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
+import { createApplicationCallTransaction } from "lib/algo/transactions/ApplicationCall"
+import { createAssetTransferTransaction } from "lib/algo/transactions/AssetTransfer"
 
-import { createApplicationCallTransaction } from "../transactions/ApplicationCall"
-import { createTransferTransaction } from "../transactions/Transfer"
+import { getPoolLogicSig } from "../logicsig"
+import { PoolInfo } from "../pool"
 
-import { getPoolLogicSig } from "./logicsig"
-import { PoolInfo } from "./pool"
 import { SwapQuote } from "./quote"
 
 export interface SwapTransactionParams {
@@ -29,8 +29,9 @@ export function createSwapTransaction(
 
   const transactions = [
     // 1. Payment of fees from swapper to pool
-    createTransferTransaction(config, {
+    createAssetTransferTransaction(config, {
       amount: config.params.MinTxnFee * 2,
+      assetId: config.native_asset.index,
       params,
       receiver: pool.address,
       sender,
@@ -47,7 +48,7 @@ export function createSwapTransaction(
       sender: pool.address,
     }),
     // 3. Transfer of asset from swapper to pool
-    createTransferTransaction(config, {
+    createAssetTransferTransaction(config, {
       amount: quote.sellAmountMax,
       assetId: quote.sellAssetId,
       params,
@@ -55,7 +56,7 @@ export function createSwapTransaction(
       sender,
     }),
     // 4. Transfer of asset from pool to swapper
-    createTransferTransaction(config, {
+    createAssetTransferTransaction(config, {
       amount: quote.buyAmountMin,
       assetId: quote.buyAssetId,
       params,

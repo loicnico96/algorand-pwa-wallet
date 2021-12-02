@@ -2,9 +2,9 @@ import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
 
-export interface TransferTransactionParams {
+export interface AssetTransferTransactionParams {
   amount: number
-  assetId?: number
+  assetId: number
   close?: boolean
   note?: string
   params: SuggestedParams
@@ -12,7 +12,7 @@ export interface TransferTransactionParams {
   sender: string
 }
 
-export function createTransferTransaction(
+export function createAssetTransferTransaction(
   config: NetworkConfig,
   {
     amount,
@@ -22,9 +22,9 @@ export function createTransferTransaction(
     params,
     receiver,
     sender,
-  }: TransferTransactionParams
+  }: AssetTransferTransactionParams
 ): algosdk.Transaction {
-  if (assetId === undefined || assetId === config.native_asset.index) {
+  if (assetId === config.native_asset.index) {
     return algosdk.makePaymentTxnWithSuggestedParamsFromObject({
       amount,
       closeRemainderTo: close ? receiver : undefined,

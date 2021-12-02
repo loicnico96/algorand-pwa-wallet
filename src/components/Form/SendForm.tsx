@@ -15,7 +15,7 @@ import { useIntParamState } from "hooks/navigation/useIntParamState"
 import { useParamState } from "hooks/navigation/useParamState"
 import { useContacts } from "hooks/storage/useContacts"
 import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
-import { createTransferTransaction } from "lib/algo/transactions/Transfer"
+import { createAssetTransferTransaction } from "lib/algo/transactions/AssetTransfer"
 import { handleGenericError } from "lib/utils/error"
 import { printDecimals } from "lib/utils/int"
 import { createLogger } from "lib/utils/logger"
@@ -131,7 +131,7 @@ export function SendForm() {
     if (sender !== null && receiver !== null && asset !== null) {
       const params = await refetchParams()
 
-      const transaction = createTransferTransaction(config, {
+      const transaction = createAssetTransferTransaction(config, {
         amount,
         assetId,
         close: isClosing,

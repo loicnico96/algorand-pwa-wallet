@@ -1,7 +1,6 @@
 import { NetworkConfig } from "context/NetworkContext"
+import { AccountInfo, getLocalAppState, getStateUint } from "lib/algo/Account"
 import { encodeBase64 } from "lib/utils/encoding"
-
-import { AccountInfo, getLocalAppState, getStateUint } from "../Account"
 
 export interface PoolAssetInfo {
   amount: number
@@ -21,7 +20,8 @@ export function getPoolInfo(
   account: AccountInfo,
   config: NetworkConfig
 ): PoolInfo {
-  const appState = getLocalAppState(account, config.tinyman.validator_app_id)
+  const appId = config.tinyman.validator_app_id
+  const appState = getLocalAppState(account, appId)
   const liquidityAsset = account["created-assets"]?.[0]
 
   if (!appState || !liquidityAsset) {

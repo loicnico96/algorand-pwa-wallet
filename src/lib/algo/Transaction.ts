@@ -4,7 +4,7 @@ export enum TransactionType {
 }
 
 export interface Transaction {
-  amt: number
+  amt?: number
   arcv?: Uint8Array
   asnd?: Uint8Array
   fee: number

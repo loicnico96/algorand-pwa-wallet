@@ -1,4 +1,4 @@
-import { getPoolReserves, PoolInfo } from "./pool"
+import { getPoolReserves, PoolInfo } from "../pool"
 
 export const SWAP_FEE = 0.003
 
