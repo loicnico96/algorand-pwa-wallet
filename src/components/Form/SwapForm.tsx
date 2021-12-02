@@ -1,5 +1,4 @@
 import algosdk from "algosdk"
-import { toast } from "react-toastify"
 
 import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
@@ -12,13 +11,17 @@ import { useAssetPrices } from "hooks/api/useAssetPrices"
 import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
-import { getAccountInfo } from "lib/algo/api"
+import {
+  getAccountInfo,
+  hasOptedInApplication,
+  hasOptedInAsset,
+} from "lib/algo/api"
 import { createApplicationOptInTransaction } from "lib/algo/transactions/ApplicationOptIn"
 import { createApplicationOptOutTransaction } from "lib/algo/transactions/ApplicationOptOut"
+import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
 import { getPoolInfo } from "lib/tinyman/pool"
 import { getSwapQuote, SwapMode } from "lib/tinyman/swap/quote"
 import { createSwapTransaction } from "lib/tinyman/swap/transaction"
-import { createLogger } from "lib/utils/logger"
 
 import { AccountSelect } from "./AccountSelect"
 import { AmountSelect } from "./AmountSelect"
@@ -37,7 +40,7 @@ export const ADDRESS_REGEX = /^[A-Z2-7]{58}$/
 export function SwapForm() {
   const { config, indexer } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
-  const { signTransaction, waitForConfirmation } = useTransaction()
+  const { sendTransaction } = useTransaction()
   const { data: prices } = useAssetPrices()
 
   const algoId = config.native_asset.index
@@ -115,30 +118,7 @@ export function SwapForm() {
           sender: values.sender,
         })
 
-        const logger = createLogger("Swap")
-
-        try {
-          logger.log("Sign", transaction)
-          const transactionId = await signTransaction(...transaction)
-          logger.log(`Sent ${transactionId}`, transaction)
-          toast.info(
-            "Swap transaction sent. It should be finalized within seconds."
-          )
-
-          waitForConfirmation(transactionId).then(
-            confirmed => {
-              logger.log(`Confirmed ${transactionId}`, confirmed)
-              toast.success("Swap confirmed.")
-            },
-            error => {
-              logger.error(error)
-              toast.error("Swap rejected.")
-            }
-          )
-        } catch (error) {
-          logger.error(error)
-          toast.warn("Swap aborted.")
-        }
+        await sendTransaction(transaction)
       },
     })
 
@@ -184,16 +164,7 @@ export function SwapForm() {
 
   const sellAmountAvailable = sellAssetId === algoId ? algoAvailable : inBalance
 
-  const maxQuote =
-    pool &&
-    getSwapQuote({
-      pool,
-      sellAssetId,
-      buyAssetId,
-      amount: sellAmountAvailable,
-      slippage: slippage / 1000,
-      swapMode: SwapMode.FI,
-    })
+  const validatorAppId = config.tinyman.validator_app_id
 
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
 
@@ -201,79 +172,50 @@ export function SwapForm() {
     isValid &&
     isValidAddress &&
     isAbleToPayFee &&
+    accountInfo !== null &&
+    sellAsset !== null &&
+    buyAsset !== null &&
     quote !== null &&
     quote.sellAmountMax > 0 &&
     quote.sellAmountMax <= sellAmountAvailable &&
     quote.sellAssetId !== quote.buyAssetId &&
     quote.buyAmountMin > 0 &&
     quote.buyAmountMin <= quote.buyReserves &&
-    sellAsset !== null &&
-    buyAsset !== null &&
-    accountInfo !== null
+    hasOptedInApplication(accountInfo, validatorAppId) &&
+    hasOptedInAsset(accountInfo, buyAssetId)
 
   const onOptIn = async () => {
     const params = await refetchParams()
     const transaction = createApplicationOptInTransaction({
-      applicationId: config.tinyman.validator_app_id,
+      applicationId: validatorAppId,
       params,
       sender: values.sender,
     })
 
-    const logger = createLogger("Opt-in")
-
-    try {
-      logger.log("Sign", transaction)
-      const transactionId = await signTransaction(transaction)
-      logger.log(`Sent ${transactionId}`, transaction)
-      toast.info("Transaction sent.")
-
-      waitForConfirmation(transactionId).then(
-        confirmed => {
-          logger.log(`Confirmed ${transactionId}`, confirmed)
-          toast.success("Transaction confirmed.")
-        },
-        error => {
-          logger.error(error)
-          toast.error("Transaction rejected.")
-        }
-      )
-    } catch (error) {
-      logger.error(error)
-      toast.warn("Transaction aborted.")
-    }
+    await sendTransaction(transaction)
   }
 
-  const onOptOut = async (force?: boolean) => {
+  const onOptInAsset = async (assetId: number) => {
     const params = await refetchParams()
-    const transaction = createApplicationOptOutTransaction({
-      applicationId: config.tinyman.validator_app_id,
-      force,
+    const transaction = createAssetOptInTransaction(config, {
+      assetId,
       params,
       sender: values.sender,
     })
 
-    const logger = createLogger("Opt-out")
+    await sendTransaction(transaction)
+  }
 
-    try {
-      logger.log("Sign", transaction)
-      const transactionId = await signTransaction(transaction)
-      logger.log(`Sent ${transactionId}`, transaction)
-      toast.info("Transaction sent.")
+  const onOptOut = async () => {
+    const params = await refetchParams()
 
-      waitForConfirmation(transactionId).then(
-        confirmed => {
-          logger.log(`Confirmed ${transactionId}`, confirmed)
-          toast.success("Transaction confirmed.")
-        },
-        error => {
-          logger.error(error)
-          toast.error("Transaction rejected.")
-        }
-      )
-    } catch (error) {
-      logger.error(error)
-      toast.warn("Transaction aborted.")
-    }
+    const transaction = createApplicationOptOutTransaction({
+      applicationId: validatorAppId,
+      params,
+      sender: values.sender,
+    })
+
+    await sendTransaction(transaction)
   }
 
   return (
@@ -334,7 +276,6 @@ export function SwapForm() {
                   <AmountSelect
                     {...fieldProps.amount}
                     decimals={sellAsset.params.decimals}
-                    max={sellAmountAvailable}
                     onChange={value => {
                       setValue("amount", value)
                       setValue("swapMode", SwapMode.FI)
@@ -428,11 +369,6 @@ export function SwapForm() {
                 {...fieldProps.buyAssetId}
                 assets={Object.keys(pools)
                   .map(Number)
-                  .filter(
-                    assetId =>
-                      assetIds.includes(assetId) ||
-                      prices?.[assetId]?.is_verified
-                  )
                   .map(assetId => ({
                     assetId,
                     name: prices?.[assetId]?.name,
@@ -462,7 +398,6 @@ export function SwapForm() {
                     <AmountSelect
                       {...fieldProps.amount}
                       decimals={buyAsset.params.decimals}
-                      max={maxQuote?.buyAmount}
                       onChange={value => {
                         setValue("amount", value)
                         setValue("swapMode", SwapMode.FO)
@@ -605,24 +540,28 @@ export function SwapForm() {
           </InputGroup>
         )}
       <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
-      {isValidAddress && (
+      {accountInfo && (
         <div>
-          <Button
-            label="Opt in"
-            onClick={onOptIn}
-            title="Opt in to Tinyman application"
-          />
-          <Button
-            label="Opt out"
-            onClick={() => onOptOut()}
-            title="Opt out of Tinyman application"
-          />
-          <Button
-            label="Opt out (force)"
-            onClick={() => onOptOut(true)}
-            title="Forcefully opt out of Tinyman application. Unredeemed assets will be lost."
-          />
+          {hasOptedInApplication(accountInfo, validatorAppId) ? (
+            <Button
+              label="Opt out"
+              onClick={onOptOut}
+              title="Opt out of Tinyman application"
+            />
+          ) : (
+            <Button
+              label="Opt in"
+              onClick={onOptIn}
+              title="Opt in to Tinyman application"
+            />
+          )}
         </div>
+      )}
+      {accountInfo && buyAsset && !hasOptedInAsset(accountInfo, buyAssetId) && (
+        <Button
+          label={`Opt in ${buyAsset.params.name}`}
+          onClick={() => onOptInAsset(buyAssetId)}
+        />
       )}
     </Form>
   )

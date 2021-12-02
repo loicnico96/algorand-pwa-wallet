@@ -1,15 +1,32 @@
-import algosdk from "algosdk"
+import algosdk, { Transaction } from "algosdk"
 import { useNetworkContext } from "context/NetworkContext"
 import { useSecurityContext } from "context/SecurityContext"
-import { PendingTransaction } from "lib/algo/api"
+import { EncodedTransaction, PendingTransaction } from "lib/algo/api"
+import { getIndexerQuery } from "lib/algo/api/query"
+import {
+  getTransactionSigner,
+  signTransaction,
+  TransactionGroup,
+} from "lib/algo/transactions/TransactionGroup"
+import { toError } from "lib/utils/error"
+import { createLogger } from "lib/utils/logger"
+import { isArray } from "lib/utils/types"
 import { useCallback } from "react"
+import { toast } from "react-toastify"
 import { mutate } from "swr"
 
+export interface SendTransactionParams {
+  onAborted?: (error: Error) => void
+  onConfirmed?: (transaction: EncodedTransaction) => void
+  onRejected?: (error: Error) => void
+  onSent?: (transactionId: string) => void
+}
+
 export interface UseTransactionResult {
-  signTransaction(
-    ...transactions: (algosdk.Transaction | Uint8Array)[]
-  ): Promise<string>
-  waitForConfirmation(transactionId: string): Promise<PendingTransaction>
+  sendTransaction: (
+    transaction: Transaction | TransactionGroup,
+    params?: SendTransactionParams
+  ) => Promise<void>
 }
 
 const TXN_ADDRESS_FIELDS = ["arcv", "asnd", "rcv", "snd"] as const
@@ -19,21 +36,20 @@ export function useTransaction(): UseTransactionResult {
   const { getPrivateKey } = useSecurityContext()
 
   const waitForConfirmation = useCallback(
-    async (transactionId: string) => {
-      const status = await api.status().do()
-      const startRound = status["last-round"] + 1
-      let endRound = startRound + 1000
+    async (transactionId: string): Promise<EncodedTransaction> => {
+      const status = await getIndexerQuery(api.status())
+      const startRound = status.lastRound + 1
+      const endRound = startRound + 1000
 
       for (let round = startRound; round < endRound; round++) {
-        await api.statusAfterBlock(round).do()
+        await getIndexerQuery(api.statusAfterBlock(round))
 
-        const txn = (await api
-          .pendingTransactionInformation(transactionId)
-          .do()) as PendingTransaction
+        const query = api.pendingTransactionInformation(transactionId)
+        const txn = (await getIndexerQuery(query)) as PendingTransaction
 
         if (txn.confirmedRound) {
           if (txn.confirmedRound > round) {
-            await api.statusAfterBlock(txn.confirmedRound).do()
+            await getIndexerQuery(api.statusAfterBlock(txn.confirmedRound))
           }
 
           // Refetch account balances
@@ -45,7 +61,7 @@ export function useTransaction(): UseTransactionResult {
             }
           }
 
-          return txn as PendingTransaction
+          return txn.txn.txn
         }
 
         if (txn.poolError) {
@@ -53,7 +69,7 @@ export function useTransaction(): UseTransactionResult {
         }
 
         if (round >= txn.txn.txn.lv) {
-          break
+          throw Error("Transaction expired.")
         }
       }
 
@@ -62,36 +78,68 @@ export function useTransaction(): UseTransactionResult {
     [api]
   )
 
-  const signTransaction = useCallback(
-    async (...transactions: (algosdk.Transaction | Uint8Array)[]) => {
-      const signedTransactions: Uint8Array[] = []
-      const keys: Record<string, Uint8Array> = {}
+  const sendTransaction = useCallback(
+    async (
+      transaction: Transaction | TransactionGroup,
+      {
+        onAborted = () => toast.warn("Transaction aborted."),
+        onConfirmed = () => toast.success("Transaction confirmed."),
+        onRejected = () => toast.error("Transaction rejected."),
+        onSent = () => toast.info("Transaction sent."),
+      }: SendTransactionParams = {}
+    ): Promise<void> => {
+      const logger = createLogger("Transaction")
 
-      for (const transaction of transactions) {
-        if (transaction instanceof algosdk.Transaction) {
-          const address = algosdk.encodeAddress(transaction.from.publicKey)
+      try {
+        const keys: Record<string, Uint8Array> = {}
+        const unsigned = isArray(transaction) ? transaction : [transaction]
+        const signed: Uint8Array[] = []
 
-          let key = keys[address]
-          if (!key) {
-            key = await getPrivateKey(address)
-            keys[address] = key
+        logger.log("Signing...", unsigned)
+
+        for (const txn of unsigned) {
+          if (txn instanceof Transaction) {
+            const signer = getTransactionSigner(txn)
+
+            let key = keys[signer]
+
+            if (!key) {
+              logger.log("Signing with account...", signer)
+              key = await getPrivateKey(signer)
+              keys[signer] = key
+            }
+
+            signed.push(signTransaction(txn, key))
+          } else {
+            signed.push(txn)
           }
-
-          signedTransactions.push(transaction.signTxn(key))
-        } else {
-          signedTransactions.push(transaction)
         }
+
+        logger.log("Sending...", signed)
+        const sent = await getIndexerQuery(api.sendRawTransaction(signed))
+        const transactionId = sent.txId as string
+
+        logger.log("Sent", transactionId)
+        onSent(transactionId)
+
+        waitForConfirmation(transactionId).then(
+          transaction => {
+            logger.log("Confirmed", transaction)
+            onConfirmed(transaction)
+          },
+          error => {
+            logger.error(error)
+            onRejected(toError(error))
+          }
+        )
+      } catch (error) {
+        logger.error(error)
+        onAborted(toError(error))
+        throw error
       }
-
-      const sent = await api.sendRawTransaction(signedTransactions).do()
-
-      return sent.txId
     },
     [api, getPrivateKey]
   )
 
-  return {
-    signTransaction,
-    waitForConfirmation,
-  }
+  return { sendTransaction }
 }

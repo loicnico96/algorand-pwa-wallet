@@ -1,6 +1,5 @@
 import algosdk from "algosdk"
 import { useCallback } from "react"
-import { toast } from "react-toastify"
 
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
@@ -18,7 +17,6 @@ import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { createAssetTransferTransaction } from "lib/algo/transactions/AssetTransfer"
 import { handleGenericError } from "lib/utils/error"
 import { printDecimals } from "lib/utils/int"
-import { createLogger } from "lib/utils/logger"
 import { RouteParam } from "lib/utils/navigation"
 
 import { AccountSelect } from "./AccountSelect"
@@ -37,7 +35,7 @@ export function SendForm() {
   const { data: contacts } = useContacts()
   const { config } = useNetworkContext()
   const { refetch: refetchParams } = useTransactionParams()
-  const { signTransaction, waitForConfirmation } = useTransaction()
+  const { sendTransaction } = useTransaction()
 
   const algoId = config.native_asset.index
 
@@ -141,41 +139,19 @@ export function SendForm() {
         sender: sender.address,
       })
 
-      const logger = createLogger("Transaction")
-
-      try {
-        logger.log("Sign", transaction)
-        const transactionId = await signTransaction(transaction)
-        logger.log(`Sent ${transactionId}`, transaction)
-        toast.info("Transaction sent.")
-
-        waitForConfirmation(transactionId).then(
-          confirmed => {
-            logger.log(`Confirmed ${transactionId}`, confirmed)
-            toast.success("Transaction confirmed.")
-          },
-          error => {
-            logger.error(error)
-            toast.error("Transaction rejected.")
-          }
-        )
-      } catch (error) {
-        logger.error(error)
-        toast.warn("Transaction aborted.")
-      }
+      await sendTransaction(transaction)
     }
   }, [
-    config,
-    signTransaction,
-    refetchParams,
-    waitForConfirmation,
-    isClosing,
-    sender,
-    receiver,
-    asset,
     amount,
+    asset,
     assetId,
+    config,
+    isClosing,
     note,
+    receiver,
+    refetchParams,
+    sender,
+    sendTransaction,
   ])
 
   const [onSubmitAsync, isSubmitting] = useAsyncHandler(

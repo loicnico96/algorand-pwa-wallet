@@ -1,8 +1,13 @@
-import algosdk, { SuggestedParams } from "algosdk"
+import { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
 import { createApplicationCallTransaction } from "lib/algo/transactions/ApplicationCall"
 import { createAssetTransferTransaction } from "lib/algo/transactions/AssetTransfer"
+import {
+  createTransactionGroup,
+  signTransactionGroup,
+  TransactionGroup,
+} from "lib/algo/transactions/TransactionGroup"
 
 import { getPoolLogicSig } from "../logicsig"
 import { PoolInfo } from "../pool"
@@ -19,15 +24,17 @@ export interface SwapTransactionParams {
 export function createSwapTransaction(
   config: NetworkConfig,
   { params, pool, quote, sender }: SwapTransactionParams
-): (algosdk.Transaction | Uint8Array)[] {
+): TransactionGroup {
+  // Generate smart signature for the given liquidity pool
   const logicSig = getPoolLogicSig(config, pool)
   const logicSigAddress = logicSig.address()
 
-  if (logicSigAddress !== pool.address || !logicSig.verify()) {
-    throw Error("Invalid transaction.")
+  // Ensure that the smart signature is correct
+  if (logicSigAddress !== pool.address) {
+    throw Error("Invalid transaction")
   }
 
-  const transactions = [
+  const transactionGroup = createTransactionGroup(
     // 1. Payment of fees from swapper to pool
     createAssetTransferTransaction(config, {
       amount: config.params.MinTxnFee * 2,
@@ -62,16 +69,9 @@ export function createSwapTransaction(
       params,
       receiver: sender,
       sender: pool.address,
-    }),
-  ]
+    })
+  )
 
-  return algosdk.assignGroupID(transactions).map(transaction => {
-    const address = algosdk.encodeAddress(transaction.from.publicKey)
-
-    if (address === logicSigAddress) {
-      return algosdk.signLogicSigTransactionObject(transaction, logicSig).blob
-    }
-
-    return transaction
-  })
+  // Sign pool transactions with smart signature
+  return signTransactionGroup(transactionGroup, logicSigAddress, logicSig)
 }

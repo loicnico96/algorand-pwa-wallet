@@ -1,5 +1,4 @@
 import { useCallback } from "react"
-import { toast } from "react-toastify"
 
 import { Link } from "components/Primitives/Link"
 import { AssetList } from "components/Widgets/AssetList"
@@ -11,7 +10,6 @@ import { AccountInfo, AssetInfo } from "lib/algo/api"
 import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
 import { createAssetOptOutTransaction } from "lib/algo/transactions/AssetOptOut"
 import { toClipboard } from "lib/utils/clipboard"
-import { createLogger } from "lib/utils/logger"
 
 import { StandardAsset } from "./StandardAsset"
 
@@ -23,7 +21,7 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
   const { address } = account
   const { data: contactData, updateContact } = useContact(address)
   const { config } = useNetworkContext()
-  const { signTransaction, waitForConfirmation } = useTransaction()
+  const { sendTransaction } = useTransaction()
   const { refetch: refetchParams } = useTransactionParams()
 
   const onChangeName = useCallback(async () => {
@@ -69,29 +67,8 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
       sender: account.address,
     })
 
-    const logger = createLogger("Transaction")
-
-    try {
-      logger.log("Sign", transaction)
-      const transactionId = await signTransaction(transaction)
-      logger.log(`Sent ${transactionId}`, transaction)
-      toast.info("Transaction sent.")
-
-      waitForConfirmation(transactionId).then(
-        confirmed => {
-          logger.log(`Confirmed ${transactionId}`, confirmed)
-          toast.success("Transaction confirmed.")
-        },
-        error => {
-          logger.error(error)
-          toast.error("Transaction rejected.")
-        }
-      )
-    } catch (error) {
-      logger.error(error)
-      toast.warn("Transaction aborted.")
-    }
-  }, [account, config, refetchParams, signTransaction, waitForConfirmation])
+    await sendTransaction(transaction)
+  }, [account, config, refetchParams, sendTransaction])
 
   const onOptOut = useCallback(
     async (assetId: number, assetInfo: AssetInfo) => {
@@ -104,30 +81,9 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
         receiver: assetInfo.params.creator,
       })
 
-      const logger = createLogger("Transaction")
-
-      try {
-        logger.log("Sign", transaction)
-        const transactionId = await signTransaction(transaction)
-        logger.log(`Sent ${transactionId}`, transaction)
-        toast.info("Transaction sent.")
-
-        waitForConfirmation(transactionId).then(
-          confirmed => {
-            logger.log(`Confirmed ${transactionId}`, confirmed)
-            toast.success("Transaction confirmed.")
-          },
-          error => {
-            logger.error(error)
-            toast.error("Transaction rejected.")
-          }
-        )
-      } catch (error) {
-        logger.error(error)
-        toast.warn("Transaction aborted.")
-      }
+      await sendTransaction(transaction)
     },
-    [account, config, refetchParams, signTransaction, waitForConfirmation]
+    [account, config, refetchParams, sendTransaction]
   )
 
   return (
