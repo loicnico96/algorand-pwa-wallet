@@ -1,5 +1,5 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AccountInfo } from "lib/algo/Account"
+import { AccountInfo } from "lib/algo/api"
 
 export function useAccountBalance(
   account: AccountInfo | null,
@@ -11,7 +11,7 @@ export function useAccountBalance(
     return account?.amount ?? 0
   }
 
-  return (
-    account?.assets?.find(asset => asset["asset-id"] === assetId)?.amount ?? 0
-  )
+  const asset = account?.assets?.find(a => a.assetId === assetId)
+
+  return asset?.amount ?? 0
 }

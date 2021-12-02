@@ -5,13 +5,14 @@ import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
-import { getAccountInfo, useAccountInfo } from "hooks/api/useAccountInfo"
+import { useAccountInfo } from "hooks/api/useAccountInfo"
 import { useAccountMinBalance } from "hooks/api/useAccountMinBalance"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrices } from "hooks/api/useAssetPrices"
 import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
+import { getAccountInfo } from "lib/algo/api"
 import { createApplicationOptInTransaction } from "lib/algo/transactions/ApplicationOptIn"
 import { createApplicationOptOutTransaction } from "lib/algo/transactions/ApplicationOptOut"
 import { getPoolInfo } from "lib/tinyman/pool"
@@ -338,7 +339,7 @@ export function SwapForm() {
                       setValue("amount", value)
                       setValue("swapMode", SwapMode.FI)
                     }}
-                    unit={sellAsset.params["unit-name"]}
+                    unit={sellAsset.params.unitName}
                     value={quote.sellAmount}
                   />
                   <Button
@@ -352,7 +353,7 @@ export function SwapForm() {
                 </div>
                 {quote.sellAmountMax > sellAmountAvailable && (
                   <div style={{ color: "red" }}>
-                    Not enough {sellAsset.params["unit-name"]}.
+                    Not enough {sellAsset.params.unitName}.
                   </div>
                 )}
                 {inPrice && (
@@ -388,7 +389,7 @@ export function SwapForm() {
                     decimals={sellAsset.params.decimals}
                     disabled
                     name="inBalance"
-                    unit={sellAsset.params["unit-name"]}
+                    unit={sellAsset.params.unitName}
                     value={inBalance}
                   />
                 </div>
@@ -399,7 +400,7 @@ export function SwapForm() {
                       decimals={algoDecimals}
                       disabled
                       name="inAvailable"
-                      unit={config.native_asset.params["unit-name"]}
+                      unit={config.native_asset.params.unitName}
                       value={algoAvailable}
                     />
                   </div>
@@ -466,7 +467,7 @@ export function SwapForm() {
                         setValue("amount", value)
                         setValue("swapMode", SwapMode.FO)
                       }}
-                      unit={buyAsset.params["unit-name"]}
+                      unit={buyAsset.params.unitName}
                       value={quote.buyAmount}
                     />
                   </div>
@@ -503,7 +504,7 @@ export function SwapForm() {
                       decimals={buyAsset.params.decimals}
                       disabled
                       name="outBalance"
-                      unit={buyAsset.params["unit-name"]}
+                      unit={buyAsset.params.unitName}
                       value={outBalance}
                     />
                   </div>
@@ -514,7 +515,7 @@ export function SwapForm() {
                         decimals={algoDecimals}
                         disabled
                         name="outAvailable"
-                        unit={config.native_asset.params["unit-name"]}
+                        unit={config.native_asset.params.unitName}
                         value={algoAvailable}
                       />
                     </div>
@@ -551,7 +552,7 @@ export function SwapForm() {
                 decimals={algoDecimals}
                 disabled
                 name="feeTxn"
-                unit={config.native_asset.params["unit-name"]}
+                unit={config.native_asset.params.unitName}
                 value={algoFee}
               />
             </div>
@@ -563,7 +564,7 @@ export function SwapForm() {
                 decimals={sellAsset.params.decimals}
                 disabled
                 name="feeSwap"
-                unit={sellAsset.params["unit-name"]}
+                unit={sellAsset.params.unitName}
                 value={quote.feeAmount}
               />
             </div>
@@ -574,7 +575,7 @@ export function SwapForm() {
                   decimals={buyAsset.params.decimals}
                   disabled
                   name="outAmountFinal"
-                  unit={buyAsset.params["unit-name"]}
+                  unit={buyAsset.params.unitName}
                   value={quote.buyAmountMin}
                 />
               </div>
@@ -586,7 +587,7 @@ export function SwapForm() {
                   decimals={sellAsset.params.decimals}
                   disabled
                   name="inAmountFinal"
-                  unit={sellAsset.params["unit-name"]}
+                  unit={sellAsset.params.unitName}
                   value={quote.sellAmountMax}
                 />
               </div>

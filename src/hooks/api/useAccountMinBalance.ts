@@ -1,48 +1,53 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AccountInfo } from "lib/algo/Account"
+import { AccountInfo } from "lib/algo/api"
 
 export function useAccountMinBalance(account: AccountInfo | null): number {
   const { config } = useNetworkContext()
 
+  const {
+    AppFlatOptInMinBalance,
+    AppFlatParamsMinBalance,
+    MinBalance,
+    SchemaBytesMinBalance,
+    SchemaMinBalancePerEntry,
+    SchemaUintMinBalance,
+  } = config.params
+
+  const MinBalancePerSlice = SchemaMinBalancePerEntry + SchemaBytesMinBalance
+  const MinBalancePerUint = SchemaMinBalancePerEntry + SchemaUintMinBalance
+
   let amount = 0
 
   if (account?.amount) {
-    amount += config.params.MinBalance
+    amount += MinBalance
 
     account.assets?.forEach(() => {
-      amount += config.params.MinBalance
+      amount += MinBalance
     })
 
-    account["created-assets"]?.forEach(() => {
-      amount += config.params.MinBalance
+    account.createdAssets?.forEach(() => {
+      amount += MinBalance
     })
 
-    account["apps-local-state"]?.forEach(state => {
-      amount += config.params.AppFlatOptInMinBalance
-
-      amount +=
-        state.schema["num-byte-slice"] *
-        (config.params.SchemaMinBalancePerEntry +
-          config.params.SchemaBytesMinBalance)
-      amount +=
-        state.schema["num-uint"] *
-        (config.params.SchemaMinBalancePerEntry +
-          config.params.SchemaUintMinBalance)
+    account.appsLocalState?.forEach(({ schema }) => {
+      amount += AppFlatOptInMinBalance
+      amount += schema.numByteSlice * MinBalancePerSlice
+      amount += schema.numUint * MinBalancePerUint
     })
 
-    account["created-apps"]?.forEach(app => {
-      amount += config.params.AppFlatParamsMinBalance
+    account.createdApps?.forEach(({ params }) => {
+      amount += AppFlatParamsMinBalance
 
-      const schema = app.params["local-state-schema"]
+      const { extraProgramPages, localStateSchema } = params
 
-      amount +=
-        schema["num-byte-slice"] *
-        (config.params.SchemaMinBalancePerEntry +
-          config.params.SchemaBytesMinBalance)
-      amount +=
-        schema["num-uint"] *
-        (config.params.SchemaMinBalancePerEntry +
-          config.params.SchemaUintMinBalance)
+      if (extraProgramPages) {
+        amount += extraProgramPages * AppFlatParamsMinBalance
+      }
+
+      if (localStateSchema) {
+        amount += localStateSchema.numByteSlice * MinBalancePerSlice
+        amount += localStateSchema.numUint * MinBalancePerUint
+      }
     })
   }
 

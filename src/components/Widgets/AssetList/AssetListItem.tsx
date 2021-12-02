@@ -5,8 +5,7 @@ import { Button } from "components/Primitives/Button"
 import { Card } from "components/Primitives/Card"
 import { useAssetInfo } from "hooks/api/useAssetInfo"
 import { useAssetPrice } from "hooks/api/useAssetPrice"
-import { AccountAsset } from "lib/algo/Account"
-import { AssetInfo } from "lib/algo/Asset"
+import { AccountAsset, AssetInfo } from "lib/algo/api"
 import { printDecimals } from "lib/utils/int"
 
 export interface AssetListItemProps {
@@ -26,7 +25,7 @@ const Title = styled.div`
 `
 
 export function AssetListItem({ asset, onOptOut }: AssetListItemProps) {
-  const assetId = asset["asset-id"]
+  const { amount, assetId, isFrozen } = asset
   const { data: assetInfo } = useAssetInfo(assetId)
   const assetPrice = useAssetPrice(assetId)
 
@@ -43,13 +42,13 @@ export function AssetListItem({ asset, onOptOut }: AssetListItemProps) {
         <Title>{`${assetInfo?.params.name ?? "..."} (${assetId})`}</Title>
         {onOptOut && assetInfo && (
           <Button
-            disabled={asset.amount !== 0 || asset["is-frozen"]}
+            disabled={amount !== 0 || isFrozen}
             label="Remove"
             onClick={() => onOptOut(assetId, assetInfo)}
             title={
-              asset.amount !== 0
+              amount !== 0
                 ? "Cannot remove an asset with funds"
-                : asset["is-frozen"]
+                : isFrozen
                 ? "Asset is frozen"
                 : "Remove asset"
             }
@@ -58,16 +57,14 @@ export function AssetListItem({ asset, onOptOut }: AssetListItemProps) {
       </ContainerRow>
       <ContainerRow>
         {`${
-          assetInfo
-            ? printDecimals(asset.amount, assetInfo.params.decimals)
-            : "..."
-        } ${assetInfo?.params["unit-name"] ?? "..."}`}
+          assetInfo ? printDecimals(amount, assetInfo.params.decimals) : "..."
+        } ${assetInfo?.params.unitName ?? "..."}`}
       </ContainerRow>
       <ContainerRow>
         {`${
           assetInfo && assetPrice
             ? `${(
-                (asset.amount * (assetPrice?.price ?? 0)) /
+                (amount * (assetPrice?.price ?? 0)) /
                 10 ** assetInfo.params.decimals
               ).toFixed(2)}`
             : "..."

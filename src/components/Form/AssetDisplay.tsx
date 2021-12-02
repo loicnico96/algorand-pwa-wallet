@@ -9,7 +9,7 @@ export interface AssetDisplayProps {
 export function AssetDisplay({ amount, assetId }: AssetDisplayProps) {
   const { data: asset } = useAssetInfo(assetId)
 
-  const unitName = asset?.params["unit-name"]
+  const unitName = asset?.params.unitName
 
   const strAmount =
     amount === null || asset === null

@@ -7,8 +7,7 @@ import { useNetworkContext } from "context/NetworkContext"
 import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContact } from "hooks/storage/useContact"
-import { AccountInfo } from "lib/algo/Account"
-import { AssetInfo } from "lib/algo/Asset"
+import { AccountInfo, AssetInfo } from "lib/algo/api"
 import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
 import { createAssetOptOutTransaction } from "lib/algo/transactions/AssetOptOut"
 import { toClipboard } from "lib/utils/clipboard"
@@ -58,7 +57,7 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
       throw Error("Invalid ASA ID")
     }
 
-    if (account.assets?.some(asset => asset["asset-id"] === assetId)) {
+    if (account.assets?.some(asset => asset.assetId === assetId)) {
       throw Error("Already opted-in this asset")
     }
 
@@ -156,14 +155,6 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
           <a onClick={onChangeNote}>(Add note)</a>
         </p>
       )}
-      <p>
-        Created at block:{" "}
-        <Link
-          href={`${config.algo_explorer.url}/block/${account["created-at-round"]}`}
-        >
-          {account["created-at-round"]}
-        </Link>
-      </p>
       <p>
         <Link href={`${config.algo_explorer.url}/address/${address}`}>
           See in explorer

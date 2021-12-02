@@ -1,5 +1,5 @@
 import { NetworkConfig } from "context/NetworkContext"
-import { AccountInfo, getLocalAppState, getStateUint } from "lib/algo/Account"
+import { AccountInfo, getAppLocalState, getStateUint } from "lib/algo/api"
 import { encodeBase64 } from "lib/utils/encoding"
 
 export interface PoolAssetInfo {
@@ -21,8 +21,8 @@ export function getPoolInfo(
   config: NetworkConfig
 ): PoolInfo {
   const appId = config.tinyman.validator_app_id
-  const appState = getLocalAppState(account, appId)
-  const liquidityAsset = account["created-assets"]?.[0]
+  const appState = getAppLocalState(account, appId)
+  const liquidityAsset = account.createdAssets?.[0]
 
   if (!appState || !liquidityAsset) {
     throw Error("Not a valid pool")

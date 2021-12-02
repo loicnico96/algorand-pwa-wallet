@@ -1,8 +1,8 @@
-import { AssetInfo } from "lib/algo/Asset"
 import { useContext, useState } from "react"
 import networks from "config/networks.json"
 import { createEmptyContext, ProviderProps } from "./utils"
 import algosdk from "algosdk"
+import { AssetInfo } from "lib/algo/api"
 
 export enum Network {
   MAIN = "mainnet",

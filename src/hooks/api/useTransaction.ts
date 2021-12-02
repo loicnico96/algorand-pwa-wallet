@@ -1,7 +1,7 @@
 import algosdk from "algosdk"
 import { useNetworkContext } from "context/NetworkContext"
 import { useSecurityContext } from "context/SecurityContext"
-import { PendingTransaction } from "lib/algo/Transaction"
+import { PendingTransaction } from "lib/algo/api"
 import { useCallback } from "react"
 import { mutate } from "swr"
 
@@ -31,9 +31,9 @@ export function useTransaction(): UseTransactionResult {
           .pendingTransactionInformation(transactionId)
           .do()) as PendingTransaction
 
-        if (txn["confirmed-round"]) {
-          if (txn["confirmed-round"] > round) {
-            await api.statusAfterBlock(txn["confirmed-round"]).do()
+        if (txn.confirmedRound) {
+          if (txn.confirmedRound > round) {
+            await api.statusAfterBlock(txn.confirmedRound).do()
           }
 
           // Refetch account balances
@@ -48,8 +48,8 @@ export function useTransaction(): UseTransactionResult {
           return txn as PendingTransaction
         }
 
-        if (txn["pool-error"]) {
-          throw Error(txn["pool-error"])
+        if (txn.poolError) {
+          throw Error(txn.poolError)
         }
 
         if (round >= txn.txn.txn.lv) {

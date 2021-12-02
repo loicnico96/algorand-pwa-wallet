@@ -22,7 +22,7 @@ export function StandardAsset({ amount, assetId, frozen }: StandardAssetProps) {
       frozen={frozen}
       name={asset?.params.name ?? String(assetId)}
       price={data?.price ?? NaN}
-      unit={asset?.params["unit-name"]}
+      unit={asset?.params.unitName}
       url={asset?.params.url}
     />
   )

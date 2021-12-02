@@ -1,30 +1,7 @@
 import algosdk from "algosdk"
 import { useNetworkContext } from "context/NetworkContext"
-import { AccountInfo, AccountStatus, SignatureType } from "lib/algo/Account"
-import { toError } from "lib/utils/error"
+import { AccountInfo, getAccountInfo } from "lib/algo/api"
 import { useQuery, UseQueryResult } from "./useQuery"
-
-export async function getAccountInfo(
-  indexer: algosdk.Indexer,
-  address: string
-): Promise<AccountInfo> {
-  try {
-    const { account } = await indexer.lookupAccountByID(address).do()
-    return account as AccountInfo
-  } catch (error) {
-    if (toError(error).message.match(/found/i)) {
-      return {
-        address,
-        amount: 0,
-        "amount-without-pending-rewards": 0,
-        "sig-type": SignatureType.SINGLE,
-        status: AccountStatus.EMPTY,
-      }
-    }
-
-    throw error
-  }
-}
 
 export function useAccountInfo(
   address: string | null

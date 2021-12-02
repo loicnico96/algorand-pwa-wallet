@@ -2,7 +2,7 @@ import { useCallback } from "react"
 
 import { Button } from "components/Primitives/Button"
 import { useContact } from "hooks/storage/useContact"
-import { AccountInfo } from "lib/algo/Account"
+import { AccountInfo } from "lib/algo/api"
 
 export interface ViewOtherAccountActionsProps {
   account: AccountInfo

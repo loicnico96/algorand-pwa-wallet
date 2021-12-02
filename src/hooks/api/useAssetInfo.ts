@@ -1,5 +1,6 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AssetInfo } from "lib/algo/Asset"
+import { AssetInfo } from "lib/algo/api"
+import { getAssetInfo } from "lib/algo/api/asset"
 import { useQuery, UseQueryResult } from "./useQuery"
 
 export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
@@ -7,14 +8,7 @@ export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
 
   return useQuery(
     `api/assets/${assetId}`,
-    async () => {
-      if (assetId === config.native_asset.index) {
-        return config.native_asset
-      }
-
-      const { asset } = await indexer.lookupAssetByID(assetId).do()
-      return asset as AssetInfo
-    },
+    () => getAssetInfo(indexer, config, assetId),
     {
       immutable: true,
     }

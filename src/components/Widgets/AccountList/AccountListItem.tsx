@@ -41,7 +41,7 @@ export function AccountListItem({ address, data }: AccountListItemProps) {
 
   const totalValue = prices
     ? account?.assets?.reduce((total, asset) => {
-        const priceInfo = prices[asset["asset-id"]]
+        const priceInfo = prices[asset.assetId]
         return priceInfo?.decimals
           ? total + (asset.amount * priceInfo.price) / 10 ** priceInfo.decimals
           : total
@@ -64,8 +64,8 @@ export function AccountListItem({ address, data }: AccountListItemProps) {
       </ContainerRow>
       <ContainerRow>
         {printDecimals(algoBalance, config.native_asset.params.decimals)}{" "}
-        {config.native_asset.params["unit-name"]} (
-        {algoValue?.toFixed(2) ?? "..."}$)
+        {config.native_asset.params.unitName} ({algoValue?.toFixed(2) ?? "..."}
+        $)
       </ContainerRow>
       <ContainerRow>
         {`Portfolio value: ${totalValue?.toFixed(2) ?? "..."}$`}

@@ -125,7 +125,7 @@ export function SendForm() {
 
   const algoDecimals = config.native_asset.params.decimals
   const assetDecimals = asset?.params.decimals ?? algoDecimals
-  const assetUnitName = asset?.params["unit-name"]
+  const assetUnitName = asset?.params.unitName
 
   const onSubmit = useCallback(async () => {
     if (sender !== null && receiver !== null && asset !== null) {
@@ -303,7 +303,7 @@ export function SendForm() {
               disabled
               name="balance"
               value={`${printDecimals(assetBalance, asset.params.decimals)} ${
-                asset.params["unit-name"]
+                asset.params.unitName
               }`}
             />
           </div>
@@ -315,7 +315,7 @@ export function SendForm() {
               disabled
               name="available"
               value={`${printDecimals(maxAmount, asset.params.decimals)} ${
-                asset.params["unit-name"]
+                asset.params.unitName
               }`}
             />
           </div>
@@ -327,7 +327,7 @@ export function SendForm() {
               disabled
               name="locked"
               value={`${printDecimals(senderMinBalance, algoDecimals)} ${
-                config.native_asset.params["unit-name"]
+                config.native_asset.params.unitName
               }`}
             />
           </div>
@@ -343,7 +343,7 @@ export function SendForm() {
                   ? assetBalance - amount - minFee
                   : assetBalance - amount,
                 asset.params.decimals
-              )} ${asset.params["unit-name"]}`}
+              )} ${asset.params.unitName}`}
             />
           </div>
         )}
@@ -356,7 +356,7 @@ export function SendForm() {
             disabled
             name="algo-balance"
             value={`${printDecimals(senderBalance, algoDecimals)} ${
-              config.native_asset.params["unit-name"]
+              config.native_asset.params.unitName
             }`}
           />
         </div>
@@ -366,7 +366,7 @@ export function SendForm() {
             disabled
             name="algo-fee"
             value={`${printDecimals(minFee, algoDecimals)} ${
-              config.native_asset.params["unit-name"]
+              config.native_asset.params.unitName
             }`}
           />
         </div>
@@ -380,7 +380,7 @@ export function SendForm() {
                 ? senderBalance - amount - minFee
                 : senderBalance - minFee,
               algoDecimals
-            )} ${config.native_asset.params["unit-name"]}`}
+            )} ${config.native_asset.params.unitName}`}
           />
         </div>
       </InputGroup>

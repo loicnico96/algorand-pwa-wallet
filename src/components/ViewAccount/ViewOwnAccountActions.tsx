@@ -6,7 +6,7 @@ import { toast } from "react-toastify"
 import { Button } from "components/Primitives/Button"
 import { useSecurityContext } from "context/SecurityContext"
 import { useContact } from "hooks/storage/useContact"
-import { AccountInfo } from "lib/algo/Account"
+import { AccountInfo } from "lib/algo/api"
 import { Route, RouteParam, withSearchParams } from "lib/utils/navigation"
 
 export interface ViewOwnAccountActionsProps {
