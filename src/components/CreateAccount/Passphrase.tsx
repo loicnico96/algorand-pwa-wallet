@@ -12,7 +12,7 @@ import { handleGenericError } from "lib/utils/error"
 export interface PassphaseProps {
   autoFocus?: boolean
   editable?: boolean | number[]
-  initialValues: string[]
+  defaultValues: string[]
   onSubmit: (words: string[]) => Promise<void>
 }
 
@@ -34,7 +34,7 @@ const WordInputError = styled.span`
 export function Passphrase({
   autoFocus,
   editable,
-  initialValues,
+  defaultValues,
   onSubmit,
 }: PassphaseProps) {
   const firstEditable = Array.isArray(editable) ? Math.min(...editable) : 0
@@ -49,8 +49,8 @@ export function Passphrase({
 
       return result
     }, {} as Record<string, FieldOptionsText>),
-    initialValues: FIELD_NAMES.reduce((result, name, index) => {
-      result[name] = initialValues[index]
+    defaultValues: FIELD_NAMES.reduce((result, name, index) => {
+      result[name] = defaultValues[index]
 
       return result
     }, {} as Record<string, string>),

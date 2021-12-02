@@ -22,6 +22,7 @@ import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
 import { getPoolInfo } from "lib/tinyman/pool"
 import { getSwapQuote, SwapMode } from "lib/tinyman/swap/quote"
 import { createSwapTransaction } from "lib/tinyman/swap/transaction"
+import { RouteParam } from "lib/utils/navigation"
 
 import { AccountSelect } from "./AccountSelect"
 import { AmountSelect } from "./AmountSelect"
@@ -46,21 +47,24 @@ export function SwapForm() {
   const algoId = config.native_asset.index
   const algoDecimals = config.native_asset.params.decimals
 
-  const { fieldProps, isSubmitting, isValid, setValue, submitForm, values } =
+  const { fieldProps, isSubmitting, isValid, mergeValues, submitForm, values } =
     useForm({
       fields: {
         amount: {
           min: 0,
+          query: RouteParam.AMOUNT,
           required: true,
           type: "number",
         },
         buyAssetId: {
           min: 0,
+          query: RouteParam.ASSET_ID_BUY,
           required: true,
           type: "number",
         },
         sellAssetId: {
           min: 0,
+          query: RouteParam.ASSET_ID_SELL,
           required: true,
           type: "number",
         },
@@ -68,22 +72,25 @@ export function SwapForm() {
           maxLength: ADDRESS_LENGTH,
           minLength: ADDRESS_LENGTH,
           pattern: ADDRESS_REGEX,
+          query: RouteParam.ADDRESS,
           required: true,
           type: "string",
         },
         slippage: {
           max: 10,
           min: 0,
+          query: RouteParam.SLIPPAGE,
           required: true,
           type: "number",
         },
         swapMode: {
           pattern: /^fi|fo$/,
+          query: RouteParam.SWAP_MODE,
           required: true,
           type: "string",
         },
       },
-      initialValues: {
+      defaultValues: {
         amount: 0,
         buyAssetId: algoId,
         sellAssetId: algoId,
@@ -256,10 +263,10 @@ export function SwapForm() {
                 }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("sellAssetId", value)
-                  if (values.swapMode === SwapMode.FI) {
-                    setValue("amount", 0)
-                  }
+                  mergeValues({
+                    amount: values.swapMode === SwapMode.FI ? 0 : amount,
+                    sellAssetId: value,
+                  })
                 }}
                 value={values.sellAssetId}
               />
@@ -277,8 +284,10 @@ export function SwapForm() {
                     {...fieldProps.amount}
                     decimals={sellAsset.params.decimals}
                     onChange={value => {
-                      setValue("amount", value)
-                      setValue("swapMode", SwapMode.FI)
+                      mergeValues({
+                        amount: value,
+                        swapMode: SwapMode.FI,
+                      })
                     }}
                     unit={sellAsset.params.unitName}
                     value={quote.sellAmount}
@@ -286,8 +295,10 @@ export function SwapForm() {
                   <Button
                     label="Max"
                     onClick={() => {
-                      setValue("amount", sellAmountAvailable)
-                      setValue("swapMode", SwapMode.FI)
+                      mergeValues({
+                        amount: sellAmountAvailable,
+                        swapMode: SwapMode.FI,
+                      })
                     }}
                     title="Set maximum amount"
                   />
@@ -353,12 +364,11 @@ export function SwapForm() {
             disabled={sellAssetId === buyAssetId}
             label="Swap assets"
             onClick={() => {
-              setValue("sellAssetId", buyAssetId)
-              setValue("buyAssetId", sellAssetId)
-              setValue(
-                "swapMode",
-                swapMode === SwapMode.FI ? SwapMode.FO : SwapMode.FI
-              )
+              mergeValues({
+                buyAssetId: sellAssetId,
+                sellAssetId: buyAssetId,
+                swapMode: swapMode === SwapMode.FI ? SwapMode.FO : SwapMode.FI,
+              })
             }}
           />
           <InputGroup group="buy">
@@ -375,10 +385,10 @@ export function SwapForm() {
                   }))}
                 disabled={!isValidAddress}
                 onChange={value => {
-                  setValue("buyAssetId", value)
-                  if (values.swapMode === SwapMode.FO) {
-                    setValue("amount", 0)
-                  }
+                  mergeValues({
+                    amount: swapMode === SwapMode.FO ? 0 : amount,
+                    buyAssetId: value,
+                  })
                 }}
                 value={values.buyAssetId}
               />
@@ -399,8 +409,10 @@ export function SwapForm() {
                       {...fieldProps.amount}
                       decimals={buyAsset.params.decimals}
                       onChange={value => {
-                        setValue("amount", value)
-                        setValue("swapMode", SwapMode.FO)
+                        mergeValues({
+                          amount: value,
+                          swapMode: SwapMode.FO,
+                        })
                       }}
                       unit={buyAsset.params.unitName}
                       value={quote.buyAmount}

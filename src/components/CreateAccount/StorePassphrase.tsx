@@ -20,7 +20,7 @@ export function StorePassphrase({
         share your passphrase with anyone. It will be required to restore your
         account from another device.
       </p>
-      <Passphrase autoFocus onSubmit={onNext} initialValues={passphrase} />
+      <Passphrase autoFocus onSubmit={onNext} defaultValues={passphrase} />
     </div>
   )
 }

@@ -51,7 +51,7 @@ export function ConfirmPassphrase({
       <Passphrase
         autoFocus
         editable={indexes}
-        initialValues={passphrase.map((w, i) => (indexes.includes(i) ? "" : w))}
+        defaultValues={passphrase.map((w, i) => (indexes.includes(i) ? "" : w))}
         onSubmit={onSubmit}
       />
     </div>

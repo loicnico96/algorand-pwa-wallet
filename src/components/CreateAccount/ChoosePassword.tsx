@@ -34,7 +34,7 @@ export function ChoosePassword({
         type: "string",
       },
     },
-    initialValues: {
+    defaultValues: {
       password: "",
     },
     onSubmit: async ({ password }) => {

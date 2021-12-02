@@ -19,7 +19,7 @@ export function RestorePassphrase({ onBack, onNext }: RestorePassphraseProps) {
         autoFocus
         editable
         onSubmit={onNext}
-        initialValues={EMPTY_PASSPHRASE}
+        defaultValues={EMPTY_PASSPHRASE}
       />
     </div>
   )

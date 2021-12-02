@@ -30,7 +30,7 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         type: "string",
       },
     },
-    initialValues: {
+    defaultValues: {
       name: contactData.name ?? "",
       note: contactData.note ?? "",
     },

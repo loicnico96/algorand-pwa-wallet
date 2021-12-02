@@ -14,12 +14,12 @@ export enum RouteParam {
   ADDRESS_TO = "to",
   AMOUNT = "amount",
   ASSET_ID = "asset",
-  ASSET_ID_IN = "in",
-  ASSET_ID_OUT = "out",
-  MODE = "mode",
+  ASSET_ID_BUY = "buy",
+  ASSET_ID_SELL = "sell",
   NOTE = "note",
   SLIPPAGE = "slippage",
   STEP = "step",
+  SWAP_MODE = "mode",
 }
 
 export function replaceParams<T extends { [P in RouteParam]?: string }>(

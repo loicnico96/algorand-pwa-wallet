@@ -32,7 +32,7 @@ export function PasswordModal({
         type: "string",
       },
     },
-    initialValues: {
+    defaultValues: {
       password: "",
     },
     onSubmit: async ({ password }) => {
