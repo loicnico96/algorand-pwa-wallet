@@ -2,7 +2,7 @@ import algosdk from "algosdk"
 
 import { toError } from "lib/utils/error"
 
-import { AccountInfo, AppLocalState, AccountStatus } from "./model"
+import { AccountInfo, AccountStatus } from "./model"
 import { getIndexerQuery } from "./query"
 
 export async function getAccountInfo(
@@ -32,17 +32,46 @@ export async function getAccountInfo(
   }
 }
 
-export function getAppLocalState(
+export function getCreatedApplications(account: AccountInfo): number[] {
+  return account.createdApps?.map(app => app.id) ?? []
+}
+
+export function getCreatedAssets(account: AccountInfo): number[] {
+  return account.createdAssets?.map(asset => asset.index) ?? []
+}
+
+export function getNonZeroAssets(account: AccountInfo): number[] {
+  return (
+    account.assets
+      ?.filter(asset => asset.amount > 0)
+      .map(asset => asset.assetId) ?? []
+  )
+}
+
+export function getOptedInApplications(account: AccountInfo): number[] {
+  return account.appsLocalState?.map(appState => appState.id) ?? []
+}
+
+export function getOptedInAssets(account: AccountInfo): number[] {
+  return account.assets?.map(asset => asset.assetId) ?? []
+}
+
+export function hasOptedInApplication(
   account: AccountInfo,
   appId: number
-): AppLocalState | null {
-  return account.appsLocalState?.find(state => state.id === appId) ?? null
+): boolean {
+  return (
+    account.appsLocalState?.some(appState => appState.id === appId) ?? false
+  )
 }
 
-export function getStateBytes(state: AppLocalState, key: string): string {
-  return state.keyValue?.find(kv => kv.key === key)?.value.bytes ?? ""
+export function hasOptedInAsset(
+  account: AccountInfo,
+  assetId: number
+): boolean {
+  return account.assets?.some(asset => asset.assetId === assetId) ?? false
 }
 
-export function getStateUint(state: AppLocalState, key: string): number {
-  return state.keyValue?.find(kv => kv.key === key)?.value.uint ?? 0
+export function isEmpty(account: AccountInfo): boolean {
+  return account.status === AccountStatus.EMPTY
 }

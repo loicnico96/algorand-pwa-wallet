@@ -1,6 +1,5 @@
 import { useNetworkContext } from "context/NetworkContext"
-import { AssetInfo } from "lib/algo/api"
-import { getAssetInfo } from "lib/algo/api/asset"
+import { AssetInfo, getAssetInfo } from "lib/algo/api"
 import { useQuery, UseQueryResult } from "./useQuery"
 
 export function useAssetInfo(assetId: number): UseQueryResult<AssetInfo> {
