@@ -7,8 +7,10 @@ import { useTransaction } from "hooks/api/useTransaction"
 import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo, AssetInfo } from "lib/algo/api"
-import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
-import { createAssetOptOutTransaction } from "lib/algo/transactions/AssetOptOut"
+import {
+  createAssetOptInTransaction,
+  createAssetOptOutTransaction,
+} from "lib/algo/transactions"
 import { toClipboard } from "lib/utils/clipboard"
 
 import { StandardAsset } from "./StandardAsset"

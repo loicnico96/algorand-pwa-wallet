@@ -1,4 +1,15 @@
-import { getPoolReserves, PoolInfo } from "../pool"
+import { SuggestedParams } from "algosdk"
+
+import { NetworkConfig } from "context/NetworkContext"
+import {
+  createApplicationCallTransaction,
+  createAssetTransferTransaction,
+  createTransactionGroup,
+  TransactionGroup,
+} from "lib/algo/transactions"
+
+import { signPoolTransaction } from "./logicsig"
+import { getPoolReserves, PoolInfo } from "./pool"
 
 export const SWAP_FEE = 0.003
 
@@ -33,6 +44,13 @@ export interface SwapQuote {
   sellRate: number
   sellReserves: number
   swapMode: SwapMode
+}
+
+export interface SwapTransactionParams {
+  params: SuggestedParams
+  pool: PoolInfo
+  quote: SwapQuote
+  sender: string
 }
 
 export function getSwapQuote({
@@ -91,4 +109,51 @@ export function getSwapQuote({
     sellReserves,
     swapMode,
   }
+}
+
+export function createSwapTransaction(
+  config: NetworkConfig,
+  { params, pool, quote, sender }: SwapTransactionParams
+): TransactionGroup {
+  // https://docs.tinyman.org/integration/transactions/swap
+  const transactionGroup = createTransactionGroup(
+    // 0. Payment of transaction fees from sender to pool
+    createAssetTransferTransaction(config, {
+      amount: config.params.MinTxnFee * 2,
+      assetId: config.native_asset.index,
+      params,
+      receiver: pool.address,
+      sender,
+    }),
+    // 1. NoOp application call of Tinyman main validator
+    createApplicationCallTransaction({
+      applicationId: config.tinyman.validator_app_id,
+      args: ["swap", quote.swapMode],
+      foreignAccounts: [sender],
+      foreignAssets: [pool.asset1.id, pool.asset2.id, pool.liquidity.id].filter(
+        assetId => assetId !== config.native_asset.index
+      ),
+      params,
+      sender: pool.address,
+    }),
+    // 2. Transfer of asset from sender to pool
+    createAssetTransferTransaction(config, {
+      amount: quote.sellAmountMax,
+      assetId: quote.sellAssetId,
+      params,
+      receiver: pool.address,
+      sender,
+    }),
+    // 3. Transfer of asset from pool to sender
+    createAssetTransferTransaction(config, {
+      amount: quote.buyAmountMin,
+      assetId: quote.buyAssetId,
+      params,
+      receiver: sender,
+      sender: pool.address,
+    })
+  )
+
+  // Sign pool transactions with smart signature
+  return signPoolTransaction(transactionGroup, pool, config)
 }

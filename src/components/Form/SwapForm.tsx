@@ -16,12 +16,13 @@ import {
   hasOptedInApplication,
   hasOptedInAsset,
 } from "lib/algo/api"
-import { createApplicationOptInTransaction } from "lib/algo/transactions/ApplicationOptIn"
-import { createApplicationOptOutTransaction } from "lib/algo/transactions/ApplicationOptOut"
-import { createAssetOptInTransaction } from "lib/algo/transactions/AssetOptIn"
+import {
+  createApplicationOptInTransaction,
+  createApplicationOptOutTransaction,
+  createAssetOptInTransaction,
+} from "lib/algo/transactions"
 import { getPoolInfo } from "lib/tinyman/pool"
-import { getSwapQuote, SwapMode } from "lib/tinyman/swap/quote"
-import { createSwapTransaction } from "lib/tinyman/swap/transaction"
+import { createSwapTransaction, getSwapQuote, SwapMode } from "lib/tinyman/swap"
 import { RouteParam } from "lib/utils/navigation"
 
 import { AccountSelect } from "./AccountSelect"

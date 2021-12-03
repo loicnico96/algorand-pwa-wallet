@@ -2,6 +2,7 @@ import algosdk from "algosdk"
 
 import tinymanContractsV1 from "config/tinyman-contracts-v1.json"
 import { NetworkConfig } from "context/NetworkContext"
+import { signTransactionGroup, TransactionGroup } from "lib/algo/transactions"
 
 import { PoolInfo } from "./pool"
 
@@ -28,8 +29,8 @@ export function encodeUint(value: number): number[] {
 }
 
 export function getPoolLogicSig(
-  config: NetworkConfig,
-  pool: PoolInfo
+  pool: PoolInfo,
+  config: NetworkConfig
 ): algosdk.LogicSigAccount {
   const values: Record<string, number> = {
     TMPL_ASSET_ID_1: pool.asset1.id,
@@ -57,4 +58,19 @@ export function getPoolLogicSig(
   const bytes = Uint8Array.from(program)
 
   return new algosdk.LogicSigAccount(bytes)
+}
+
+export function signPoolTransaction(
+  transactionGroup: TransactionGroup,
+  pool: PoolInfo,
+  config: NetworkConfig
+): TransactionGroup {
+  const logicSig = getPoolLogicSig(pool, config)
+  const logicSigAddress = logicSig.address()
+
+  if (logicSigAddress !== pool.address) {
+    throw Error("Invalid transaction")
+  }
+
+  return signTransactionGroup(transactionGroup, logicSigAddress, logicSig)
 }

@@ -7,7 +7,7 @@ import {
   getTransactionSigner,
   signTransaction,
   TransactionGroup,
-} from "lib/algo/transactions/TransactionGroup"
+} from "lib/algo/transactions"
 import { toError } from "lib/utils/error"
 import { createLogger } from "lib/utils/logger"
 import { isArray } from "lib/utils/types"
