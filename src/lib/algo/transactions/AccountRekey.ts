@@ -19,9 +19,3 @@ export function createAccountRekeyTransaction({
     to: sender,
   })
 }
-
-createAccountRekeyTransaction({
-  params: {} as any,
-  rekeyTo: null,
-  sender: "sender",
-})

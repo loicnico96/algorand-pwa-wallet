@@ -1,4 +1,5 @@
 import algosdk from "algosdk"
+import { useMemo } from "react"
 
 import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
@@ -13,6 +14,7 @@ import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContacts } from "hooks/storage/useContacts"
 import {
   getAccountInfo,
+  getAppLocalState,
   hasOptedInApplication,
   hasOptedInAsset,
 } from "lib/algo/api"
@@ -22,7 +24,13 @@ import {
   createAssetOptInTransaction,
 } from "lib/algo/transactions"
 import { getPoolInfo } from "lib/tinyman/pool"
+import {
+  createRedeemTransaction,
+  ExcessAmount,
+  getExcessAmounts,
+} from "lib/tinyman/redeem"
 import { createSwapTransaction, getSwapQuote, SwapMode } from "lib/tinyman/swap"
+import { printDecimals } from "lib/utils/int"
 import { RouteParam } from "lib/utils/navigation"
 
 import { AccountSelect } from "./AccountSelect"
@@ -174,6 +182,17 @@ export function SwapForm() {
 
   const validatorAppId = config.tinyman.validator_app_id
 
+  const excessAmounts = useMemo(() => {
+    if (accountInfo) {
+      const state = getAppLocalState(accountInfo, validatorAppId)
+      if (state) {
+        return getExcessAmounts(state)
+      }
+    }
+
+    return null
+  }, [accountInfo, validatorAppId])
+
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
 
   const isAbleToSubmit =
@@ -220,6 +239,21 @@ export function SwapForm() {
     const transaction = createApplicationOptOutTransaction({
       applicationId: validatorAppId,
       params,
+      sender: values.sender,
+    })
+
+    await sendTransaction(transaction)
+  }
+
+  const onRedeemExcessAmount = async (excessAmount: ExcessAmount) => {
+    const account = await getAccountInfo(indexer, excessAmount.poolId)
+    const params = await refetchParams()
+
+    const transaction = createRedeemTransaction(config, {
+      amount: excessAmount.amount,
+      assetId: excessAmount.assetId,
+      params,
+      pool: getPoolInfo(account, config),
       sender: values.sender,
     })
 
@@ -575,6 +609,20 @@ export function SwapForm() {
           label={`Opt in ${buyAsset.params.name}`}
           onClick={() => onOptInAsset(buyAssetId)}
         />
+      )}
+      {excessAmounts && (
+        <div>
+          {excessAmounts.map(excessAmount => (
+            <Button
+              key={`${excessAmount.poolId}e${excessAmount.assetId}`}
+              label={`Redeem ${printDecimals(
+                excessAmount.amount,
+                prices?.[excessAmount.assetId]?.decimals ?? 0
+              )} ${prices?.[excessAmount.assetId]?.unit_name}`}
+              onClick={() => onRedeemExcessAmount(excessAmount)}
+            />
+          ))}
+        </div>
       )}
     </Form>
   )

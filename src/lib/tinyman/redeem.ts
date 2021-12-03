@@ -1,17 +1,19 @@
-import { SuggestedParams } from "algosdk"
+import algosdk, { SuggestedParams } from "algosdk"
 
 import { NetworkConfig } from "context/NetworkContext"
+import { AppLocalState } from "lib/algo/api"
 import {
   createApplicationCallTransaction,
   createAssetTransferTransaction,
   createTransactionGroup,
   TransactionGroup,
 } from "lib/algo/transactions"
+import { decodeBase64 } from "lib/utils/encoding"
 
 import { signPoolTransaction } from "./logicsig"
 import { PoolInfo } from "./pool"
 
-export interface SwapTransactionParams {
+export interface RedeemTransactionParams {
   amount: number
   assetId: number
   params: SuggestedParams
@@ -19,9 +21,27 @@ export interface SwapTransactionParams {
   sender: string
 }
 
+export interface ExcessAmount {
+  amount: number
+  assetId: number
+  poolId: string
+}
+
+export function getExcessAmounts(appState: AppLocalState): ExcessAmount[] {
+  return (
+    appState.keyValue?.map(entry => {
+      const key = decodeBase64(entry.key)
+      const amount = entry.value.uint
+      const poolId = algosdk.encodeAddress(key.slice(0, 32))
+      const assetId = Number(key.readBigUInt64BE(33))
+      return { amount, assetId, poolId }
+    }) ?? []
+  )
+}
+
 export function createRedeemTransaction(
   config: NetworkConfig,
-  { amount, assetId, params, pool, sender }: SwapTransactionParams
+  { amount, assetId, params, pool, sender }: RedeemTransactionParams
 ): TransactionGroup {
   // https://docs.tinyman.org/integration/transactions/redeem
   const transactionGroup = createTransactionGroup(
@@ -38,7 +58,9 @@ export function createRedeemTransaction(
       applicationId: config.tinyman.validator_app_id,
       args: ["redeem"],
       foreignAccounts: [sender],
-      foreignAssets: [assetId].filter(id => id !== config.native_asset.index),
+      foreignAssets: [pool.asset1.id, pool.asset2.id, pool.liquidity.id].filter(
+        id => id !== config.native_asset.index
+      ),
       params,
       sender: pool.address,
     }),
