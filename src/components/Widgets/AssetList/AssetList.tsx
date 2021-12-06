@@ -25,7 +25,7 @@ export function AssetList({ assets, onOptIn, onOptOut }: AssetListProps) {
         <AssetListItem asset={asset} key={asset.assetId} onOptOut={onOptOut} />
       ))}
       {onOptIn && (
-        <Card title="Add a new Standard Asset" onClick={onOptIn}>
+        <Card title="Add new Standard Asset" onClick={onOptIn}>
           Add
         </Card>
       )}

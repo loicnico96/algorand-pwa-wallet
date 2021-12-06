@@ -1,6 +1,8 @@
-import { useCallback } from "react"
+import { useCallback, useState } from "react"
 
+import { Interactive } from "components/Primitives/Interactive"
 import { Link } from "components/Primitives/Link"
+import { AppList } from "components/Widgets/AppList"
 import { AssetList } from "components/Widgets/AssetList"
 import { useNetworkContext } from "context/NetworkContext"
 import { useTransaction } from "hooks/api/useTransaction"
@@ -8,6 +10,8 @@ import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useContact } from "hooks/storage/useContact"
 import { AccountInfo, AssetInfo } from "lib/algo/api"
 import {
+  createApplicationOptInTransaction,
+  createApplicationOptOutTransaction,
   createAssetOptInTransaction,
   createAssetOptOutTransaction,
 } from "lib/algo/transactions"
@@ -19,12 +23,19 @@ export type AccountDetailsProps = {
   account: AccountInfo
 }
 
+export enum AccountDetailsTab {
+  APPLICATIONS = "applications",
+  ASSETS = "assets",
+}
+
 export default function AccountDetails({ account }: AccountDetailsProps) {
   const { address } = account
   const { data: contactData, updateContact } = useContact(address)
   const { config } = useNetworkContext()
   const { sendTransaction } = useTransaction()
   const { refetch: refetchParams } = useTransactionParams()
+
+  const [tab, setTab] = useState(AccountDetailsTab.ASSETS)
 
   const onChangeName = useCallback(async () => {
     // eslint-disable-next-line no-alert
@@ -44,7 +55,51 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
     }
   }, [contactData, updateContact])
 
-  const onOptIn = useCallback(async () => {
+  const onAppOptIn = useCallback(async () => {
+    // eslint-disable-next-line no-alert
+    const appIdStr = window.prompt("Enter dApp address:")
+    if (appIdStr === null) {
+      return
+    }
+
+    const appId = Number.parseInt(appIdStr, 10)
+
+    if (Number.isNaN(appId) || appId < 0) {
+      throw Error("Invalid dApp address")
+    }
+
+    if (account.appsLocalState?.some(state => state.id === appId)) {
+      throw Error("Already opted-in this dApp")
+    }
+
+    const params = await refetchParams()
+
+    const transaction = createApplicationOptInTransaction({
+      applicationId: appId,
+      params,
+      sender: account.address,
+    })
+
+    await sendTransaction(transaction)
+  }, [account, refetchParams, sendTransaction])
+
+  const onAppOptOut = useCallback(
+    async (appId: number, force?: boolean) => {
+      const params = await refetchParams()
+
+      const transaction = createApplicationOptOutTransaction({
+        applicationId: appId,
+        force,
+        params,
+        sender: account.address,
+      })
+
+      await sendTransaction(transaction)
+    },
+    [account, refetchParams, sendTransaction]
+  )
+
+  const onAssetOptIn = useCallback(async () => {
     // eslint-disable-next-line no-alert
     const assetIdStr = window.prompt("Enter ASA ID:")
     if (assetIdStr === null) {
@@ -72,7 +127,7 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
     await sendTransaction(transaction)
   }, [account, config, refetchParams, sendTransaction])
 
-  const onOptOut = useCallback(
+  const onAssetOptOut = useCallback(
     async (assetId: number, assetInfo: AssetInfo) => {
       const params = await refetchParams()
 
@@ -119,16 +174,42 @@ export default function AccountDetails({ account }: AccountDetailsProps) {
         </Link>
       </p>
       <div>
-        <StandardAsset
-          assetId={config.native_asset.index}
-          amount={account.amount}
-        />
+        <Interactive
+          onClick={() => setTab(AccountDetailsTab.ASSETS)}
+          style={{
+            fontWeight: tab === AccountDetailsTab.ASSETS ? "bold" : undefined,
+          }}
+        >
+          Assets
+        </Interactive>
+        <Interactive
+          onClick={() => setTab(AccountDetailsTab.APPLICATIONS)}
+          style={{
+            fontWeight:
+              tab === AccountDetailsTab.APPLICATIONS ? "bold" : undefined,
+          }}
+        >
+          Applications
+        </Interactive>
       </div>
-      <AssetList
-        assets={account.assets ?? []}
-        onOptIn={onOptIn}
-        onOptOut={onOptOut}
+      <StandardAsset
+        assetId={config.native_asset.index}
+        amount={account.amount}
       />
+      {tab === AccountDetailsTab.ASSETS && (
+        <AssetList
+          assets={account.assets ?? []}
+          onOptIn={onAssetOptIn}
+          onOptOut={onAssetOptOut}
+        />
+      )}
+      {tab === AccountDetailsTab.APPLICATIONS && (
+        <AppList
+          apps={account.appsLocalState ?? []}
+          onOptIn={onAppOptIn}
+          onOptOut={onAppOptOut}
+        />
+      )}
     </div>
   )
 }
