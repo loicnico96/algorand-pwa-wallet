@@ -208,7 +208,7 @@ export function SwapForm() {
     quote.buyAmountMin <= quote.buyReserves &&
     excessAmounts.length < MAX_EXCESS_AMOUNTS &&
     hasOptedInApplication(accountInfo, validatorAppId) &&
-    hasOptedInAsset(accountInfo, buyAssetId)
+    (buyAssetId === algoId || hasOptedInAsset(accountInfo, buyAssetId))
 
   const onOptInApplication = async () => {
     const params = await refetchParams()
@@ -603,7 +603,7 @@ export function SwapForm() {
         )}
       {accountInfo &&
         (hasOptedInApplication(accountInfo, validatorAppId) ? (
-          hasOptedInAsset(accountInfo, buyAssetId) ? (
+          buyAssetId === algoId || hasOptedInAsset(accountInfo, buyAssetId) ? (
             <Button
               disabled={!isAbleToSubmit}
               label="Swap"
