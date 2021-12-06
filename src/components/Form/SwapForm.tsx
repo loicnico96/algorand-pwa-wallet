@@ -1,8 +1,9 @@
 import algosdk from "algosdk"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 
 import { Button } from "components/Primitives/Button"
 import { Link } from "components/Primitives/Link"
+import { RedeemExcessModal } from "components/Swap/ExcessAmount/RedeemExcessModal"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -220,6 +221,8 @@ export function SwapForm() {
     await sendTransaction(transaction)
   }
 
+  const [modal, setModal] = useState<"RedeemExcessModal">()
+
   const onOptInAsset = async (assetId: number) => {
     const params = await refetchParams()
     const transaction = createAssetOptInTransaction(config, {
@@ -254,6 +257,12 @@ export function SwapForm() {
             fee.
           </div>
         )}
+        <RedeemExcessModal
+          address={sender}
+          amounts={excessAmounts}
+          isOpen={modal === "RedeemExcessModal"}
+          onClose={() => setModal(undefined)}
+        />
         {accountInfo &&
           excessAmounts.length > 0 &&
           (excessAmounts.length < MAX_EXCESS_AMOUNTS ? (
@@ -262,6 +271,10 @@ export function SwapForm() {
               <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
                 Learn more.
               </Link>
+              <Button
+                label="Redeem"
+                onClick={() => setModal("RedeemExcessModal")}
+              />
             </div>
           ) : (
             <div style={{ color: "red" }}>
@@ -269,6 +282,10 @@ export function SwapForm() {
               <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
                 Learn more.
               </Link>
+              <Button
+                label="Redeem"
+                onClick={() => setModal("RedeemExcessModal")}
+              />
             </div>
           ))}
       </InputGroup>

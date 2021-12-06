@@ -43,7 +43,12 @@ export function PasswordModal({
   }, [onConfirm, resetForm, values])
 
   return (
-    <Modal isOpen={isOpen} onAfterOpen={resetForm} onRequestClose={onClose}>
+    <Modal
+      isOpen={isOpen}
+      onAfterOpen={resetForm}
+      onRequestClose={onClose}
+      style={{ overlay: { zIndex: 6000 } }}
+    >
       <Form>
         <InputLabel name="password">
           {reason ?? "Enter your password"} (6 digits):
