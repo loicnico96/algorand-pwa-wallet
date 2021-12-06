@@ -1,7 +1,7 @@
 import { useCallback } from "react"
-import Modal from "react-modal"
 
 import { Card } from "components/Primitives/Card"
+import { Modal } from "components/Primitives/Modal"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAssetPrices } from "hooks/api/useAssetPrices"
 import { useTransaction } from "hooks/api/useTransaction"
@@ -15,11 +15,11 @@ export interface RedeemExcessModalProps {
   address: string
   amounts: ExcessAmount[]
   isOpen: boolean
-  onClose: () => void
+  close: () => void
 }
 
 export function RedeemExcessModal(props: RedeemExcessModalProps) {
-  const { address, amounts, isOpen, onClose } = props
+  const { address, amounts, isOpen, close } = props
 
   const { config, indexer } = useNetworkContext()
   const { data: prices } = useAssetPrices()
@@ -46,7 +46,7 @@ export function RedeemExcessModal(props: RedeemExcessModalProps) {
   )
 
   return (
-    <Modal isOpen={isOpen} onRequestClose={onClose}>
+    <Modal isOpen={isOpen} name="excess-amount" onClose={close} zIndex={3000}>
       <div>You have {amounts.length} excess amounts to redeem.</div>
       {amounts.map(amount => {
         const assetPrice = prices?.[amount.assetId]

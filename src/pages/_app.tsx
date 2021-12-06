@@ -1,15 +1,13 @@
 import { AppProps } from "next/app"
-import Modal from "react-modal"
 
 import { ErrorBoundary } from "components/ErrorBoundary"
+import { ModalProvider } from "context/ModalContext"
 import { Network, NetworkContextProvider } from "context/NetworkContext"
 import { SecurityContextProvider } from "context/SecurityContext"
 import { StorageContextProvider } from "context/StorageContext"
 import { ThemeProvider } from "context/theme/ThemeProvider"
 import { ToastProvider } from "context/ToastContext"
 import { useServiceWorker } from "hooks/useServiceWorker"
-
-Modal.setAppElement("#__next")
 
 export default function App({ Component, pageProps }: AppProps) {
   useServiceWorker()
@@ -18,13 +16,15 @@ export default function App({ Component, pageProps }: AppProps) {
     <ErrorBoundary>
       <ThemeProvider>
         <ToastProvider>
-          <NetworkContextProvider defaultNetwork={Network.TEST}>
-            <StorageContextProvider>
-              <SecurityContextProvider>
-                <Component {...pageProps} />
-              </SecurityContextProvider>
-            </StorageContextProvider>
-          </NetworkContextProvider>
+          <ModalProvider>
+            <NetworkContextProvider defaultNetwork={Network.TEST}>
+              <StorageContextProvider>
+                <SecurityContextProvider>
+                  <Component {...pageProps} />
+                </SecurityContextProvider>
+              </StorageContextProvider>
+            </NetworkContextProvider>
+          </ModalProvider>
         </ToastProvider>
       </ThemeProvider>
     </ErrorBoundary>

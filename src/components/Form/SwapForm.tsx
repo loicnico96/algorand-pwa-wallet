@@ -1,8 +1,9 @@
 import algosdk from "algosdk"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 
 import { Button } from "components/Primitives/Button"
 import { Link } from "components/Primitives/Link"
+import { useModal } from "components/Primitives/Modal"
 import { RedeemExcessModal } from "components/Swap/ExcessAmount/RedeemExcessModal"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
@@ -191,6 +192,8 @@ export function SwapForm() {
     return []
   }, [accountInfo, validatorAppId])
 
+  const modal = useModal("excess-amount")
+
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
 
   const isAbleToSubmit =
@@ -220,8 +223,6 @@ export function SwapForm() {
 
     await sendTransaction(transaction)
   }
-
-  const [modal, setModal] = useState<"RedeemExcessModal">()
 
   const onOptInAsset = async (assetId: number) => {
     const params = await refetchParams()
@@ -258,10 +259,9 @@ export function SwapForm() {
           </div>
         )}
         <RedeemExcessModal
+          {...modal}
           address={sender}
           amounts={excessAmounts}
-          isOpen={modal === "RedeemExcessModal"}
-          onClose={() => setModal(undefined)}
         />
         {accountInfo &&
           excessAmounts.length > 0 &&
@@ -271,10 +271,7 @@ export function SwapForm() {
               <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
                 Learn more.
               </Link>
-              <Button
-                label="Redeem"
-                onClick={() => setModal("RedeemExcessModal")}
-              />
+              <Button label="Redeem" onClick={() => modal.open()} />
             </div>
           ) : (
             <div style={{ color: "red" }}>
@@ -282,10 +279,7 @@ export function SwapForm() {
               <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
                 Learn more.
               </Link>
-              <Button
-                label="Redeem"
-                onClick={() => setModal("RedeemExcessModal")}
-              />
+              <Button label="Redeem" onClick={() => modal.open()} />
             </div>
           ))}
       </InputGroup>

@@ -1,5 +1,4 @@
 import { useCallback } from "react"
-import Modal from "react-modal"
 
 import { PASSWORD_LENGTH, PASSWORD_REGEX } from "lib/utils/auth"
 
@@ -8,19 +7,21 @@ import { InputLabel } from "./Form/Primitives/InputLabel"
 import { InputPassword } from "./Form/Primitives/InputPassword"
 import { useForm } from "./Form/Primitives/useForm"
 import { Button } from "./Primitives/Button"
+import { Modal } from "./Primitives/Modal"
 
 export interface PasswordModalProps {
   isOpen: boolean
   onConfirm: (password: string) => unknown
   onClose: () => unknown
   reason?: string
+  zIndex: number
 }
 
 export function PasswordModal({
   onClose,
   onConfirm,
-  isOpen,
   reason,
+  ...modal
 }: PasswordModalProps) {
   const { fieldProps, isValid, resetForm, values } = useForm({
     fields: {
@@ -43,12 +44,7 @@ export function PasswordModal({
   }, [onConfirm, resetForm, values])
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onAfterOpen={resetForm}
-      onRequestClose={onClose}
-      style={{ overlay: { zIndex: 6000 } }}
-    >
+    <Modal {...modal} name="password" onAfterOpen={resetForm} onClose={onClose}>
       <Form>
         <InputLabel name="password">
           {reason ?? "Enter your password"} (6 digits):

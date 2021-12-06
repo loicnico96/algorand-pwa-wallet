@@ -1,5 +1,6 @@
 import AppStorage from "@randlabs/encrypted-local-storage"
 import { PasswordModal } from "components/PasswordModal"
+import { useModal } from "components/Primitives/Modal"
 import { useContext, useMemo, useState } from "react"
 import { createEmptyContext, ProviderProps } from "./utils"
 
@@ -26,6 +27,8 @@ export const SecurityContext = createEmptyContext<SecurityContextValue>()
 export function SecurityContextProvider({ children }: ProviderProps) {
   const [modalState, setModalState] = useState<PasswordModalState>()
 
+  const modal = useModal("password")
+
   const value = useMemo<SecurityContextValue>(() => {
     async function requestPassword<T>(
       reason: string,
@@ -42,6 +45,7 @@ export function SecurityContextProvider({ children }: ProviderProps) {
           },
           reason,
         })
+        modal.open()
       })
     }
 
@@ -95,6 +99,7 @@ export function SecurityContextProvider({ children }: ProviderProps) {
       changePassword,
       getPrivateKey,
       hasPrivateKey,
+      modal,
       removePrivateKey,
     }
   }, [])
@@ -102,14 +107,16 @@ export function SecurityContextProvider({ children }: ProviderProps) {
   return (
     <SecurityContext.Provider value={value}>
       <PasswordModal
-        isOpen={!!modalState}
+        {...modal}
         onClose={() => {
           modalState?.onClose()
           setModalState(undefined)
+          modal.close()
         }}
         onConfirm={async password => {
           await modalState?.onConfirm(password)
           setModalState(undefined)
+          modal.close()
         }}
         reason={modalState?.reason}
       />
