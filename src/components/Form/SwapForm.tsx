@@ -2,6 +2,7 @@ import algosdk from "algosdk"
 import { useMemo } from "react"
 
 import { Button } from "components/Primitives/Button"
+import { Link } from "components/Primitives/Link"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -20,15 +21,10 @@ import {
 } from "lib/algo/api"
 import {
   createApplicationOptInTransaction,
-  createApplicationOptOutTransaction,
   createAssetOptInTransaction,
 } from "lib/algo/transactions"
 import { getPoolInfo } from "lib/tinyman/pool"
-import {
-  createRedeemTransaction,
-  ExcessAmount,
-  getExcessAmounts,
-} from "lib/tinyman/redeem"
+import { getExcessAmounts } from "lib/tinyman/redeem"
 import { createSwapTransaction, getSwapQuote, SwapMode } from "lib/tinyman/swap"
 import { printDecimals } from "lib/utils/int"
 import { RouteParam } from "lib/utils/navigation"
@@ -47,6 +43,7 @@ import { useForm } from "./Primitives/useForm"
 
 export const ADDRESS_LENGTH = 58
 export const ADDRESS_REGEX = /^[A-Z2-7]{58}$/
+export const MAX_EXCESS_AMOUNTS = 16
 
 export function SwapForm() {
   const { config, indexer } = useNetworkContext()
@@ -191,7 +188,7 @@ export function SwapForm() {
       }
     }
 
-    return null
+    return []
   }, [accountInfo, validatorAppId])
 
   const isAbleToPayFee = algoBalance - algoMinBalance >= algoFee
@@ -209,10 +206,11 @@ export function SwapForm() {
     quote.sellAssetId !== quote.buyAssetId &&
     quote.buyAmountMin > 0 &&
     quote.buyAmountMin <= quote.buyReserves &&
+    excessAmounts.length < MAX_EXCESS_AMOUNTS &&
     hasOptedInApplication(accountInfo, validatorAppId) &&
     hasOptedInAsset(accountInfo, buyAssetId)
 
-  const onOptIn = async () => {
+  const onOptInApplication = async () => {
     const params = await refetchParams()
     const transaction = createApplicationOptInTransaction({
       applicationId: validatorAppId,
@@ -228,33 +226,6 @@ export function SwapForm() {
     const transaction = createAssetOptInTransaction(config, {
       assetId,
       params,
-      sender: values.sender,
-    })
-
-    await sendTransaction(transaction)
-  }
-
-  const onOptOut = async () => {
-    const params = await refetchParams()
-
-    const transaction = createApplicationOptOutTransaction({
-      applicationId: validatorAppId,
-      params,
-      sender: values.sender,
-    })
-
-    await sendTransaction(transaction)
-  }
-
-  const onRedeemExcessAmount = async (excessAmount: ExcessAmount) => {
-    const account = await getAccountInfo(indexer, excessAmount.poolId)
-    const params = await refetchParams()
-
-    const transaction = createRedeemTransaction(config, {
-      amount: excessAmount.amount,
-      assetId: excessAmount.assetId,
-      params,
-      pool: getPoolInfo(account, config),
       sender: values.sender,
     })
 
@@ -278,12 +249,29 @@ export function SwapForm() {
         {!!values.sender && !isValidAddress && (
           <div style={{ color: "red" }}>Invalid address.</div>
         )}
-        {!!accountInfo && !isAbleToPayFee && (
+        {accountInfo && !isAbleToPayFee && (
           <div style={{ color: "red" }}>
             Not enough {config.native_asset.params.name}s to cover transaction
             fee.
           </div>
         )}
+        {accountInfo &&
+          excessAmounts.length > 0 &&
+          (excessAmounts.length < MAX_EXCESS_AMOUNTS ? (
+            <div style={{ color: "orange" }}>
+              You have {excessAmounts.length} excess amounts to redeem.{" "}
+              <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
+                Learn more.
+              </Link>
+            </div>
+          ) : (
+            <div style={{ color: "red" }}>
+              You have {excessAmounts.length} excess amounts to redeem.{" "}
+              <Link href="https://docs.tinyman.org/tinyman-amm-basics/slippage-and-excess">
+                Learn more.
+              </Link>
+            </div>
+          ))}
       </InputGroup>
       {isValidAddress && isAbleToPayFee && (
         <>
@@ -597,44 +585,70 @@ export function SwapForm() {
             </div>
           </InputGroup>
         )}
-      <FormSubmit disabled={isSubmitting || !isAbleToSubmit} label="Swap" />
-      {accountInfo && (
-        <div>
-          {hasOptedInApplication(accountInfo, validatorAppId) ? (
-            <Button
-              label="Opt out"
-              onClick={onOptOut}
-              title="Opt out of Tinyman application"
+      {accountInfo &&
+        (hasOptedInApplication(accountInfo, validatorAppId) ? (
+          hasOptedInAsset(accountInfo, buyAssetId) ? (
+            <FormSubmit
+              disabled={isSubmitting || !isAbleToSubmit}
+              label="Swap"
             />
           ) : (
+            <>
+              <Button
+                disabled={
+                  algoBalance -
+                    algoMinBalance -
+                    config.params.MinTxnFee -
+                    config.params.MinBalance <
+                  0
+                }
+                label="Opt in"
+                onClick={() => onOptInAsset(buyAssetId)}
+                title={`Opt in to ${buyAsset?.params.name ?? "asset"}`}
+              />
+              <div style={{ color: "red" }}>
+                Before swapping for an asset, you must opt in to it. This is a
+                one-time action that will increase your minimum balance by{" "}
+                {printDecimals(config.params.MinBalance, algoDecimals)}{" "}
+                {config.native_asset.params.unitName}. You can opt out from the
+                Asset list.
+              </div>
+            </>
+          )
+        ) : (
+          <>
             <Button
+              disabled={
+                algoBalance -
+                  algoMinBalance -
+                  config.params.MinTxnFee -
+                  config.params.AppFlatOptInMinBalance -
+                  (config.params.SchemaMinBalancePerEntry +
+                    config.params.SchemaUintMinBalance) *
+                    16 <
+                0
+              }
               label="Opt in"
-              onClick={onOptIn}
+              onClick={onOptInApplication}
               title="Opt in to Tinyman application"
             />
-          )}
-        </div>
-      )}
-      {accountInfo && buyAsset && !hasOptedInAsset(accountInfo, buyAssetId) && (
-        <Button
-          label={`Opt in ${buyAsset.params.name}`}
-          onClick={() => onOptInAsset(buyAssetId)}
-        />
-      )}
-      {excessAmounts && (
-        <div>
-          {excessAmounts.map(excessAmount => (
-            <Button
-              key={`${excessAmount.poolId}e${excessAmount.assetId}`}
-              label={`Redeem ${printDecimals(
-                excessAmount.amount,
-                prices?.[excessAmount.assetId]?.decimals ?? 0
-              )} ${prices?.[excessAmount.assetId]?.unit_name}`}
-              onClick={() => onRedeemExcessAmount(excessAmount)}
-            />
-          ))}
-        </div>
-      )}
+            <div style={{ color: "red" }}>
+              Before using the Swap functionality, you must opt in to the{" "}
+              <Link href="https://tinyman.org">Tinyman</Link> smart contract.
+              This is a one-time action that will increase your minimum balance
+              by{" "}
+              {printDecimals(
+                config.params.AppFlatOptInMinBalance +
+                  (config.params.SchemaMinBalancePerEntry +
+                    config.params.SchemaUintMinBalance) *
+                    16,
+                algoDecimals
+              )}{" "}
+              {config.native_asset.params.unitName}. You can opt out from the
+              Application list.
+            </div>
+          </>
+        ))}
     </Form>
   )
 }
