@@ -1,9 +1,9 @@
+import { useCallback } from "react"
 import Modal from "react-modal"
 
 import { PASSWORD_LENGTH, PASSWORD_REGEX } from "lib/utils/auth"
 
 import { Form } from "./Form/Primitives/Form"
-import { FormSubmit } from "./Form/Primitives/FormSubmit"
 import { InputLabel } from "./Form/Primitives/InputLabel"
 import { InputPassword } from "./Form/Primitives/InputPassword"
 import { useForm } from "./Form/Primitives/useForm"
@@ -22,7 +22,7 @@ export function PasswordModal({
   isOpen,
   reason,
 }: PasswordModalProps) {
-  const { submitForm, isSubmitting, isValid, fieldProps, resetForm } = useForm({
+  const { fieldProps, isValid, resetForm, values } = useForm({
     fields: {
       password: {
         minLength: PASSWORD_LENGTH,
@@ -35,15 +35,16 @@ export function PasswordModal({
     defaultValues: {
       password: "",
     },
-    onSubmit: async ({ password }) => {
-      resetForm()
-      await onConfirm(password)
-    },
   })
+
+  const submitForm = useCallback(async () => {
+    resetForm()
+    await onConfirm(values.password)
+  }, [onConfirm, resetForm, values])
 
   return (
     <Modal isOpen={isOpen} onAfterOpen={resetForm} onRequestClose={onClose}>
-      <Form onSubmit={submitForm}>
+      <Form>
         <InputLabel name="password">
           {reason ?? "Enter your password"} (6 digits):
         </InputLabel>
@@ -53,7 +54,12 @@ export function PasswordModal({
           autoFocus
         />
         <Button onClick={onClose} label="Cancel" />
-        <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
+        <Button
+          disabled={!isValid}
+          label="Confirm"
+          onClick={submitForm}
+          type="submit"
+        />
       </Form>
     </Modal>
   )

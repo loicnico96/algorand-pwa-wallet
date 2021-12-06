@@ -33,7 +33,6 @@ import { AccountSelect } from "./AccountSelect"
 import { AmountSelect } from "./AmountSelect"
 import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
-import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
 import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
@@ -54,87 +53,87 @@ export function SwapForm() {
   const algoId = config.native_asset.index
   const algoDecimals = config.native_asset.params.decimals
 
-  const { fieldProps, isSubmitting, isValid, mergeValues, submitForm, values } =
-    useForm({
-      fields: {
-        amount: {
-          min: 0,
-          query: RouteParam.AMOUNT,
-          required: true,
-          type: "number",
-        },
-        buyAssetId: {
-          min: 0,
-          query: RouteParam.ASSET_ID_BUY,
-          required: true,
-          type: "number",
-        },
-        sellAssetId: {
-          min: 0,
-          query: RouteParam.ASSET_ID_SELL,
-          required: true,
-          type: "number",
-        },
-        sender: {
-          maxLength: ADDRESS_LENGTH,
-          minLength: ADDRESS_LENGTH,
-          pattern: ADDRESS_REGEX,
-          query: RouteParam.ADDRESS,
-          required: true,
-          type: "string",
-        },
-        slippage: {
-          max: 10,
-          min: 0,
-          query: RouteParam.SLIPPAGE,
-          required: true,
-          type: "number",
-        },
-        swapMode: {
-          pattern: /^fi|fo$/,
-          query: RouteParam.SWAP_MODE,
-          required: true,
-          type: "string",
-        },
+  const { fieldProps, isValid, mergeValues, values } = useForm({
+    fields: {
+      amount: {
+        min: 0,
+        query: RouteParam.AMOUNT,
+        required: true,
+        type: "number",
       },
-      defaultValues: {
-        amount: 0,
-        buyAssetId: algoId,
-        sellAssetId: algoId,
-        sender: "",
-        swapMode: SwapMode.FI,
-        slippage: 3,
+      buyAssetId: {
+        min: 0,
+        query: RouteParam.ASSET_ID_BUY,
+        required: true,
+        type: "number",
       },
-      onSubmit: async () => {
-        const params = await refetchParams()
-        const poolAddress =
-          prices?.[values.sellAssetId]?.pools[values.buyAssetId]?.address
-
-        if (!poolAddress) {
-          throw Error("Invalid state")
-        }
-
-        const account = await getAccountInfo(indexer, poolAddress)
-
-        const pool = getPoolInfo(account, config)
-
-        const quote = getSwapQuote({
-          ...values,
-          pool,
-          slippage: values.slippage / 1000,
-          swapMode: values.swapMode as SwapMode,
-        })
-
-        const transaction = createSwapTransaction(config, {
-          params,
-          pool,
-          quote,
-          sender: values.sender,
-        })
-
-        await sendTransaction(transaction)
+      sellAssetId: {
+        min: 0,
+        query: RouteParam.ASSET_ID_SELL,
+        required: true,
+        type: "number",
       },
+      sender: {
+        maxLength: ADDRESS_LENGTH,
+        minLength: ADDRESS_LENGTH,
+        pattern: ADDRESS_REGEX,
+        query: RouteParam.ADDRESS,
+        required: true,
+        type: "string",
+      },
+      slippage: {
+        max: 10,
+        min: 0,
+        query: RouteParam.SLIPPAGE,
+        required: true,
+        type: "number",
+      },
+      swapMode: {
+        pattern: /^fi|fo$/,
+        query: RouteParam.SWAP_MODE,
+        required: true,
+        type: "string",
+      },
+    },
+    defaultValues: {
+      amount: 0,
+      buyAssetId: algoId,
+      sellAssetId: algoId,
+      sender: "",
+      swapMode: SwapMode.FI,
+      slippage: 3,
+    },
+  })
+
+  const submitForm = async () => {
+    const params = await refetchParams()
+    const poolAddress =
+      prices?.[values.sellAssetId]?.pools[values.buyAssetId]?.address
+
+    if (!poolAddress) {
+      throw Error("Invalid state")
+    }
+
+    const account = await getAccountInfo(indexer, poolAddress)
+
+    const pool = getPoolInfo(account, config)
+
+    const quote = getSwapQuote({
+      ...values,
+      pool,
+      slippage: values.slippage / 1000,
+      swapMode: values.swapMode as SwapMode,
     })
+
+    const transaction = createSwapTransaction(config, {
+      params,
+      pool,
+      quote,
+      sender: values.sender,
+    })
+
+    await sendTransaction(transaction)
+  }
 
   const { sender, amount, buyAssetId, sellAssetId, slippage, swapMode } = values
 
@@ -233,7 +232,7 @@ export function SwapForm() {
   }
 
   return (
-    <Form onSubmit={submitForm}>
+    <Form>
       <InputGroup group="sender">
         <GroupLabel group="sender">Address</GroupLabel>
         <InputLabel name="sender">Address</InputLabel>
@@ -588,9 +587,11 @@ export function SwapForm() {
       {accountInfo &&
         (hasOptedInApplication(accountInfo, validatorAppId) ? (
           hasOptedInAsset(accountInfo, buyAssetId) ? (
-            <FormSubmit
-              disabled={isSubmitting || !isAbleToSubmit}
+            <Button
+              disabled={!isAbleToSubmit}
               label="Swap"
+              onClick={submitForm}
+              type="submit"
             />
           ) : (
             <>

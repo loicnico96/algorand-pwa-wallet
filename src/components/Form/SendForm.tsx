@@ -1,6 +1,7 @@
 import algosdk from "algosdk"
 import { useCallback } from "react"
 
+import { Button } from "components/Primitives/Button"
 import { useNetworkContext } from "context/NetworkContext"
 import { useAccountAssetIds } from "hooks/api/useAccountAssetIds"
 import { useAccountBalance } from "hooks/api/useAccountBalance"
@@ -13,9 +14,7 @@ import { useTransactionParams } from "hooks/api/useTransactionParams"
 import { useIntParamState } from "hooks/navigation/useIntParamState"
 import { useParamState } from "hooks/navigation/useParamState"
 import { useContacts } from "hooks/storage/useContacts"
-import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
 import { createAssetTransferTransaction } from "lib/algo/transactions"
-import { handleGenericError } from "lib/utils/error"
 import { printDecimals } from "lib/utils/int"
 import { RouteParam } from "lib/utils/navigation"
 
@@ -24,7 +23,6 @@ import { AmountSelect } from "./AmountSelect"
 import { AssetDisplay } from "./AssetDisplay"
 import { AssetSelect } from "./AssetSelect"
 import { Form } from "./Primitives/Form"
-import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
 import { InputBase } from "./Primitives/InputBase"
 import { InputGroup } from "./Primitives/InputGroup"
@@ -154,13 +152,8 @@ export function SendForm() {
     sendTransaction,
   ])
 
-  const [onSubmitAsync, isSubmitting] = useAsyncHandler(
-    onSubmit,
-    handleGenericError
-  )
-
   return (
-    <Form onSubmit={onSubmitAsync}>
+    <Form>
       <InputGroup group="from">
         <GroupLabel group="from">Sender</GroupLabel>
         <AccountSelect
@@ -374,7 +367,12 @@ export function SendForm() {
           />
         </div>
       </InputGroup>
-      <FormSubmit disabled={!isAbleToSubmit || isSubmitting} label="Confirm" />
+      <Button
+        disabled={!isAbleToSubmit}
+        label="Confirm"
+        onClick={onSubmit}
+        type="submit"
+      />
     </Form>
   )
 }

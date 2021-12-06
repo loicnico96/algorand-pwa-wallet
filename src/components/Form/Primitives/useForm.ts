@@ -2,8 +2,6 @@ import { useRouter } from "next/router"
 import { ParsedUrlQuery } from "querystring"
 import { useCallback, useEffect, useRef, useState } from "react"
 
-import { useAsyncHandler } from "hooks/utils/useAsyncHandler"
-import { handleGenericError } from "lib/utils/error"
 import { defaultLogger } from "lib/utils/logger"
 export interface FieldOptionsBase {
   query?: string
@@ -43,21 +41,17 @@ export type FieldProps<T extends FieldOptions> = T & {
 export interface UseFormOptions<T extends Record<string, FieldOptions>> {
   fields: T
   defaultValues: FieldValues<T>
-  onError?: (error: Error) => void
-  onSubmit: (values: FieldValues<T>) => Promise<void>
 }
 
 export interface UseFormResult<T extends Record<string, FieldOptions>> {
   fieldProps: {
     [K in keyof T]: FieldProps<T[K]>
   }
-  isSubmitting: boolean
   isValid: boolean
   mergeValues: (values: Partial<FieldValues<T>>) => void
   resetForm: () => void
   setValue: <K extends keyof T>(name: K, value: FieldValue<T[K]>) => void
   setValues: (values: FieldValues<T>) => void
-  submitForm: () => void
   values: FieldValues<T>
 }
 
@@ -178,8 +172,6 @@ export function getQueryValues<T extends Record<string, FieldOptions>>(
 export function useForm<T extends Record<string, FieldOptions>>({
   fields,
   defaultValues,
-  onError = handleGenericError,
-  onSubmit,
 }: UseFormOptions<T>): UseFormResult<T> {
   const router = useRouter()
   const loadQueryRef = useRef(!router.isReady)
@@ -237,28 +229,17 @@ export function useForm<T extends Record<string, FieldOptions>>({
     }
   }
 
-  const [submitForm, isSubmitting] = useAsyncHandler(
-    useCallback(async () => {
-      if (isValid) {
-        await onSubmit(values)
-      }
-    }, [isValid, onSubmit, values]),
-    onError
-  )
-
   const resetForm = useCallback(() => {
     setValues(defaultValues)
   }, [defaultValues])
 
   return {
     fieldProps,
-    isSubmitting,
     isValid,
     mergeValues,
     resetForm,
     setValue,
     setValues,
-    submitForm,
     values,
   }
 }

@@ -1,9 +1,11 @@
+import { useCallback } from "react"
+
 import { Form } from "components/Form/Primitives/Form"
-import { FormSubmit } from "components/Form/Primitives/FormSubmit"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
 import { InputText } from "components/Form/Primitives/InputText"
 import { InputTextArea } from "components/Form/Primitives/InputTextArea"
 import { useForm } from "components/Form/Primitives/useForm"
+import { Button } from "components/Primitives/Button"
 import { useContact } from "hooks/storage/useContact"
 
 const NAME_MAX_LENGTH = 20
@@ -18,7 +20,7 @@ export interface ChooseNameProps {
 export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
   const { data: contactData, updateContact } = useContact(address)
 
-  const { isSubmitting, isValid, fieldProps, submitForm } = useForm({
+  const { fieldProps, isValid, values } = useForm({
     fields: {
       name: {
         maxLength: NAME_MAX_LENGTH,
@@ -34,14 +36,15 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
       name: contactData.name ?? "",
       note: contactData.note ?? "",
     },
-    onSubmit: async ({ name, note }) => {
-      await updateContact({
-        name: name.trim(),
-        note: note.trim() || undefined,
-      })
-      await onNext()
-    },
   })
+
+  const submitForm = useCallback(async () => {
+    await updateContact({
+      name: values.name.trim(),
+      note: values.note.trim() || undefined,
+    })
+    await onNext()
+  }, [onNext, updateContact, values])
 
   return (
     <div>
@@ -50,7 +53,7 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         Choose a name for your account. This information will be stored on your
         device only.
       </p>
-      <Form onSubmit={submitForm}>
+      <Form>
         <div>
           <InputLabel name="name">Name</InputLabel>
         </div>
@@ -68,7 +71,12 @@ export function ChooseName({ address, onBack, onNext }: ChooseNameProps) {
         <div>
           <InputTextArea {...fieldProps.note} placeholder="Note (optional)" />
         </div>
-        <FormSubmit disabled={isSubmitting || !isValid} label="Confirm" />
+        <Button
+          disabled={!isValid}
+          label="Confirm"
+          onClick={submitForm}
+          type="submit"
+        />
       </Form>
     </div>
   )

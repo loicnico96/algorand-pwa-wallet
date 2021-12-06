@@ -1,11 +1,12 @@
 import styled from "@emotion/styled"
+import { useCallback } from "react"
 
 import { Form } from "components/Form/Primitives/Form"
-import { FormSubmit } from "components/Form/Primitives/FormSubmit"
 import { InputGroup } from "components/Form/Primitives/InputGroup"
 import { InputLabel } from "components/Form/Primitives/InputLabel"
 import { InputText } from "components/Form/Primitives/InputText"
 import { FieldOptionsText, useForm } from "components/Form/Primitives/useForm"
+import { Button } from "components/Primitives/Button"
 import { fill } from "lib/utils/arrays"
 import { handleGenericError } from "lib/utils/error"
 
@@ -39,7 +40,7 @@ export function Passphrase({
 }: PassphaseProps) {
   const firstEditable = Array.isArray(editable) ? Math.min(...editable) : 0
 
-  const { fieldProps, submitForm, isSubmitting, isValid } = useForm({
+  const { fieldProps, isValid, values } = useForm({
     fields: FIELD_NAMES.reduce((result, name) => {
       result[name] = {
         pattern: PASSPHRASE_REGEX,
@@ -54,22 +55,27 @@ export function Passphrase({
 
       return result
     }, {} as Record<string, string>),
-    onError: error => {
-      handleGenericError(error)
-      // Focus first editable word
-      for (let i = 0; i < FIELD_NAMES.length; i++) {
-        const el = document.getElementById(`input-word-${i}`)
-        if (el?.getAttribute("disabled") === null) {
-          el.focus()
-          return
-        }
-      }
-    },
-    onSubmit: values => onSubmit(FIELD_NAMES.map(name => values[name])),
   })
 
+  const submitForm = useCallback(
+    async () => onSubmit(FIELD_NAMES.map(name => values[name])),
+    [onSubmit, values]
+  )
+
+  const onError = useCallback((error: Error) => {
+    handleGenericError(error)
+    // Focus first editable word
+    for (let i = 0; i < FIELD_NAMES.length; i++) {
+      const el = document.getElementById(`input-word-${i}`)
+      if (el?.getAttribute("disabled") === null) {
+        el.focus()
+        return
+      }
+    }
+  }, [])
+
   return (
-    <Form autoComplete="off" onSubmit={submitForm}>
+    <Form autoComplete="off">
       <InputGroup group="words">
         {FIELD_NAMES.map((name, index) => {
           const props = fieldProps[name]
@@ -137,10 +143,13 @@ export function Passphrase({
           )
         })}
       </InputGroup>
-      <FormSubmit
+      <Button
         autoFocus={autoFocus && !editable}
-        disabled={isSubmitting || !isValid}
+        disabled={!isValid}
         label="Confirm"
+        onClick={submitForm}
+        onError={onError}
+        type="submit"
       />
     </Form>
   )

@@ -10,24 +10,11 @@ export type InputPasswordProps = Overwrite<
   }
 >
 
-export function InputPassword({
-  onKeyDown,
-  pattern,
-  ...inputProps
-}: InputPasswordProps) {
+export function InputPassword({ pattern, ...inputProps }: InputPasswordProps) {
   return (
     <InputBase
       {...inputProps}
       autoCapitalize="off"
-      onKeyDown={e => {
-        if (!e.key.match(/^[0-9]$/)) {
-          e.preventDefault()
-        }
-
-        if (onKeyDown) {
-          onKeyDown(e)
-        }
-      }}
       pattern={pattern?.source}
       type="password"
     />
