@@ -1,13 +1,13 @@
-import { InputNumber, InputNumberProps } from "./Primitives/InputNumber"
+import { InputAmount, InputAmountProps } from "./Primitives/InputAmount"
 
-export interface AmountSelectProps extends InputNumberProps {
+export interface AmountSelectProps extends InputAmountProps {
   unit?: string
 }
 
 export function AmountSelect({ unit, ...inputProps }: AmountSelectProps) {
   return (
     <div>
-      <InputNumber {...inputProps} />
+      <InputAmount {...inputProps} />
       {!!unit && <span>{unit}</span>}
     </div>
   )

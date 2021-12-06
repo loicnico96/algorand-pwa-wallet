@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
 
+import { printDecimals, readDecimals } from "lib/utils/int"
 import { Overwrite } from "lib/utils/objects"
 
 import { InputBase, InputBaseProps } from "./InputBase"
 
-export type InputNumberProps = Overwrite<
+export type InputAmountProps = Overwrite<
   InputBaseProps,
   {
     decimals: number
@@ -15,22 +16,24 @@ export type InputNumberProps = Overwrite<
   }
 >
 
-export function InputNumber({
+export function InputAmount({
   autoSelect = true,
   decimals,
+  min,
+  max,
   onBlur,
   onChange,
   onKeyDown,
   value,
   ...props
-}: InputNumberProps) {
+}: InputAmountProps) {
   const step = 1 / 10 ** decimals
 
-  const [inputValue, setInputValue] = useState(value.toFixed(decimals))
+  const [inputValue, setInputValue] = useState(printDecimals(value, decimals))
 
   useEffect(() => {
-    if (value !== Number.parseFloat(inputValue)) {
-      setInputValue(value.toFixed(decimals))
+    if (value !== readDecimals(inputValue, decimals)) {
+      setInputValue(printDecimals(value, decimals))
     }
   }, [inputValue, value, decimals])
 
@@ -38,8 +41,10 @@ export function InputNumber({
     <InputBase
       {...props}
       autoSelect={autoSelect}
+      max={max !== undefined ? max * step : undefined}
+      min={min !== undefined ? min * step : undefined}
       onBlur={e => {
-        setInputValue(value.toFixed(decimals))
+        setInputValue(printDecimals(value, decimals))
 
         if (onBlur) {
           onBlur(e)
@@ -49,7 +54,7 @@ export function InputNumber({
         setInputValue(newInputValue)
 
         if (onChange) {
-          const newValue = Number.parseFloat(newInputValue)
+          const newValue = readDecimals(newInputValue, decimals)
           if (value !== newValue) {
             onChange(newValue)
           }
@@ -57,7 +62,7 @@ export function InputNumber({
       }}
       onKeyDown={e => {
         if (e.key === "Enter") {
-          setInputValue(value.toFixed(decimals))
+          setInputValue(printDecimals(value, decimals))
         }
 
         if (onKeyDown) {

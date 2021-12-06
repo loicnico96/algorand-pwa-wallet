@@ -41,6 +41,7 @@ import { FormSubmit } from "./Primitives/FormSubmit"
 import { GroupLabel } from "./Primitives/GroupLabel"
 import { InputGroup } from "./Primitives/InputGroup"
 import { InputLabel } from "./Primitives/InputLabel"
+import { InputNumber } from "./Primitives/InputNumber"
 import { InputText } from "./Primitives/InputText"
 import { useForm } from "./Primitives/useForm"
 
@@ -347,26 +348,30 @@ export function SwapForm() {
                   <>
                     <div>
                       <InputLabel name="inPrice">Price</InputLabel>
-                      <AmountSelect
-                        decimals={2}
-                        disabled
-                        name="inPrice"
-                        unit="$"
-                        value={inPrice.price * 10 ** 2}
-                      />
+                      <div>
+                        <InputNumber
+                          decimals={2}
+                          disabled
+                          name="inPrice"
+                          value={inPrice.price}
+                        />
+                        $
+                      </div>
                     </div>
                     <div>
                       <InputLabel name="inValue">Value</InputLabel>
-                      <AmountSelect
-                        decimals={2}
-                        disabled
-                        name="inValue"
-                        unit="$"
-                        value={
-                          (quote.sellAmount / 10 ** (inPrice.decimals - 2)) *
-                          inPrice.price
-                        }
-                      />
+                      <div>
+                        <InputNumber
+                          decimals={2}
+                          disabled
+                          name="inValue"
+                          value={
+                            (quote.sellAmount / 10 ** inPrice.decimals) *
+                            inPrice.price
+                          }
+                        />
+                        $
+                      </div>
                     </div>
                   </>
                 )}
@@ -457,26 +462,30 @@ export function SwapForm() {
                     <>
                       <div>
                         <InputLabel name="outPrice">Price</InputLabel>
-                        <AmountSelect
-                          decimals={2}
-                          disabled
-                          name="outPrice"
-                          unit="$"
-                          value={outPrice.price * 10 ** 2}
-                        />
+                        <div>
+                          <InputNumber
+                            decimals={2}
+                            disabled
+                            name="outPrice"
+                            value={outPrice.price}
+                          />
+                          $
+                        </div>
                       </div>
                       <div>
                         <InputLabel name="outValue">Value</InputLabel>
-                        <AmountSelect
-                          decimals={2}
-                          disabled
-                          name="outValue"
-                          unit="$"
-                          value={
-                            (quote.buyAmount / 10 ** (outPrice.decimals - 2)) *
-                            outPrice.price
-                          }
-                        />
+                        <div>
+                          <InputNumber
+                            decimals={2}
+                            disabled
+                            name="outValue"
+                            value={
+                              (quote.buyAmount / 10 ** outPrice.decimals) *
+                              outPrice.price
+                            }
+                          />
+                          $
+                        </div>
                       </div>
                     </>
                   )}
@@ -576,13 +585,15 @@ export function SwapForm() {
             )}
             <div>
               <InputLabel name="impact">Price Impact</InputLabel>
-              <AmountSelect
-                decimals={2}
-                disabled
-                name="impact"
-                unit="%"
-                value={quote.priceImpact * 10000}
-              />
+              <div>
+                <InputNumber
+                  decimals={2}
+                  disabled
+                  name="impact"
+                  value={quote.priceImpact * 100}
+                />
+                %
+              </div>
             </div>
           </InputGroup>
         )}
