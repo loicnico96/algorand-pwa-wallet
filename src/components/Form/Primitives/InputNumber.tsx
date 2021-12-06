@@ -15,6 +15,18 @@ export type InputNumberProps = Overwrite<
   }
 >
 
+export function isEqual(a: number, b: number, e: number): boolean {
+  return Math.abs(a - b) < e
+}
+
+export function toString(value: number, decimals: number): string {
+  return value.toFixed(decimals)
+}
+
+export function toNumber(value: string, decimals: number): number {
+  return Number.parseFloat(toString(Number.parseFloat(value), decimals))
+}
+
 export function InputNumber({
   autoSelect = true,
   decimals,
@@ -26,20 +38,20 @@ export function InputNumber({
 }: InputNumberProps) {
   const step = 1 / 10 ** decimals
 
-  const [inputValue, setInputValue] = useState(value.toFixed(decimals))
+  const [inputValue, setInputValue] = useState(toString(value, decimals))
 
   useEffect(() => {
-    if (value !== Number.parseFloat(inputValue)) {
-      setInputValue(value.toFixed(decimals))
+    if (!isEqual(value, toNumber(inputValue, decimals), step / 2)) {
+      setInputValue(toString(value, decimals))
     }
-  }, [inputValue, value, decimals])
+  }, [decimals, inputValue, step, value])
 
   return (
     <InputBase
       {...props}
       autoSelect={autoSelect}
       onBlur={e => {
-        setInputValue(value.toFixed(decimals))
+        setInputValue(toString(value, decimals))
 
         if (onBlur) {
           onBlur(e)
@@ -49,15 +61,15 @@ export function InputNumber({
         setInputValue(newInputValue)
 
         if (onChange) {
-          const newValue = Number.parseFloat(newInputValue)
-          if (value !== newValue) {
+          const newValue = toNumber(newInputValue, decimals)
+          if (!isEqual(value, newValue, step / 2)) {
             onChange(newValue)
           }
         }
       }}
       onKeyDown={e => {
         if (e.key === "Enter") {
-          setInputValue(value.toFixed(decimals))
+          setInputValue(toString(value, decimals))
         }
 
         if (onKeyDown) {

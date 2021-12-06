@@ -35,7 +35,7 @@ export function InputAmount({
     if (value !== readDecimals(inputValue, decimals)) {
       setInputValue(printDecimals(value, decimals))
     }
-  }, [inputValue, value, decimals])
+  }, [decimals, inputValue, value])
 
   return (
     <InputBase
